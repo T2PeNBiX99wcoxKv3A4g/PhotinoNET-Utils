@@ -13,100 +13,18 @@ permissions:
   contents: write
 
 jobs:
-  version-change:
-    name: Version Change
-    uses: T2PeNBiX99wcoxKv3A4g/Release-Workflows/.github/workflows/version_change.yml@main
+  release:
+    uses: T2PeNBiX99wcoxKv3A4g/Release-Workflows/.github/workflows/csharp_library_release.yml@main
     with:
-      version_file_path: './PhotinoNETUtils/PhotinoNETUtils.csproj'
-      version_keyword: 'Version'
+      project_path: ./PhotinoNETUtils/PhotinoNETUtils.csproj
+      version_file_path: ./PhotinoNETUtils/PhotinoNETUtils.csproj
+      version_keyword: Version
       extra_version_files: |
         UserInterface/package.json|version
+      npm_directory: ./UserInterface
+      publish_nuget: true
+      publish_npm: true
+      filename: PhotinoNETUtils
       prerelease: true
       commit_message: 'action: Update pre-release version and update `CHANGELOG.md`'
-    secrets: inherit
-
-  build:
-    name: Build packages
-    needs: [ version-change ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check-out repository
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ github.ref_name }}
-          fetch-depth: 0
-
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: '10.0.x'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Pack .NET library
-        env:
-          VERSION: ${{ needs['version-change'].outputs.new_version }}
-        run: |
-          VERSION="${VERSION#v}"
-          mkdir -p release
-          dotnet pack PhotinoNETUtils/PhotinoNETUtils.csproj \
-            -c Release \
-            -o release \
-            -p:PackageVersion="$VERSION"
-          cp PhotinoNETUtils/bin/Release/net10.0/PhotinoNETUtils.dll release/
-
-      - name: Pack npm package
-        env:
-          VERSION: ${{ needs['version-change'].outputs.new_version }}
-        run: |
-          VERSION="${VERSION#v}"
-          cd UserInterface
-          npm install --no-audit --no-fund
-          npm version "$VERSION" --no-git-tag-version --allow-same-version
-          npm run pack
-          mv ./*.tgz "$GITHUB_WORKSPACE/release/"
-
-      - name: Publish NuGet package
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: |
-          if [ -z "${NUGET_API_KEY:-}" ]; then
-            echo "NUGET_API_KEY is not configured; skipping NuGet publish."
-            exit 0
-          fi
-          dotnet nuget push release/*.nupkg \
-            --api-key "$NUGET_API_KEY" \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
-
-      - name: Publish npm package
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-            echo "NPM_TOKEN is not configured; skipping npm publish."
-            exit 0
-          fi
-          cd UserInterface
-          npm config set //registry.npmjs.org/:_authToken "$NODE_AUTH_TOKEN"
-          npm publish --access public --tag next
-
-      - name: Upload packages
-        uses: actions/upload-artifact@v7
-        with:
-          name: packages
-          path: release/*
-
-  upload:
-    name: Create Release
-    needs: [ version-change, build ]
-    uses: T2PeNBiX99wcoxKv3A4g/Release-Workflows/.github/workflows/create_release.yml@main
-    with:
-      tag: ${{ needs['version-change'].outputs.new_tag }}
-      changelog: ${{ needs['version-change'].outputs.changelog }}
-      prerelease: true
-      artifacts: 'release/*'
     secrets: inherit
