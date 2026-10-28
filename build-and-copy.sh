@@ -74,7 +74,7 @@ SET_DEPENDENCY="$ROOT/scripts/set-bridge-dependency.mjs"
 }
 
 LIBRARY_VERSION="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' "$PROJECT" | head -n 1)"
-NPM_VERSION="$(node -p "require('$NPM_MANIFEST').version")"
+NPM_VERSION="$(cd "$UI" && node -p "require('./package.json').version")"
 
 if [[ -z "$LIBRARY_VERSION" ]]; then
     echo "Could not read <Version> from $PROJECT" >&2
