@@ -75,6 +75,10 @@ pwsh ./build-and-copy.ps1
 
 # Linux / macOS
 ./build-and-copy.sh
+
+# MSYS2: invoke it through the MSYS bash explicitly, otherwise the shebang can resolve the
+# Windows WSL bash.exe shim instead
+bash ./build-and-copy.sh
 ```
 
 Both accept `--config <file>` (`-Config` on PowerShell), `--skip-npm` (`-SkipNpm`) and
