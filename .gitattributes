@@ -1,0 +1,7 @@
+# Scripts and Node helpers are executed on Linux; keep LF there.
+*.sh text eol=lf
+*.mjs text eol=lf
+
+# PowerShell and C# are fine with either, but keep the repository consistent on Windows.
+*.ps1 text eol=crlf
+*.cs text eol=crlf
