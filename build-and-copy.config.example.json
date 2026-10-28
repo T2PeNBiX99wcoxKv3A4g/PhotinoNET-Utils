@@ -1,0 +1,14 @@
+{
+  "libsDirectory": "Libs",
+  "userInterfaceDirectory": "UserInterface",
+  "targets": [
+    {
+      "name": "MyApp",
+      "path": "../MyApp/MyApp"
+    },
+    {
+      "name": "AnotherApp",
+      "path": "../AnotherApp/AnotherApp"
+    }
+  ]
+}

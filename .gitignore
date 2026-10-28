@@ -30,3 +30,9 @@ nul
 opencode.json
 .opencode/
 AGENTS.md
+
+# Local pack artifacts
+*.tgz
+
+# Local target configuration (contains machine-specific project paths)
+build-and-copy.config.json
