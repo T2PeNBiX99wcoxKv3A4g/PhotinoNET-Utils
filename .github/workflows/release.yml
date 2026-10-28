@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   release:
-    uses: T2PeNBiX99wcoxKv3A4g/Release-Workflows/.github/workflows/csharp_library_release.yml@main
+    uses: T2PeNBiX99wcoxKv3A4g/Release-Workflows/.github/workflows/csharp_npm_release.yml@main
     with:
       project_path: ./PhotinoNETUtils/PhotinoNETUtils.csproj
       version_file_path: ./PhotinoNETUtils/PhotinoNETUtils.csproj

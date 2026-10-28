@@ -158,8 +158,9 @@ It ships the `Native` helper and the global `window.external` type declaration.
   repository secrets additionally publishes to nuget.org / npmjs.org; without them the publish
   steps are skipped. Pre-releases use the npm `next` tag.
 - The packaging steps live in the shared
-  `csharp_library_release.yml` workflow in
-  [Release-Workflows](https://github.com/T2PeNBiX99wcoxKv3A4g/Release-Workflows).
+  `csharp_npm_release.yml` workflow in
+  [Release-Workflows](https://github.com/T2PeNBiX99wcoxKv3A4g/Release-Workflows). The C# and npm
+  builds themselves are separate reusable workflows (`csharp_library_build.yml`, `npm_build.yml`).
 
 ## Build
 
