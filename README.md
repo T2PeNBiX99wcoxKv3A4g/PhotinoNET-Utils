@@ -142,6 +142,20 @@ import {Native} from "@photino-net-utils/bridge";
 
 It ships the `Native` helper and the global `window.external` type declaration.
 
+## Releasing
+
+- Push to `master` runs **Release**; push to `dev/**` runs **Pre Release**.
+- A release first bumps the version in both `PhotinoNETUtils/PhotinoNETUtils.csproj` and
+  `UserInterface/package.json`, commits the bump and `CHANGELOG.md`, and creates the tag via
+  [Release-Workflows](https://github.com/T2PeNBiX99wcoxKv3A4g/Release-Workflows).
+- The build job produces:
+  - `PhotinoNETUtils.<version>.nupkg` (NuGet package)
+  - `photino-net-utils-bridge-<version>.tgz` (npm package)
+  - `PhotinoNETUtils.dll` (the raw DLL for consumers using `libs/`)
+- The packages are attached to the GitHub Release. Setting `NUGET_API_KEY` / `NPM_TOKEN`
+  repository secrets additionally publishes to nuget.org / npmjs.org; without them the publish
+  steps are skipped. Pre-releases use the npm `next` tag.
+
 ## Build
 
 ```bash

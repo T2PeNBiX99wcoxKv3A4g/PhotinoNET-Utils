@@ -36,3 +36,7 @@ AGENTS.md
 
 # Local target configuration (contains machine-specific project paths)
 build-and-copy.config.json
+
+# Package output
+release/
+*.nupkg
