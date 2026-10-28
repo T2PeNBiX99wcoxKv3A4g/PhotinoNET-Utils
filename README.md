@@ -76,9 +76,14 @@ pwsh ./build-and-copy.ps1
 # Linux / macOS
 ./build-and-copy.sh
 
-# MSYS2: invoke it through the MSYS bash explicitly, otherwise the shebang can resolve the
-# Windows WSL bash.exe shim instead
-bash ./build-and-copy.sh
+# MSYS2: run it from the MSYS2 shell (the shebang uses /bin/bash)
+./build-and-copy.sh
+```
+
+If PowerShell resolves `bash` to the Windows WSL alias instead of MSYS2, call it explicitly:
+
+```powershell
+& "$env:USERPROFILE\scoop\apps\msys2\current\usr\bin\bash.exe" ./build-and-copy.sh
 ```
 
 Both accept `--config <file>` (`-Config` on PowerShell), `--skip-npm` (`-SkipNpm`) and

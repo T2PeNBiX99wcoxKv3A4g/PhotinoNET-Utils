@@ -91,6 +91,7 @@ if ($LASTEXITCODE -ne 0) { throw 'dotnet build failed' }
 
 $dll = Join-Path $root 'PhotinoNETUtils\bin\Release\net10.0\PhotinoNETUtils.dll'
 if (-not (Test-Path $dll)) { throw "DLL not found: $dll" }
+$dllHash = (Get-FileHash $dll -Algorithm SHA256).Hash
 
 $tgzName = "photino-net-utils-bridge-$npmVersion.tgz"
 $tgz = Join-Path $ui $tgzName
@@ -120,7 +121,10 @@ foreach ($target in $targets) {
     $libDirectory = Join-Path $target.Path $target.Libs
     New-Item -ItemType Directory -Force -Path $libDirectory | Out-Null
 
-    Copy-Item $dll (Join-Path $libDirectory 'PhotinoNETUtils.dll') -Force
+    $targetDll = Join-Path $libDirectory 'PhotinoNETUtils.dll'
+    $targetHash = if (Test-Path $targetDll) { (Get-FileHash $targetDll -Algorithm SHA256).Hash } else { '' }
+    if ($targetHash -ne $dllHash) { Copy-Item $dll $targetDll -Force }
+
     Get-ChildItem $libDirectory -Filter 'photino-net-utils-bridge-*.tgz' -File |
         Where-Object Name -ne $tgzName |
         Remove-Item -Force

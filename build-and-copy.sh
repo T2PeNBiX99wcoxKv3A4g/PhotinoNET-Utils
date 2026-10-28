@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Builds PhotinoNETUtils and copies its DLL and npm tarball into the configured projects.
 #
 # Create build-and-copy.config.json (git-ignored) from build-and-copy.config.example.json:
@@ -117,9 +117,11 @@ while IFS=$'\t' read -r NAME TARGET LIBS UI_DIR; do
     LIB_DIR="$TARGET/$LIBS"
     mkdir -p "$LIB_DIR"
 
-    cp -f "$DLL" "$LIB_DIR/PhotinoNETUtils.dll"
-    for old in "$LIB_DIR"/photino-net-utils-bridge-*.tgz; do
-        [[ -e "$old" ]] || continue
+    DEST_DLL="$LIB_DIR/PhotinoNETUtils.dll"
+    if [[ ! -f "$DEST_DLL" ]] || ! cmp -s "$DLL" "$DEST_DLL"; then
+        cp -f "$DLL" "$DEST_DLL"
+    fi
+    for old in "$LIB_DIR"/photino-net-utils-bridge-*.tgz; do        [[ -e "$old" ]] || continue
         [[ "$(basename "$old")" == "$TGZ_NAME" ]] || rm -f "$old"
     done
     cp -f "$TGZ" "$LIB_DIR/$TGZ_NAME"
