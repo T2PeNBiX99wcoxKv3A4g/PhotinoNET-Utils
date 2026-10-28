@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.2.0..v0.2.1) - 2026-10-28
+
+### 🐛 Bug Fixes
+
+- Pin securifybv.ShellLink back to 0.1.0 - ([22292b5](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/22292b55903049890110bf5f78e2be1569c8404a))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([179d04f](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/179d04fda1756152164ff89c89f1c1c6020530bd))
+
+
 ## [0.2.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.1.0..v0.2.0) - 2026-10-28
 
 ### ⛰️  Features
