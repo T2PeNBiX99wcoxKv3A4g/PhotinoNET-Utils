@@ -10,7 +10,7 @@ plain class library (`net10.0`) plus a small npm package for the front-end bridg
 | `Logging` | Serilog console + rolling file log, console mirroring, unhandled-exception hooks |
 | `Hosting/StaticServer` | Kestrel static file host on an OS-assigned port (`127.0.0.1:0`), serving `Resources/wwwroot` from embedded resources with disk overrides |
 | `Interop` | `ITrayIcon` / `TrayIconFactory` with Win32 and libayatana-appindicator implementations, plus the Win32 P/Invoke set |
-| `Platform` | Linux GTK helpers (hide/show/transparency/clipboard/log routing) and Linux diagnostics |
+| `Platform` | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, and Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build) |
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding |
 | `AppIcon` | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources |
 | `Utils` | `Result<T>`, `Try`, `Singleton<T>` |
@@ -133,6 +133,29 @@ var started = OperatingSystem.IsLinux() && !TrayIconFactory.IsToolkitReady
 
 On Linux the icon can only be created on the GTK thread once the toolkit has a display connection;
 poll `TrayIconFactory.IsToolkitReady` first and call `Start()` through `PhotinoWindow.Invoke`.
+
+### Shortcuts
+
+```csharp
+using PhotinoNetUtils.Platform;
+
+// A per-user autostart entry, next to the app's other per-user state.
+WindowsShortcut.Create(
+    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "MyApp.lnk"),
+    executable,
+    arguments: "",
+    workingDirectory: Path.GetDirectoryName(executable)!,
+    description: "MyApp");
+
+// Photino drops a Start Menu shortcut for a window that registers for notifications and never
+// looks at it again, so keep it pointing at the build that is running now.
+if (OperatingSystem.IsWindows())
+    StartMenuShortcut.Refresh("MyApp");
+```
+
+`StartMenuShortcut.Refresh` rewrites the shortcut only when its target differs from the executable,
+and creates it when it is missing. It never throws: the failure is logged, because it runs while the
+window is being created.
 
 ### Front-end bridge
 
