@@ -19,8 +19,8 @@ jobs:
     with:
       version_file_path: './PhotinoNETUtils/PhotinoNETUtils.csproj'
       version_keyword: 'Version'
-      extra_version_file_path: './UserInterface/package.json'
-      extra_version_keyword: 'version'
+      extra_version_files: |
+        UserInterface/package.json|version
       prerelease: true
       commit_message: 'action: Update pre-release version and update `CHANGELOG.md`'
     secrets: inherit
