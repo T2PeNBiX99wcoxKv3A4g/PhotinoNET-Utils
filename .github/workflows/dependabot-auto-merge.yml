@@ -16,3 +16,4 @@ permissions:
 jobs:
   automerge:
     uses: T2PeNBiX99wcoxKv3A4g/Dependabot-Auto-Merge/.github/workflows/dependabot-auto-merge.yml@main
+    secrets: inherit
