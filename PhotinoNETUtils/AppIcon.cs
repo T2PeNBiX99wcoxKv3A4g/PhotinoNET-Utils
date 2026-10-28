@@ -1,4 +1,5 @@
 using System.Reflection;
+using JetBrains.Annotations;
 using Serilog;
 using PhotinoNetUtils.Extensions;
 using PhotinoNetUtils.Utils;
@@ -10,6 +11,7 @@ namespace PhotinoNetUtils;
 ///     read ICO) are embedded, but Photino's <c>SetIconFile</c>, Win32's <c>LoadImage</c> and
 ///     libayatana-appindicator all want a real path, so the suitable one is written to disk on startup.
 /// </summary>
+[PublicAPI]
 public static class AppIcon
 {
     /// <summary>

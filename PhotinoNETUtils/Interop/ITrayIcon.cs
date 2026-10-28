@@ -1,6 +1,9 @@
+using JetBrains.Annotations;
+
 namespace PhotinoNetUtils.Interop;
 
 /// <summary>A notification-area (tray) icon. Only implemented where the platform provides one.</summary>
+[PublicAPI]
 public interface ITrayIcon : IDisposable
 {
     /// <summary>
@@ -14,4 +17,5 @@ public interface ITrayIcon : IDisposable
 ///     One entry of a tray context menu. The separator belongs before the item, which keeps the
 ///     declaration order the same as the rendered order.
 /// </summary>
+[PublicAPI]
 public sealed record TrayMenuItem(string Label, Action Callback, bool SeparatorBefore = false);
