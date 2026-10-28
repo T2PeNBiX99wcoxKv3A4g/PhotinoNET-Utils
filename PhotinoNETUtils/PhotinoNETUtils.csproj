@@ -7,7 +7,7 @@
         <!-- Required by the [LibraryImport] source generators used by the native helpers -->
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <RootNamespace>PhotinoNetUtils</RootNamespace>
-        <Version>0.1.0</Version>
+        <Version>0.2.0</Version>
         <PackageId>PhotinoNETUtils</PackageId>
         <Description>Shared Photino.NET plumbing: tray icon, static file server, single instance, logging and small helpers.</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -28,7 +28,7 @@
     <ItemGroup>
         <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
         <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="10.0.14" />
-        <PackageReference Include="securifybv.ShellLink" Version="0.1.0" />
+        <PackageReference Include="securifybv.ShellLink" Version="0.2.0" />
         <PackageReference Include="Serilog" Version="4.4.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />

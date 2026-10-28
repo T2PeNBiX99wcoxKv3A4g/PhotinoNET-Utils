@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.1.0..v0.2.0) - 2026-10-28
+
+### ⛰️  Features
+
+- Add Windows shortcut helpers - ([57b0189](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/57b018934ef02cc9363a5fb00b211e4c05fd0213))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([f0fc742](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/f0fc742142a5d7d03b1559cb9bc6803164f84b09))
+
+## New Contributors ❤️
+
+* @github-actions[bot] made their first contribution
+
 ## [0.1.0] - 2026-10-28
 
 ### ⛰️  Features
