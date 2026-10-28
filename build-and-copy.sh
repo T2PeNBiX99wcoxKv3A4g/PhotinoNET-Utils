@@ -118,8 +118,10 @@ while IFS=$'\t' read -r NAME TARGET LIBS UI_DIR; do
     mkdir -p "$LIB_DIR"
 
     cp -f "$DLL" "$LIB_DIR/PhotinoNETUtils.dll"
-    find "$LIB_DIR" -maxdepth 1 -type f -name 'photino-net-utils-bridge-*.tgz' \
-        ! -name "$TGZ_NAME" -delete
+    for old in "$LIB_DIR"/photino-net-utils-bridge-*.tgz; do
+        [[ -e "$old" ]] || continue
+        [[ "$(basename "$old")" == "$TGZ_NAME" ]] || rm -f "$old"
+    done
     cp -f "$TGZ" "$LIB_DIR/$TGZ_NAME"
 
     APP_UI="$TARGET/$UI_DIR"
