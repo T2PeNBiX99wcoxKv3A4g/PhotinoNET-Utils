@@ -148,7 +148,7 @@ It ships the `Native` helper and the global `window.external` type declaration.
 - A release first bumps the version in `PhotinoNETUtils/PhotinoNETUtils.csproj`, commits the bump
   plus `CHANGELOG.md`, and creates the tag via
   [Release-Workflows](https://github.com/T2PeNBiX99wcoxKv3A4g/Release-Workflows). Extra version
-  files are listed in `extra_version_files` and updated with `replace-version` (append `|<key>` to
+  files are listed in `extra_version_files` and updated with `sync-version` (append `|<key>` to
   limit the replacement, e.g. `UserInterface/package.json|version`).
 - The build job produces:
   - `PhotinoNETUtils.<version>.nupkg` (NuGet package)
