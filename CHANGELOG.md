@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.5.0..v0.6.0) - 2026-10-29
+
+### ⛰️  Features
+
+- Share the window chrome hooks - ([ace1b05](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/ace1b05cbcdd78659d86a73bcbc226d1f8ad95b2))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([07814fd](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/07814fd0e69c49b1f11ea1bda7970c25a84eaa03))
+
+
 ## [0.5.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.4.0..v0.5.0) - 2026-10-29
 
 ### ⛰️  Features
