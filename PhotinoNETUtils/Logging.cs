@@ -21,9 +21,7 @@ public static class Logging
     public static void Initialize(string appName, string? logFilePrefix = null)
     {
         var prefix = string.IsNullOrWhiteSpace(logFilePrefix) ? appName.ToLowerInvariant() : logFilePrefix;
-        var logDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), appName, "logs");
-        Directory.CreateDirectory(logDirectory);
+        var logDirectory = AppPaths.LogDirectory(appName);
 
         // Keep the real console before anything replaces it: the sink has to write there directly, or the
         // capture installed below would feed its own output straight back in.

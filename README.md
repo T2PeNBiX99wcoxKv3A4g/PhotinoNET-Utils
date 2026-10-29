@@ -10,9 +10,10 @@ plain class library (`net10.0`) plus a small npm package for the front-end bridg
 | `Logging`                 | Serilog console + rolling file log, console mirroring, unhandled-exception hooks                                                                                                                     |
 | `Hosting/StaticServer`    | Kestrel static file host on an OS-assigned port (`127.0.0.1:0`), serving `Resources/wwwroot` from embedded resources with disk overrides                                                             |
 | `Interop`                 | `ITrayIcon` / `TrayIconFactory` with Win32 and libayatana-appindicator implementations, plus the Win32 P/Invoke set                                                                                  |
-| `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, and Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build) |
+| `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build), window chrome (drag, resize, maximize, frameless title bar on both platforms) and `SystemLauncher` for handing a URL or folder to the system |
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                  |
 | `AppIcon`                 | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources                                                                                                                         |
+| `AppPaths`                | Per-user data and log folders, created on demand                                                                                                                                                     |
 | `Utils`                   | `Result<T>`, `Try`, `Singleton<T>`                                                                                                                                                                   |
 | `Extensions`              | Result/exception/string/object helpers                                                                                                                                                               |
 | `UserInterface`           | `@photino-net-utils/bridge`, the shared `window.external` TypeScript bridge                                                                                                                          |
@@ -156,6 +157,44 @@ if (OperatingSystem.IsWindows())
 `StartMenuShortcut.Refresh` rewrites the shortcut only when its target differs from the executable,
 and creates it when it is missing. It never throws: the failure is logged, because it runs while the
 window is being created.
+
+### App paths and the system launcher
+
+```csharp
+using PhotinoNetUtils;
+using PhotinoNetUtils.Platform;
+
+var data = AppPaths.DataDirectory(Constants.Name);  // %LOCALAPPDATA%/<name>, created on demand
+var logs = AppPaths.LogDirectory(Constants.Name);   // %APPDATA%/<name>/logs, the one Logging writes to
+
+SystemLauncher.Open(logs);           // the folder, in the file manager
+SystemLauncher.Open("https://…");    // the user's default handler, which may be this app
+```
+
+`AppPaths` keeps the two folder layouts in one place, and `Logging.Initialize` uses the same log
+folder, so an app never has to guess where its files went.
+
+### Window chrome
+
+```csharp
+if (OperatingSystem.IsWindows())
+{
+    WindowFrame.RemoveTitleBar(window.WindowHandle);   // keep the frame, drop the title bar
+    WindowDrag.Begin(window.WindowHandle);
+    WindowResize.Begin(window.WindowHandle, "bottomright");
+    WindowZoom.Toggle(window.WindowHandle);
+}
+else
+{
+    LinuxWindow.BeginDrag(window.Title);
+    LinuxWindow.BeginResize(window.Title, "bottomright");
+    LinuxWindow.ToggleMaximize(window.Title);
+}
+```
+
+The Windows helpers work on a window handle; the GTK ones look the toplevel up by its title, because
+Photino exposes no widget handle on Linux. Both hand the actual work to the compositor, which is what
+makes the move and resize work under Wayland.
 
 ### Front-end bridge
 
