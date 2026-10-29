@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.3.1..v0.4.0) - 2026-10-29
+
+### ⛰️  Features
+
+- Share the window chrome, app paths and system launcher - ([8b7574c](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/8b7574c17ae1a4f3b8661e34671e2df2cd02ea59))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([4f31ea4](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/4f31ea4c6147b902d5acc19f1b16a11d3ba7b079))
+
+
 ## [0.3.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.3.0..v0.3.1) - 2026-10-29
 
 ### 🚜 Refactor

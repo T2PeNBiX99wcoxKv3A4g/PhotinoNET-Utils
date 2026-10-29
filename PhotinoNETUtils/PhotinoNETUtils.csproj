@@ -7,7 +7,7 @@
         <!-- Required by the [LibraryImport] source generators used by the native helpers -->
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <RootNamespace>PhotinoNetUtils</RootNamespace>
-        <Version>0.3.1</Version>
+        <Version>0.4.0</Version>
         <PackageId>PhotinoNETUtils</PackageId>
         <Description>Shared Photino.NET plumbing: tray icon, static file server, single instance, logging and small helpers.</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
