@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.3.0..v0.3.1) - 2026-10-29
+
+### 🚜 Refactor
+
+- Apply formatting consistency and minor code improvements across multiple files - ([5a2de10](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/5a2de10a022c32604152686356ef42692c798341))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([78d3724](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/78d3724f3c0fb9cc233a8a7bff4e68e0537e04ed))
+
+
 ## [0.3.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.2.1..v0.3.0) - 2026-10-28
 
 ### ⛰️  Features
