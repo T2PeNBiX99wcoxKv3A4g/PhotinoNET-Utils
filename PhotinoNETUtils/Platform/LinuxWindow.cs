@@ -24,6 +24,9 @@ public static partial class LinuxWindow
     private const string GtkLibrary = "libgtk-3.so.0";
     private const int LeftButton = 1;
 
+    /// <summary>GtkOrientation.Horizontal.</summary>
+    private const int GtkOrientationHorizontal = 0;
+
     // GdkWindowEdge: north-west, north, north-east, west, east, south-west, south, south-east.
     private static readonly Dictionary<string, int> Edges = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -86,6 +89,23 @@ public static partial class LinuxWindow
         {
             Log.Debug(ex, "GTK window lookup for {Title} failed", title);
             return false;
+        });
+
+    /// <summary>
+    ///     Makes GTK draw the window without decorations of its own, so the interface can draw the
+    ///     whole window.
+    /// </summary>
+    /// <remarks>
+    ///     Wayland has no "no frame" request: a client either draws its own decorations or lets the
+    ///     compositor draw them, and the compositor is free to ignore a request to stay undecorated —
+    ///     which is what KWin does. A custom (empty) titlebar puts GTK into client-side decorations,
+    ///     and turning decorations off then removes the titlebar it would have drawn.
+    /// </remarks>
+    public static bool UseClientSideFrame(string title) =>
+        WithWindow(title, window =>
+        {
+            gtk_window_set_titlebar(window, gtk_box_new(GtkOrientationHorizontal, 0));
+            gtk_window_set_decorated(window, false);
         });
 
     /// <summary>
@@ -157,6 +177,15 @@ public static partial class LinuxWindow
 
     [LibraryImport(GtkLibrary)]
     private static partial IntPtr gtk_window_get_title(IntPtr window);
+
+    [LibraryImport(GtkLibrary)]
+    private static partial IntPtr gtk_box_new(int orientation, int spacing);
+
+    [LibraryImport(GtkLibrary)]
+    private static partial void gtk_window_set_titlebar(IntPtr window, IntPtr titlebar);
+
+    [LibraryImport(GtkLibrary)]
+    private static partial void gtk_window_set_decorated(IntPtr window, [MarshalAs(UnmanagedType.Bool)] bool decorated);
 
     [LibraryImport(GtkLibrary)]
     private static partial void gtk_window_begin_move_drag(IntPtr window, int button, int rootX, int rootY,
