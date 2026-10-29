@@ -17,7 +17,7 @@ plain class library (`net10.0`) plus a small npm package for the front-end bridg
 | `Localization`            | Embedded `<prefix><locale>.jsonc` UI strings, merged over the language and the default locale, answered over the bridge as `i18n.get`                                                              |
 | `Utils`                   | `Result<T>`, `Try`, `Singleton<T>`                                                                                                                                                                   |
 | `Extensions`              | Result/exception/string/object helpers                                                                                                                                                               |
-| `UserInterface`           | `@photino-net-utils/bridge`, the shared `window.external` TypeScript bridge                                                                                                                          |
+| `UserInterface`           | `@photino-net-utils/bridge`: the shared `window.external` TypeScript bridge plus the React localization (`LocalizationProvider`, `useTranslation`, `useLocale`) matching `PhotinoNetUtils.Localization`                        |
 
 ## Consuming the built artifacts
 
@@ -217,10 +217,24 @@ same text; register `LocaleRequest` and `LocalePayload` in the app's `JsonSerial
 ### Front-end bridge
 
 ```ts
-import {Native} from "@photino-net-utils/bridge";
+import {Native, LocalizationProvider, useTranslation, useLocale, loadStrings} from "@photino-net-utils/bridge";
 ```
 
-It ships the `Native` helper and the global `window.external` type declaration.
+It ships the `Native` helper, the global `window.external` type declaration, and the React
+localization that goes with `PhotinoNetUtils.Localization`:
+
+```tsx
+<LocalizationProvider>
+    <App/>
+</LocalizationProvider>
+
+const t = useTranslation();   // t("tray.open") -> the string, or the key when it is missing
+const locale = useLocale();   // "ja", for locale-aware formatting
+```
+
+The provider asks the backend for `i18n.get` on mount, reloads on `settings.changed`, and keeps
+`<html lang>` in sync. `loadStrings(locale?)` and `createTranslator(strings)` are exported for the
+cases that need the table directly. The package has `react >= 18` as a peer dependency.
 
 ## Releasing
 
