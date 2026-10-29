@@ -11,3 +11,6 @@ export {
     useTranslation,
 } from "./Localization";
 export type {I18nPayload, Translate} from "./Localization";
+
+export {ResizeHandles, useWindowControls, useWindowDrag} from "./Window";
+export type {WindowControls} from "./Window";

@@ -236,6 +236,30 @@ The provider asks the backend for `i18n.get` on mount, reloads on `settings.chan
 `<html lang>` in sync. `loadStrings(locale?)` and `createTranslator(strings)` are exported for the
 cases that need the table directly. The package has `react >= 18` as a peer dependency.
 
+### Front-end window chrome
+
+An app that hides its native title bar draws one instead:
+
+```tsx
+const controls = useWindowControls();   // {maximized, minimize, toggleMaximize, close}
+const drag = useWindowDrag();           // spread on the strip that moves the window
+
+<header>
+    <Brand {...drag}/>
+    <DragArea {...drag}/>
+    <button onClick={controls.minimize} title="Minimize"/>
+    <button onClick={controls.toggleMaximize} title={controls.maximized ? "Restore" : "Maximize"}/>
+    <button onClick={controls.close} title="Close"/>
+</header>
+
+<ResizeHandles/>                        // a chromeless window has no frame to grab
+```
+
+The hooks send `window.minimize` / `window.toggleMaximize` / `window.close` / `window.drag` and track
+`window.state`; `ResizeHandles` sends `window.resize` with the edge. The host answers those with
+`WindowFrame`, `WindowDrag`, `WindowZoom`, `WindowResize` and `LinuxWindow`, and must register
+`WindowStatePayload` and `WindowResizeRequest` in its `JsonSerializerContext`.
+
 ## Releasing
 
 - Push to `master` runs **Release**; push to `dev/**` runs **Pre Release**.
