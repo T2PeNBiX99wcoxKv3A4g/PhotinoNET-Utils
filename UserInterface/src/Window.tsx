@@ -47,6 +47,42 @@ export function useWindowDrag() {
     };
 }
 
+/**
+ * Whether the interface has to paint the window's rounded corners right now. The host reports that in
+ * `app.info` (`rounded`), and it stops while the window is maximized: a maximized window covers the
+ * screen, so its corners are the screen's.
+ *
+ * <p>
+ * While it is true the page background is transparent (`html.window-rounded`), so the corners show
+ * what is behind the window instead of a filled-in square.
+ * </p>
+ */
+export function useWindowCorners(): boolean {
+    const [rounded, setRounded] = useState(false);
+    const {maximized} = useWindowControls();
+
+    useEffect(() => {
+        if (!Native.available) return;
+
+        let cancelled = false;
+        void Native.request<{ rounded?: boolean }>("app.info")
+            .then((info) => {
+                if (!cancelled) setRounded(info.rounded === true);
+            })
+            .catch(() => undefined);
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    useEffect(() => {
+        document.documentElement.classList.toggle("window-rounded", rounded);
+    }, [rounded]);
+
+    return rounded && !maximized;
+}
+
 type ResizeDirection = "top" | "bottom" | "left" | "right" | "topleft" | "topright" | "bottomleft" | "bottomright";
 
 const grips: Array<[ResizeDirection, CSSProperties]> = [

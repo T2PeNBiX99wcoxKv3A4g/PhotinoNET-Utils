@@ -177,20 +177,30 @@ public static partial class LinuxGtk
             }
 
             var realized = gtk_widget_get_realized(window);
+            var decorated = gtk_window_get_decorated(window);
+
             if (realized)
                 gtk_widget_unrealize(window);
 
             gtk_widget_set_visual(window, visual);
             gtk_widget_set_app_paintable(window, true);
+
+            // The frame a window was created with only applies while it is being realised.
+            gtk_window_set_decorated(window, decorated);
             Connect(window, "draw", DrawHandler, IntPtr.Zero);
 
             if (realized)
             {
                 gtk_widget_realize(window);
-                gtk_widget_show(window);
+
+                // Unrealizing leaves the widget marked visible but unmapped, so show alone would do
+                // nothing; hide first and then show the whole tree again.
+                gtk_widget_hide(window);
+                gtk_widget_show_all(window);
             }
 
-            Log.Information("{Title} is transparent (re-realised={ReRealised})", title, realized);
+            Log.Information("{Title} is transparent (re-realised={ReRealised}, decorated={Decorated})",
+                title, realized, decorated);
             return true;
         }).GetOrElse(ex =>
         {
@@ -437,6 +447,16 @@ public static partial class LinuxGtk
 
     [LibraryImport(GtkLibrary)]
     private static partial void gtk_widget_show(IntPtr widget);
+
+    [LibraryImport(GtkLibrary)]
+    private static partial void gtk_widget_show_all(IntPtr widget);
+
+    [LibraryImport(GtkLibrary)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool gtk_window_get_decorated(IntPtr window);
+
+    [LibraryImport(GtkLibrary)]
+    private static partial void gtk_window_set_decorated(IntPtr window, [MarshalAs(UnmanagedType.Bool)] bool decorated);
 
     [LibraryImport(GtkLibrary)]
     private static partial void gtk_widget_unrealize(IntPtr widget);
