@@ -155,8 +155,9 @@ public static partial class LinuxGtk
 
     /// <summary>
     ///     Makes a toplevel RGBA-transparent, so its CSS rounded corners are not filled in. GTK needs an
-    ///     RGBA visual plus a draw handler that clears the background, and both have to be in place
-    ///     before the window is realised.
+    ///     RGBA visual plus a draw handler that clears the background, and the visual only takes effect
+    ///     on a widget that is not realised yet — Photino shows the window before it calls back, so an
+    ///     already realised widget is unrealised and realised again.
     /// </summary>
     public static bool MakeTransparent(string title) =>
         Try.Run(() =>
@@ -171,23 +172,25 @@ public static partial class LinuxGtk
             var visual = gdk_screen_get_rgba_visual(gtk_widget_get_screen(window));
             if (visual == IntPtr.Zero)
             {
-                Log.Warning("The screen has no RGBA visual; the popup stays opaque");
+                Log.Warning("The screen has no RGBA visual; {Title} stays opaque", title);
                 return false;
             }
 
             var realized = gtk_widget_get_realized(window);
             if (realized)
-            {
-                // The visual can only be chosen before the widget is realised; after that GTK ignores it.
-                Log.Warning("{Title} is already realised; it cannot be made transparent", title);
-                return false;
-            }
+                gtk_widget_unrealize(window);
 
             gtk_widget_set_visual(window, visual);
             gtk_widget_set_app_paintable(window, true);
             Connect(window, "draw", DrawHandler, IntPtr.Zero);
 
-            Log.Information("{Title} is transparent", title);
+            if (realized)
+            {
+                gtk_widget_realize(window);
+                gtk_widget_show(window);
+            }
+
+            Log.Information("{Title} is transparent (re-realised={ReRealised})", title, realized);
             return true;
         }).GetOrElse(ex =>
         {
@@ -434,6 +437,12 @@ public static partial class LinuxGtk
 
     [LibraryImport(GtkLibrary)]
     private static partial void gtk_widget_show(IntPtr widget);
+
+    [LibraryImport(GtkLibrary)]
+    private static partial void gtk_widget_unrealize(IntPtr widget);
+
+    [LibraryImport(GtkLibrary)]
+    private static partial void gtk_widget_realize(IntPtr widget);
 
     [LibraryImport(GtkLibrary)]
     private static partial void gtk_window_present(IntPtr window);
