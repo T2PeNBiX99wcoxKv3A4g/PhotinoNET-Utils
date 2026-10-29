@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.2.1..v0.3.0) - 2026-10-28
+
+### ⛰️  Features
+
+- Shared native bridge for React <-> host messages - ([7d4f129](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/7d4f1297541f26940ee501b9d62ca0bc8fa46ea3))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([54f1baf](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/54f1baf1cd035877babf1352bab545ae995dd337))
+
+
 ## [0.2.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.2.0..v0.2.1) - 2026-10-28
 
 ### 🐛 Bug Fixes
