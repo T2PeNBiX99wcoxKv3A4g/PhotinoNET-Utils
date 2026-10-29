@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.7.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.6.0..v0.7.0) - 2026-10-29
+
+### ⛰️  Features
+
+- Draw the window frame on Wayland too - ([26af9be](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/26af9bee62fb9293d3de71cfba9c6b335d6d36c7))
+- Share the rounded-window state, fix the re-realise - ([b96f3dd](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/b96f3ddbc2b079092620435ad3a9ab15ea09af4b))
+
+### 🐛 Bug Fixes
+
+- Make the window transparent after it is shown - ([22ef0db](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/22ef0db2b69a77c33b34e141ae774f7a262c921e))
+- Make the GTK window toggle reliably and round itself - ([dc0cd3e](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/dc0cd3e778fee30bfdd4bf82c67aa978f02e0a96))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([cf5d0b6](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/cf5d0b6ffa802848416e58900dfc8fae23b6adb0))
+
+
 ## [0.6.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.5.0..v0.6.0) - 2026-10-29
 
 ### ⛰️  Features
