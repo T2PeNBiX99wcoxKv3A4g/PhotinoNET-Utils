@@ -14,6 +14,7 @@ plain class library (`net10.0`) plus a small npm package for the front-end bridg
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                  |
 | `AppIcon`                 | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources                                                                                                                         |
 | `AppPaths`                | Per-user data and log folders, created on demand                                                                                                                                                     |
+| `Localization`            | Embedded `<prefix><locale>.jsonc` UI strings, merged over the language and the default locale, answered over the bridge as `i18n.get`                                                              |
 | `Utils`                   | `Result<T>`, `Try`, `Singleton<T>`                                                                                                                                                                   |
 | `Extensions`              | Result/exception/string/object helpers                                                                                                                                                               |
 | `UserInterface`           | `@photino-net-utils/bridge`, the shared `window.external` TypeScript bridge                                                                                                                          |
@@ -195,6 +196,23 @@ else
 The Windows helpers work on a window handle; the GTK ones look the toplevel up by its title, because
 Photino exposes no widget handle on Linux. Both hand the actual work to the compositor, which is what
 makes the move and resize work under Wayland.
+
+### Localization
+
+```csharp
+using PhotinoNetUtils.Localization;
+
+// Resources/i18n/en.jsonc, ja.jsonc, zh-TW.jsonc … embedded in the app's assembly.
+Localization.Initialize(typeof(Program).Assembly, "MyApp.Resources.i18n.",
+    () => SettingsService.Instance.Language);
+
+var label = Localization.Get("tray.open");       // the current language
+var german = Localization.Get("de", "tray.open"); // a specific one
+```
+
+A locale is merged over its language and then over the default locale, so a partially translated file
+still shows something. `Initialize` also answers `i18n.get` on the bridge, so the React side reads the
+same text; register `LocaleRequest` and `LocalePayload` in the app's `JsonSerializerContext`.
 
 ### Front-end bridge
 
