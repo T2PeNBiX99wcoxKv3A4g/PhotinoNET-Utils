@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using JetBrains.Annotations;
 using Photino.NET;
@@ -31,7 +32,7 @@ public static class NativeBridge
     ///     Supplies the app's source-generated <see cref="JsonSerializerContext" />. Call once, before
     ///     the interface can send anything: the bridge never reflects over payload types.
     /// </summary>
-    public static void Initialize(System.Text.Json.Serialization.JsonSerializerContext context) => NativeJson.Use(context);
+    public static void Initialize(JsonSerializerContext context) => NativeJson.Use(context);
 
     public static Task HandleMessageAsync(PhotinoWindow? window, string rawMessage) =>
         Task.Run(() => HandleCoreAsync(window, rawMessage));
@@ -39,7 +40,7 @@ public static class NativeBridge
     /// <summary>Serializes an unsolicited push for <c>window.SendWebMessage(...)</c>.</summary>
     public static string SerializeEvent(string type, object? data = null) =>
         JsonSerializer.Serialize(
-            new NativeEvent
+            new()
             {
                 Type = type,
                 Data = NativeJson.ToElement(data)
@@ -115,9 +116,9 @@ public static class NativeBridge
 /// </summary>
 internal static class NativeJson
 {
-    private static System.Text.Json.Serialization.JsonSerializerContext? _context;
+    private static JsonSerializerContext? _context;
 
-    public static void Use(System.Text.Json.Serialization.JsonSerializerContext context) => _context = context;
+    public static void Use(JsonSerializerContext context) => _context = context;
 
     /// <summary>Converts a registered payload into the <see cref="JsonElement" /> the envelope embeds.</summary>
     public static JsonElement? ToElement(object? value) =>
@@ -136,7 +137,7 @@ internal static class NativeJson
 
     private static InvalidOperationException NotRegistered(Type type) =>
         _context is null
-            ? new InvalidOperationException(
+            ? new(
                 $"Call {nameof(NativeBridge)}.{nameof(NativeBridge.Initialize)} with the app's " +
                 "JsonSerializerContext before exchanging messages.")
             : new InvalidOperationException(

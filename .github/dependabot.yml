@@ -9,8 +9,8 @@ updates:
       interval: daily
     groups:
       nuget:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
+        patterns: [ "*" ]
+        update-types: [ "minor", "patch" ]
     commit-message:
       prefix: "chore"
       include: "scope"
@@ -23,8 +23,8 @@ updates:
       interval: daily
     groups:
       npm:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
+        patterns: [ "*" ]
+        update-types: [ "minor", "patch" ]
     commit-message:
       prefix: "chore"
       include: "scope"

@@ -6,6 +6,11 @@ namespace PhotinoNetUtils.Interop;
 public static class TrayIconFactory
 {
     /// <summary>
+    ///     True when the Linux toolkit is ready to create a tray icon. Always true elsewhere.
+    /// </summary>
+    public static bool IsToolkitReady => !OperatingSystem.IsLinux() || LinuxTrayIcon.IsToolkitReady;
+
+    /// <summary>
     ///     Creates the tray icon. On Linux the returned icon can only be started once GTK has a
     ///     display connection; check <see cref="IsToolkitReady" /> first there.
     /// </summary>
@@ -25,9 +30,4 @@ public static class TrayIconFactory
             : OperatingSystem.IsLinux() && LinuxDiagnostics.AppIndicatorLibrary is not null
                 ? new LinuxTrayIcon(appId, tooltip, iconPath, onOpen, menu)
                 : new NullTrayIcon();
-
-    /// <summary>
-    ///     True when the Linux toolkit is ready to create a tray icon. Always true elsewhere.
-    /// </summary>
-    public static bool IsToolkitReady => !OperatingSystem.IsLinux() || LinuxTrayIcon.IsToolkitReady;
 }

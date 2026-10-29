@@ -1,8 +1,8 @@
 using System.IO.Pipes;
 using JetBrains.Annotations;
-using Serilog;
 using PhotinoNetUtils.Extensions;
 using PhotinoNetUtils.Utils;
+using Serilog;
 
 namespace PhotinoNetUtils.Services;
 

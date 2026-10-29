@@ -33,6 +33,8 @@ public sealed class StaticServer : IDisposable
     /// <summary>The address without a trailing slash, ready for composing page URLs.</summary>
     public string BaseUrl => Address.GetLeftPart(UriPartial.Authority);
 
+    public void Dispose() => _application.DisposeAsync().AsTask().GetAwaiter().GetResult();
+
     /// <summary>
     ///     Starts the server and waits until Kestrel reports a real port. The content root is a
     ///     folder owned by the app, so the server cannot drop a <c>wwwroot</c> next to the executable.
@@ -68,7 +70,10 @@ public sealed class StaticServer : IDisposable
 
         var application = builder.Build();
         application.UseDefaultFiles();
-        application.UseStaticFiles(new StaticFileOptions { DefaultContentType = "text/plain" });
+        application.UseStaticFiles(new StaticFileOptions
+        {
+            DefaultContentType = "text/plain"
+        });
 
         application.StartAsync().GetAwaiter().GetResult();
 
@@ -79,8 +84,6 @@ public sealed class StaticServer : IDisposable
         if (address is null || !Uri.TryCreate(address, UriKind.Absolute, out var uri))
             throw new InvalidOperationException("Kestrel did not report the address it bound.");
 
-        return new StaticServer(application, uri);
+        return new(application, uri);
     }
-
-    public void Dispose() => _application.DisposeAsync().AsTask().GetAwaiter().GetResult();
 }

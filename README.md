@@ -5,17 +5,17 @@ plain class library (`net10.0`) plus a small npm package for the front-end bridg
 
 ## Contents
 
-| Area | What it provides |
-|---|---|
-| `Logging` | Serilog console + rolling file log, console mirroring, unhandled-exception hooks |
-| `Hosting/StaticServer` | Kestrel static file host on an OS-assigned port (`127.0.0.1:0`), serving `Resources/wwwroot` from embedded resources with disk overrides |
-| `Interop` | `ITrayIcon` / `TrayIconFactory` with Win32 and libayatana-appindicator implementations, plus the Win32 P/Invoke set |
-| `Platform` | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, and Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build) |
-| `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding |
-| `AppIcon` | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources |
-| `Utils` | `Result<T>`, `Try`, `Singleton<T>` |
-| `Extensions` | Result/exception/string/object helpers |
-| `UserInterface` | `@photino-net-utils/bridge`, the shared `window.external` TypeScript bridge |
+| Area                      | What it provides                                                                                                                                                                                     |
+|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Logging`                 | Serilog console + rolling file log, console mirroring, unhandled-exception hooks                                                                                                                     |
+| `Hosting/StaticServer`    | Kestrel static file host on an OS-assigned port (`127.0.0.1:0`), serving `Resources/wwwroot` from embedded resources with disk overrides                                                             |
+| `Interop`                 | `ITrayIcon` / `TrayIconFactory` with Win32 and libayatana-appindicator implementations, plus the Win32 P/Invoke set                                                                                  |
+| `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, and Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build) |
+| `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                  |
+| `AppIcon`                 | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources                                                                                                                         |
+| `Utils`                   | `Result<T>`, `Try`, `Singleton<T>`                                                                                                                                                                   |
+| `Extensions`              | Result/exception/string/object helpers                                                                                                                                                               |
+| `UserInterface`           | `@photino-net-utils/bridge`, the shared `window.external` TypeScript bridge                                                                                                                          |
 
 ## Consuming the built artifacts
 
@@ -174,9 +174,9 @@ It ships the `Native` helper and the global `window.external` type declaration.
   files are listed in `extra_version_files` and updated with `sync-version` (append `|<key>` to
   limit the replacement, e.g. `UserInterface/package.json|version`).
 - The build job produces:
-  - `PhotinoNETUtils.<version>.nupkg` (NuGet package)
-  - `photino-net-utils-bridge-<version>.tgz` (npm package)
-  - `PhotinoNETUtils.dll` (the raw DLL for consumers using `libs/`)
+    - `PhotinoNETUtils.<version>.nupkg` (NuGet package)
+    - `photino-net-utils-bridge-<version>.tgz` (npm package)
+    - `PhotinoNETUtils.dll` (the raw DLL for consumers using `libs/`)
 - The packages are attached to the GitHub Release. Setting `NUGET_API_KEY` / `NPM_TOKEN`
   repository secrets additionally publishes to nuget.org / npmjs.org; without them the publish
   steps are skipped. Pre-releases use the npm `next` tag.

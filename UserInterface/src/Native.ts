@@ -4,6 +4,7 @@ export interface NativeMessage {
     ok?: unknown;
     error?: unknown;
     data?: unknown;
+
     [key: string]: unknown;
 }
 

@@ -1,4 +1,5 @@
 using System.Text;
+using JetBrains.Annotations;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -16,6 +17,7 @@ public static class Logging
     ///     Writes to the console and to <c>%AppData%/{appName}/logs/{prefix}-.log</c>, and mirrors
     ///     everything the host and native libraries print into the same file.
     /// </summary>
+    [PublicAPI]
     public static void Initialize(string appName, string? logFilePrefix = null)
     {
         var prefix = string.IsNullOrWhiteSpace(logFilePrefix) ? appName.ToLowerInvariant() : logFilePrefix;

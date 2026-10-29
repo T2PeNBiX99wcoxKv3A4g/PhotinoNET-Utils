@@ -1,9 +1,9 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using Serilog;
-using Serilog.Events;
 using PhotinoNetUtils.Extensions;
 using PhotinoNetUtils.Utils;
+using Serilog;
+using Serilog.Events;
 
 namespace PhotinoNetUtils.Platform;
 
