@@ -37,6 +37,12 @@ public static partial class LinuxWindow
         ["bottomright"] = 7
     };
 
+    /// <summary>
+    ///     The zoomed state this app asked for, per window title. Some compositors do not report it
+    ///     back, so the toggle needs an answer of its own to alternate reliably.
+    /// </summary>
+    private static readonly Dictionary<string, bool> MaximizedByTitle = new(StringComparer.Ordinal);
+
     public static bool BeginDrag(string title) =>
         WithWindow(title, window =>
         {
@@ -52,7 +58,14 @@ public static partial class LinuxWindow
             gtk_window_begin_resize_drag(window, edge, LeftButton, x, y, EventTime());
         });
 
-    /// <summary>Toggles the zoomed state and reports the state the window ended up in.</summary>
+    /// <summary>
+    ///     Toggles the zoomed state and reports the state the window ended up in.
+    /// </summary>
+    /// <remarks>
+    ///     The state is remembered per title as well: some compositors never report it back — a tiling
+    ///     window manager may turn the request into a tile, and the answer only arrives on the next
+    ///     configure event — which would otherwise leave the window stuck maximized.
+    /// </remarks>
     public static bool ToggleMaximize(string title) =>
         Try.Run(() =>
         {
@@ -60,17 +73,35 @@ public static partial class LinuxWindow
             if (window == IntPtr.Zero)
                 return false;
 
-            if (gtk_window_is_maximized(window))
-                gtk_window_unmaximize(window);
-            else
-                gtk_window_maximize(window);
+            var maximized = !gtk_window_is_maximized(window) && !MaximizedByTitle.GetValueOrDefault(title);
+            MaximizedByTitle[title] = maximized;
 
-            return gtk_window_is_maximized(window);
+            if (maximized)
+                gtk_window_maximize(window);
+            else
+                gtk_window_unmaximize(window);
+
+            return maximized;
         }).GetOrElse(ex =>
         {
             Log.Debug(ex, "GTK window lookup for {Title} failed", title);
             return false;
         });
+
+    /// <summary>
+    ///     Whether the compositor can round the window itself. It cannot: a window without decorations
+    ///     is a plain square to it, so the interface has to paint the corners — which needs an RGBA
+    ///     visual.
+    /// </summary>
+    public static bool CanPaintCorners => LinuxGtk.CanBeTransparent;
+
+    /// <summary>
+    ///     Makes the window's own background transparent, so the rounded corners the interface paints
+    ///     are not filled in behind. Call once the native window exists; false when the screen cannot
+    ///     do it, in which case the window stays an opaque square.
+    /// </summary>
+    public static bool EnableTransparency(string title) =>
+        LinuxGtk.MakeTransparent(title) && LinuxGtk.MakeWebViewTransparent(title);
 
     private static (int X, int Y) Pointer() =>
         LinuxGtk.TryGetPointerPosition(out var x, out var y) ? (x, y) : (0, 0);

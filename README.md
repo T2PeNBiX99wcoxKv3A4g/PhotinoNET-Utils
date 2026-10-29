@@ -260,6 +260,22 @@ The hooks send `window.minimize` / `window.toggleMaximize` / `window.close` / `w
 `WindowFrame`, `WindowDrag`, `WindowZoom`, `WindowResize` and `LinuxWindow`, and must register
 `WindowStatePayload` and `WindowResizeRequest` in its `JsonSerializerContext`.
 
+### Corners on Linux
+
+Windows rounds and frames the window itself, because `WindowFrame` keeps the native frame and only
+drops the non-client area. GTK has no such middle ground: an undecorated window is a plain square
+with no border, so the interface draws both — which needs a transparent window behind them:
+
+```csharp
+// Linux, before the window is shown:
+window.SetChromeless(true);
+var rounded = LinuxWindow.EnableTransparency(window.Title);   // false when the screen cannot
+```
+
+Report `rounded` to the interface (in `app.info`), have it paint `border-radius` and an inset border,
+and drop the radius while the window is maximized. `LinuxWindow.CanPaintCorners` answers the same
+question before the window exists.
+
 ## Releasing
 
 - Push to `master` runs **Release**; push to `dev/**` runs **Pre Release**.

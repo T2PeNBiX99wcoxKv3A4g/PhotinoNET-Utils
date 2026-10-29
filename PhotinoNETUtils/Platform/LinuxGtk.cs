@@ -176,11 +176,18 @@ public static partial class LinuxGtk
             }
 
             var realized = gtk_widget_get_realized(window);
+            if (realized)
+            {
+                // The visual can only be chosen before the widget is realised; after that GTK ignores it.
+                Log.Warning("{Title} is already realised; it cannot be made transparent", title);
+                return false;
+            }
+
             gtk_widget_set_visual(window, visual);
             gtk_widget_set_app_paintable(window, true);
             Connect(window, "draw", DrawHandler, IntPtr.Zero);
 
-            Log.Information("Popup background is transparent (realised={Realized})", realized);
+            Log.Information("{Title} is transparent", title);
             return true;
         }).GetOrElse(ex =>
         {
