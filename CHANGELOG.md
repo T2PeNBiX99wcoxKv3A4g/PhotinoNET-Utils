@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.4.0..v0.5.0) - 2026-10-29
+
+### ⛰️  Features
+
+- Share the React localization - ([cf00d5d](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/cf00d5da52f94007a42cbade590796aec8d5cdf0))
+- Share the localization service - ([d0b49c6](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/d0b49c6ded2c18cb7622298f86f6d8a09d26f7b2))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([a7e8a67](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/commit/a7e8a677a6e159fae93aee298c3450150cd800db))
+
+
 ## [0.4.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNETUtils/compare/v0.3.1..v0.4.0) - 2026-10-29
 
 ### ⛰️  Features
