@@ -2,7 +2,6 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using JetBrains.Annotations;
 using PhotinoNetUtils.Extensions;
-using PhotinoNetUtils.Platform;
 using PhotinoNetUtils.Utils;
 using Serilog;
 
@@ -45,6 +44,13 @@ public static partial class LinuxWindow
     ///     back, so the toggle needs an answer of its own to alternate reliably.
     /// </summary>
     private static readonly Dictionary<string, bool> MaximizedByTitle = new(StringComparer.Ordinal);
+
+    /// <summary>
+    ///     Whether the compositor can round the window itself. It cannot: a window without decorations
+    ///     is a plain square to it, so the interface has to paint the corners — which needs an RGBA
+    ///     visual.
+    /// </summary>
+    public static bool CanPaintCorners => LinuxGtk.CanBeTransparent;
 
     public static bool BeginDrag(string title) =>
         WithWindow(title, window =>
@@ -107,13 +113,6 @@ public static partial class LinuxWindow
             gtk_window_set_titlebar(window, gtk_box_new(GtkOrientationHorizontal, 0));
             gtk_window_set_decorated(window, false);
         });
-
-    /// <summary>
-    ///     Whether the compositor can round the window itself. It cannot: a window without decorations
-    ///     is a plain square to it, so the interface has to paint the corners — which needs an RGBA
-    ///     visual.
-    /// </summary>
-    public static bool CanPaintCorners => LinuxGtk.CanBeTransparent;
 
     /// <summary>
     ///     Makes the window's own background transparent, so the rounded corners the interface paints

@@ -59,7 +59,10 @@ public static partial class WindowFrame
     {
         workArea = default;
         var monitor = MonitorFromWindow(hWnd, NativeMethods.MonitorDefaultToNearest);
-        var info = new NativeMethods.MonitorInfo { cbSize = Marshal.SizeOf<NativeMethods.MonitorInfo>() };
+        var info = new NativeMethods.MonitorInfo
+        {
+            cbSize = Marshal.SizeOf<NativeMethods.MonitorInfo>()
+        };
 
         if (monitor == IntPtr.Zero || !NativeMethods.GetMonitorInfo(monitor, ref info))
             return false;

@@ -43,6 +43,10 @@ public static class Localization
     /// <summary>Locales discovered from the embedded translation files.</summary>
     public static IReadOnlyList<string> AvailableLocales { get; private set; } = [];
 
+    /// <summary>The language the app is using right now.</summary>
+    public static string CurrentLanguage =>
+        _currentLocale?.Invoke() is { Length: > 0 } locale ? locale : _defaultLocale;
+
     /// <summary>
     ///     Starts answering <c>i18n.get</c> from <paramref name="assembly" />'s resources.
     ///     <paramref name="currentLocale" /> supplies the language the settings selected.
@@ -62,10 +66,6 @@ public static class Localization
         _listening = true;
         NativeBridge.MessageReceived += HandleMessageAsync;
     }
-
-    /// <summary>The language the app is using right now.</summary>
-    public static string CurrentLanguage =>
-        _currentLocale?.Invoke() is { Length: > 0 } locale ? locale : _defaultLocale;
 
     /// <summary>Looks a key up in the current language.</summary>
     public static string Get(string key) => Get(CurrentLanguage, key);
@@ -148,10 +148,10 @@ public static class Localization
         return
         [
             .. (_assembly?.GetManifestResourceNames() ?? [])
-                .Where(name => name.StartsWith(_resourcePrefix, StringComparison.Ordinal) &&
-                               name.EndsWith(suffix, StringComparison.Ordinal))
-                .Select(name => name[_resourcePrefix.Length..^suffix.Length])
-                .OrderBy(name => name, StringComparer.Ordinal)
+            .Where(name => name.StartsWith(_resourcePrefix, StringComparison.Ordinal) &&
+                           name.EndsWith(suffix, StringComparison.Ordinal))
+            .Select(name => name[_resourcePrefix.Length..^suffix.Length])
+            .OrderBy(name => name, StringComparer.Ordinal)
         ];
     }
 }
