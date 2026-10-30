@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.8.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.8.0..v0.8.1) - 2026-10-30
+
+### 🚜 Refactor
+
+- *(single-instance)* Take the lock path from AppPaths - ([db273b8](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/db273b8175d7de6935b80eff416a528d36ce7bdb))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([f862f30](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/f862f30062153c84f1053b527364906d69748665))
+
+
 ## [0.8.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.7.1..v0.8.0) - 2026-10-30
 
 ### ⛰️  Features
