@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.8.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.7.1..v0.8.0) - 2026-10-30
+
+### ⛰️  Features
+
+- *(apppaths)* Add the roaming settings directory - ([fd41cd7](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/fd41cd7f7728ed7fe6614b92c8dd6eecba7e2389))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([07abf62](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/07abf62f370b68d8ca1571a7f2d1d15a27f9515e))
+
+
 ## [0.7.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.7.0..v0.7.1) - 2026-10-29
 
 ### 🚜 Refactor
