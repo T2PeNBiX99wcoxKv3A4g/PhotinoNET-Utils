@@ -49,8 +49,6 @@ public static class NativeBridge
 
     private static async Task HandleCoreAsync(PhotinoWindow? window, string rawMessage)
     {
-        Log.Debug("<< {Message}", rawMessage.RemoveControlChars().Truncate(600));
-
         NativeRequest? request;
         try
         {
@@ -65,6 +63,10 @@ public static class NativeBridge
 
         if (request?.Type is null or "")
             return;
+
+        // Bodies can carry credentials (a sign-in password, a session cookie), so only the type and the
+        // size are logged; that is enough to follow a conversation.
+        Log.Debug("<< {Type} ({Length} bytes)", request.Type, rawMessage.Length);
 
         var context = new NativeContext(window, request);
 
@@ -100,7 +102,7 @@ public static class NativeBridge
     private static void Send(PhotinoWindow? window, NativeResponse response)
     {
         var json = NativeJson.Serialize(response);
-        Log.Debug(">> {Message}", json.RemoveControlChars().Truncate(600));
+        Log.Debug(">> {Type} ({Length} bytes)", response.Type, json.Length);
 
         if (window is null)
             return;
