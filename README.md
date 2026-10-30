@@ -13,7 +13,7 @@ plain class library (`net10.0`) plus a small npm package for the front-end bridg
 | `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build), window chrome (drag, resize, maximize, frameless title bar on both platforms) and `SystemLauncher` for handing a URL or folder to the system |
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                                                                                                                                                            |
 | `AppIcon`                 | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources                                                                                                                                                                                                                                                                   |
-| `AppPaths`                | Per-user data and log folders, created on demand                                                                                                                                                                                                                                                                                               |
+| `AppPaths`                | Per-user settings, local data and log folders, created on demand                                                                                                                                                                                                                                                                               |
 | `Localization`            | Embedded `<prefix><locale>.jsonc` UI strings, merged over the language and the default locale, answered over the bridge as `i18n.get`                                                                                                                                                                                                          |
 | `Utils`                   | `Result<T>`, `Try`, `Singleton<T>`                                                                                                                                                                                                                                                                                                             |
 | `Extensions`              | Result/exception/string/object helpers                                                                                                                                                                                                                                                                                                         |
@@ -165,15 +165,18 @@ window is being created.
 using PhotinoNetUtils;
 using PhotinoNetUtils.Platform;
 
-var data = AppPaths.DataDirectory(Constants.Name);  // %LOCALAPPDATA%/<name>, created on demand
-var logs = AppPaths.LogDirectory(Constants.Name);   // %APPDATA%/<name>/logs, the one Logging writes to
+var settings = AppPaths.SettingsDirectory(Constants.Name); // %APPDATA%/<name>, settings and user data
+var data = AppPaths.DataDirectory(Constants.Name);         // %LOCALAPPDATA%/<name>, caches and content root
+var logs = AppPaths.LogDirectory(Constants.Name);          // %APPDATA%/<name>/logs, the one Logging writes to
 
-SystemLauncher.Open(logs);           // the folder, in the file manager
+SystemLauncher.Open(settings);       // the folder, in the file manager
 SystemLauncher.Open("https://…");    // the user's default handler, which may be this app
 ```
 
-`AppPaths` keeps the two folder layouts in one place, and `Logging.Initialize` uses the same log
-folder, so an app never has to guess where its files went.
+`AppPaths` keeps the roaming/local split in one place: settings and logs live under `%APPDATA%` so
+they roam with the user, while the static content root, the extracted icon and other disposable
+files stay in `%LOCALAPPDATA%`. `Logging.Initialize` uses the same log folder, so an app never has to
+guess where its files went.
 
 ### Window chrome
 

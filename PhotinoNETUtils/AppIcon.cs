@@ -42,11 +42,7 @@ public static class AppIcon
             stream.CopyTo(buffer);
             var icon = buffer.ToArray();
 
-            var directory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), appName);
-            Directory.CreateDirectory(directory);
-
-            var path = Path.Combine(directory, fileName);
+            var path = Path.Combine(AppPaths.DataDirectory(appName), fileName);
             if (!File.Exists(path) || !File.ReadAllBytes(path).AsSpan().SequenceEqual(icon))
                 File.WriteAllBytes(path, icon);
 
