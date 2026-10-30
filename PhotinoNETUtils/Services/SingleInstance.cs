@@ -25,10 +25,7 @@ public sealed class SingleInstance : IDisposable
     {
         _pipeName = $"{appName}.Ipc";
 
-        var path = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            appName, "instance.lock");
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        var path = Path.Combine(AppPaths.SettingsDirectory(appName), "instance.lock");
 
         try
         {
