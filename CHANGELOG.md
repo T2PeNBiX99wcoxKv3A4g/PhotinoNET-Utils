@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.8.1..v0.8.2) - 2026-10-30
+
+### 🐛 Bug Fixes
+
+- *(messaging)* Keep message bodies out of the log - ([4f45bf4](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/4f45bf4d9f6c6b6f505d9210b66ae29d02a16d73))
+
+### ⚙️ Miscellaneous Tasks
+
+- Update `.gitignore` - ([5c92f2e](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/5c92f2ea523b14a122321c7e13f0c5d741d53776))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([0daea91](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/0daea913a4d5dabec40afed8b0bd7316d2109ec8))
+
+
 ## [0.8.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.8.0..v0.8.1) - 2026-10-30
 
 ### 🚜 Refactor
