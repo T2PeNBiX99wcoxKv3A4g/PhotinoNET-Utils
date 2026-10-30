@@ -40,3 +40,4 @@ build-and-copy.config.json
 # Package output
 release/
 *.nupkg
+.yafm-index.db
