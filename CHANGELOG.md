@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.8.3](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.8.2..v0.8.3) - 2026-11-01
+
+### 🐛 Bug Fixes
+
+- *(platform)* Keep one window-procedure chain per window - ([4370f86](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/4370f86634865a50fd2e953736756188497a5c2e))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([05830e0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/05830e01ceeb85cfbb77228b25f907aab184bc2a))
+
+
 ## [0.8.2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.8.1..v0.8.2) - 2026-10-30
 
 ### 🐛 Bug Fixes
