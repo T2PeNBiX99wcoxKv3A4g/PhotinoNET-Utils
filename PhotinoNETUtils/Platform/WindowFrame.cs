@@ -17,19 +17,31 @@ public static partial class WindowFrame
 {
     private const int GwlWndProc = -4;
     private const uint WmNcCalcSize = 0x0083;
+    private const uint WmNcDestroy = 0x0082;
     private const uint SwpFrameChanged = 0x0020;
 
-    private static NativeMethods.WndProcDelegate? _windowProc;
-    private static IntPtr _previous;
+    /// <summary>
+    ///     The delegate and the original procedure are kept per window. A single static pair let a second
+    ///     window overwrite the first one's chain, and calling a procedure that belongs to another window
+    ///     (or a delegate that was collected) is an access violation.
+    /// </summary>
+    private static readonly Dictionary<IntPtr, Frame> Frames = [];
 
     public static void RemoveTitleBar(IntPtr hWnd)
     {
-        if (hWnd == IntPtr.Zero)
+        if (hWnd == IntPtr.Zero || Frames.ContainsKey(hWnd))
             return;
 
-        _windowProc = WindowProc;
-        _previous = NativeMethods.SetWindowLongPtr(hWnd, GwlWndProc,
-            Marshal.GetFunctionPointerForDelegate(_windowProc));
+        NativeMethods.WndProcDelegate proc = WindowProc;
+        var previous = NativeMethods.SetWindowLongPtr(hWnd, GwlWndProc,
+            Marshal.GetFunctionPointerForDelegate(proc));
+
+        // Zero means the window refused the change. Calling that "previous" later would crash, so the
+        // frame is left alone instead.
+        if (previous == IntPtr.Zero)
+            return;
+
+        Frames[hWnd] = new Frame(proc, previous);
 
         // The new non-client calculation only takes effect once the frame is recalculated.
         NativeMethods.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, 0, 0,
@@ -39,8 +51,20 @@ public static partial class WindowFrame
 
     private static IntPtr WindowProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
     {
+        if (!Frames.TryGetValue(hWnd, out var frame))
+            return DefWindowProc(hWnd, msg, wParam, lParam);
+
+        // Put the original procedure back before the window goes away. Windows reuses handles, and a
+        // reused one must never inherit a chain that no longer exists.
+        if (msg == WmNcDestroy)
+        {
+            NativeMethods.SetWindowLongPtr(hWnd, GwlWndProc, frame.Previous);
+            Frames.Remove(hWnd);
+            return CallWindowProc(frame.Previous, hWnd, msg, wParam, lParam);
+        }
+
         if (msg != WmNcCalcSize || wParam == IntPtr.Zero)
-            return CallWindowProc(_previous, hWnd, msg, wParam, lParam);
+            return CallWindowProc(frame.Previous, hWnd, msg, wParam, lParam);
 
         // The whole window becomes client area. A maximized window is inflated by the resize frame,
         // so clamp that back to the work area instead of running the interface off the screen.
@@ -71,8 +95,14 @@ public static partial class WindowFrame
         return true;
     }
 
+    /// <summary>One window's subclass: the delegate has to stay reachable while the window lives.</summary>
+    private sealed record Frame(NativeMethods.WndProcDelegate Proc, IntPtr Previous);
+
     [LibraryImport("user32.dll", EntryPoint = "CallWindowProcW")]
     private static partial IntPtr CallWindowProc(IntPtr previous, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    [LibraryImport("user32.dll", EntryPoint = "DefWindowProcW")]
+    private static partial IntPtr DefWindowProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
     [LibraryImport("user32.dll")]
     private static partial IntPtr MonitorFromWindow(IntPtr hWnd, uint flags);
