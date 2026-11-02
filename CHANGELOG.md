@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.8.3..v0.9.0) - 2026-11-02
+
+### ⛰️  Features
+
+- Share app startup and tray helpers - ([2668d54](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/2668d540661753f59a3055ea79549bc60ea24c11))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([a70f5dd](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/a70f5ddd610d71c93bf8db5f63dfd379ef563598))
+
+
 ## [0.8.3](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.8.2..v0.8.3) - 2026-11-01
 
 ### 🐛 Bug Fixes
