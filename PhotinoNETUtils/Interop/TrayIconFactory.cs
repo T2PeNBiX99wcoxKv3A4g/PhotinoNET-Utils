@@ -30,4 +30,40 @@ public static class TrayIconFactory
             : OperatingSystem.IsLinux() && LinuxDiagnostics.AppIndicatorLibrary is not null
                 ? new LinuxTrayIcon(appId, tooltip, iconPath, onOpen, menu)
                 : new NullTrayIcon();
+
+    /// <summary>Creates the standard Open / Settings / Exit tray menu.</summary>
+    public static ITrayIcon CreateStandard(
+        string appId,
+        string tooltip,
+        string? iconPath,
+        string openLabel,
+        string settingsLabel,
+        string exitLabel,
+        Action onOpen,
+        Action onSettings,
+        Action onExit) =>
+        Create(appId, tooltip, iconPath, onOpen,
+        [
+            new(openLabel, onOpen),
+            new(settingsLabel, onSettings),
+            new(exitLabel, onExit, true)
+        ]);
+
+    /// <summary>Starts a tray icon on GTK's UI thread once its display is ready.</summary>
+    public static void StartWhenReady(ITrayIcon tray, Action<Action> runOnMainWindow, Action<bool> onStarted)
+    {
+        if (!OperatingSystem.IsLinux())
+        {
+            onStarted(tray.Start());
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            for (var attempt = 0; attempt < 100 && !IsToolkitReady; attempt++)
+                await Task.Delay(100);
+
+            runOnMainWindow(() => onStarted(tray.Start()));
+        });
+    }
 }

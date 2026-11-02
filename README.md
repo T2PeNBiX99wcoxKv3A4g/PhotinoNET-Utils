@@ -118,23 +118,22 @@ Embedded files are read from the entry assembly under `Resources/wwwroot`.
 ```csharp
 using PhotinoNetUtils.Interop;
 
-using var tray = TrayIconFactory.Create(
+using var tray = TrayIconFactory.CreateStandard(
     Constants.Name,
     Constants.WindowTitle,
     iconPath,
+    "Open",
+    "Settings",
+    "Exit",
     ShowMainWindow,
-    [
-        new TrayMenuItem("Open", ShowMainWindow),
-        new TrayMenuItem("Exit", Exit, SeparatorBefore: true)
-    ]);
+    ShowSettings,
+    Exit);
 
-var started = OperatingSystem.IsLinux() && !TrayIconFactory.IsToolkitReady
-    ? /* start later, on the GTK thread */ false
-    : tray.Start();
+TrayIconFactory.StartWhenReady(tray, windowManager.RunOnMainWindow, started => closeToTray = started);
 ```
 
-On Linux the icon can only be created on the GTK thread once the toolkit has a display connection;
-poll `TrayIconFactory.IsToolkitReady` first and call `Start()` through `PhotinoWindow.Invoke`.
+On Linux the helper waits for GTK's display connection, then starts the icon on the UI thread. On other
+platforms it starts the icon immediately.
 
 ### Shortcuts
 
@@ -158,6 +157,33 @@ if (OperatingSystem.IsWindows())
 `StartMenuShortcut.Refresh` rewrites the shortcut only when its target differs from the executable,
 and creates it when it is missing. It never throws: the failure is logged, because it runs while the
 window is being created.
+
+### Build metadata and autostart
+
+```csharp
+using PhotinoNetUtils;
+using PhotinoNetUtils.Platform;
+
+var version = BuildInfo.VersionOf(typeof(Program).Assembly);
+var platform = BuildInfo.Platform;
+var buildToken = BuildInfo.BuildTokenFor(typeof(Program).Assembly);
+
+var startup = new StartupRegistration(
+    typeof(Program).Assembly,
+    appName: "MyApp",
+    fallbackIcon: "web-browser",
+    comment: "MyApp URL intermediary",
+    linuxWindowClass: "MyApp");
+
+var enabled = startup.IsEnabled;
+startup.Refresh();
+startup.SetEnabled(true);
+```
+
+`StartupRegistration` creates a Windows Startup shortcut or an executable XDG autostart desktop
+entry. The comment, fallback icon and Linux window class are app-specific; omit optional values when
+they are not needed. `BuildInfo.BuildTokenFor` uses the executable's write time, falling back to the
+provided assembly's version when no executable path is available.
 
 ### App paths and the system launcher
 
