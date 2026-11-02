@@ -226,6 +226,20 @@ The Windows helpers work on a window handle; the GTK ones look the toplevel up b
 Photino exposes no widget handle on Linux. Both hand the actual work to the compositor, which is what
 makes the move and resize work under Wayland.
 
+### Termination signals
+
+```csharp
+using PhotinoNetUtils.Platform;
+
+using var termination = TerminationSignals.Handle(windowManager.Exit);
+windowManager.Run();
+```
+
+On Linux the main thread sits inside Photino's native loop, so the runtime's default SIGTERM handling
+cannot close the window. `TerminationSignals` routes SIGTERM, SIGINT and SIGHUP to the app's own exit
+path; a second signal forces the process down if closing hangs. It is a no-op on Windows, so the same
+call is safe everywhere.
+
 ### Localization
 
 ```csharp
