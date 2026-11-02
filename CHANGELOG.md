@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.10.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.9.0..v0.10.0) - 2026-11-02
+
+### ⛰️  Features
+
+- *(platform)* Handle termination signals - ([48dfc64](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/48dfc644e96835619f7a766fc9fe3fb66b5869e5))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([af2f467](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/af2f467c9a36385dbe30c4ccd37ef2ca2f877ea1))
+
+
 ## [0.9.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.8.3..v0.9.0) - 2026-11-02
 
 ### ⛰️  Features
