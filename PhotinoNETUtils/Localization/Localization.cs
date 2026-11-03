@@ -31,6 +31,9 @@ public static class Localization
 {
     public const string DefaultLocale = "en";
 
+    /// <summary>Stored setting that asks the library to follow the OS UI culture.</summary>
+    public const string SystemLocale = "system";
+
     private static readonly Dictionary<string, Dictionary<string, string>> Cache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Lock Sync = new();
 
@@ -44,8 +47,18 @@ public static class Localization
     public static IReadOnlyList<string> AvailableLocales { get; private set; } = [];
 
     /// <summary>The language the app is using right now.</summary>
-    public static string CurrentLanguage =>
-        _currentLocale?.Invoke() is { Length: > 0 } locale ? locale : _defaultLocale;
+    public static string CurrentLanguage => Resolve(_currentLocale?.Invoke());
+
+    /// <summary>Maps the stored setting to a concrete locale; <c>system</c> follows the OS.</summary>
+    public static string Resolve(string? locale)
+    {
+        if (string.IsNullOrWhiteSpace(locale))
+            return _defaultLocale;
+
+        return locale.Equals(SystemLocale, StringComparison.OrdinalIgnoreCase)
+            ? ResolveSystemLocale()
+            : locale;
+    }
 
     /// <summary>
     ///     Starts answering <c>i18n.get</c> from <paramref name="assembly" />'s resources.
@@ -72,7 +85,7 @@ public static class Localization
 
     /// <summary>Looks a key up in <paramref name="locale" />, falling back to the default locale.</summary>
     public static string Get(string locale, string key) =>
-        Load(locale).TryGetValue(key, out var value) ? value : key;
+        Load(Resolve(locale)).TryGetValue(key, out var value) ? value : key;
 
     /// <summary>Best matching embedded locale for the OS UI culture.</summary>
     public static string ResolveSystemLocale()
@@ -91,7 +104,7 @@ public static class Localization
             return Task.FromResult<NativeResponse?>(null);
 
         var requested = context.Payload<LocaleRequest>()?.Locale;
-        var locale = string.IsNullOrWhiteSpace(requested) ? CurrentLanguage : requested;
+        var locale = string.IsNullOrWhiteSpace(requested) ? CurrentLanguage : Resolve(requested);
 
         return Task.FromResult<NativeResponse?>(
             context.Reply("i18n.get.result", new LocalePayload(locale, Load(locale), AvailableLocales)));
