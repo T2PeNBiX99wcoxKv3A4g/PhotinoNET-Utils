@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.11.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.10.1..v0.11.0) - 2026-11-03
+
+### ⛰️  Features
+
+- *(localization)* Add a system default locale - ([95bc335](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/95bc335e7d32a8421112bfab2d6a93be3eaf7192))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([cbf86a7](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/cbf86a7f1eeb4c96644ee28180beb36e46bf4209))
+
+
 ## [0.10.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.10.0..v0.10.1) - 2026-11-03
 
 ### 🐛 Bug Fixes
