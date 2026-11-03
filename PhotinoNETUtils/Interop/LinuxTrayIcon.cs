@@ -72,7 +72,8 @@ internal sealed partial class LinuxTrayIcon(
 
         return Try.Run(() =>
         {
-            _indicator = app_indicator_new(appId, iconPath ?? "file-manager", CategoryApplicationStatus);
+            var iconName = LinuxIconTheme.Resolve(appId, iconPath);
+            _indicator = app_indicator_new(appId, iconName, CategoryApplicationStatus);
             if (_indicator == IntPtr.Zero)
             {
                 Log.Warning("AppIndicator could not be created; continuing without a tray icon");
@@ -81,8 +82,8 @@ internal sealed partial class LinuxTrayIcon(
 
             app_indicator_set_title(_indicator, tooltip);
 
-            if (iconPath is { Length: > 0 })
-                app_indicator_set_icon_full(_indicator, iconPath, tooltip);
+            if (iconName is { Length: > 0 })
+                app_indicator_set_icon_full(_indicator, iconName, tooltip);
 
             app_indicator_set_menu(_indicator, BuildMenu());
             app_indicator_set_status(_indicator, StatusActive);
