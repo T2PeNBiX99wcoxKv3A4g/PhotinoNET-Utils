@@ -120,13 +120,14 @@ public sealed class WebViewRecovery : IDisposable
         {
             if (_disposed || _reloading || _automaticRecoveryDisabled) return;
 
+            // Once the page has reported its first render it is considered healthy. A missing
+            // heartbeat or an empty-looking heartbeat must not navigate away from a page the user
+            // is already working in; the tray's Reload entry is the manual recovery path.
+            if (_ready) return;
+
             var now = DateTimeOffset.UtcNow;
-            if (_blankUiDetected)
-                reason = "the document root is still empty";
-            else if (!_ready && now - _lastLoad >= StartupTimeout)
+            if (now - _lastLoad >= StartupTimeout)
                 reason = "the page did not report its first render";
-            else if (_ready && now - _lastHeartbeat >= HeartbeatTimeout)
-                reason = "the page heartbeat stopped";
 
             if (reason is null) return;
             if (_automaticReloads >= AutomaticReloadLimit)
