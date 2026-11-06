@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.12.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.12.0..v0.12.1) - 2026-11-06
+
+### 🐛 Bug Fixes
+
+- Stop automatic webview reloads after the first render - ([1a7f657](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/1a7f657adafbc592f2f880d93b85cc5e4257e653))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([4edf79d](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/4edf79d75e217605ea8fea3dac58ed7c91647b91))
+
+
 ## [0.12.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.11.0..v0.12.0) - 2026-11-06
 
 ### ⛰️  Features
