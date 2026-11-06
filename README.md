@@ -135,6 +135,34 @@ TrayIconFactory.StartWhenReady(tray, windowManager.RunOnMainWindow, started => c
 On Linux the helper waits for GTK's display connection, then starts the icon on the UI thread. On other
 platforms it starts the icon immediately.
 
+`CreateStandard` can add a reload action without changing the native tray implementations:
+
+```csharp
+TrayIconFactory.CreateStandard(
+    appId, title, iconPath, "Open", "Settings", "Exit",
+    ShowMainWindow, ShowSettings, Exit,
+    onReload: () => _ = recovery.Reload(),
+    reloadLabel: "Reload interface");
+```
+
+### WebView recovery
+
+Attach the shared watchdog to the main window before loading the app URL. The bridge starts sending
+heartbeats automatically after the existing `app.ready` message. A page that never reports ready,
+reports an empty `#root` repeatedly, or stops heartbeating is reloaded a few times; after that the
+tray action remains available for a manual retry.
+
+```csharp
+using PhotinoNetUtils.Services;
+
+var recovery = WebViewRecovery.Attach(window, appUrl);
+window.Load(appUrl);
+// Dispose recovery when the app exits. Keep it alive while the window is hidden to the tray.
+```
+
+The defaults wait 20 seconds for the first render and 45 seconds for a missed heartbeat. A reload
+re-navigates the existing Photino window; it does not create another window or another WebView profile.
+
 ### Shortcuts
 
 ```csharp

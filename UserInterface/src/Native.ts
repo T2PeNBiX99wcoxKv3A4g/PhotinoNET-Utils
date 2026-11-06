@@ -31,6 +31,7 @@ const pendingRequests = new Map<string, PendingRequest>();
 
 let initialized = false;
 let requestSequence = 0;
+let heartbeatTimer: ReturnType<typeof setInterval> | undefined;
 
 function hasBridge(): boolean {
     return typeof window !== "undefined" && typeof window.external?.sendMessage === "function";
@@ -84,6 +85,21 @@ function handleIncoming(rawMessage: string): void {
     });
 }
 
+function startHeartbeat(): void {
+    if (heartbeatTimer !== undefined) return;
+
+    const beat = () => {
+        if (!hasBridge()) return;
+
+        const root = document.getElementById("root");
+        const blank = root !== null && root.childElementCount === 0;
+        window.external.sendMessage(JSON.stringify({type: "webview.heartbeat", payload: {blank}}));
+    };
+
+    beat();
+    heartbeatTimer = setInterval(beat, 5_000);
+}
+
 export const Native = {
     /** True when running inside the Photino desktop shell (false in a plain browser). */
     get available(): boolean {
@@ -99,6 +115,7 @@ export const Native = {
 
         ensureInitialized();
         window.external.sendMessage(JSON.stringify(message));
+        if (message.type === "app.ready") startHeartbeat();
     },
 
     /** Sends a message and resolves with the C# reply's `data` field. */

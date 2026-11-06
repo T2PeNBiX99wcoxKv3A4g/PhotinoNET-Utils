@@ -31,7 +31,7 @@ public static class TrayIconFactory
                 ? new LinuxTrayIcon(appId, tooltip, iconPath, onOpen, menu)
                 : new NullTrayIcon();
 
-    /// <summary>Creates the standard Open / Settings / Exit tray menu.</summary>
+    /// <summary>Creates the standard Open / Settings / Exit tray menu, optionally with a reload action.</summary>
     public static ITrayIcon CreateStandard(
         string appId,
         string tooltip,
@@ -41,13 +41,17 @@ public static class TrayIconFactory
         string exitLabel,
         Action onOpen,
         Action onSettings,
-        Action onExit) =>
-        Create(appId, tooltip, iconPath, onOpen,
-        [
-            new(openLabel, onOpen),
-            new(settingsLabel, onSettings),
-            new(exitLabel, onExit, true)
-        ]);
+        Action onExit,
+        Action? onReload = null,
+        string reloadLabel = "Reload interface")
+    {
+        var menu = new List<TrayMenuItem> {new(openLabel, onOpen)};
+        if (onReload is not null) menu.Add(new(reloadLabel, onReload));
+        menu.Add(new(settingsLabel, onSettings));
+        menu.Add(new(exitLabel, onExit, true));
+
+        return Create(appId, tooltip, iconPath, onOpen, menu);
+    }
 
     /// <summary>Starts a tray icon on GTK's UI thread once its display is ready.</summary>
     public static void StartWhenReady(ITrayIcon tray, Action<Action> runOnMainWindow, Action<bool> onStarted)
