@@ -1,12 +1,14 @@
 # Changelog
 
-## [0.12.0] - 2026-11-06
+## [0.12.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.11.0..v0.12.0) - 2026-11-06
 
-### ⛰️ Features
+### ⛰️  Features
 
-- Add shared WebView startup/heartbeat recovery and reload navigation.
-- Add an optional reload action to standard tray menus.
-- Send a shared bridge heartbeat after the application reports ready.
+- Add shared Photino WebView recovery - ([4390ca6](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/4390ca66c46a1e09658a76faab266a7818b73866))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([6106d6d](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/6106d6d549d773368ed1fd0e9a859f839fd03224))
 
 
 ## [0.11.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.10.1..v0.11.0) - 2026-11-03
