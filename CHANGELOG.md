@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.13.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.12.1..v0.13.0) - 2026-11-09
+
+### ⛰️  Features
+
+- Add TryGet to the awaited Result - ([cd44987](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/cd4498798f6af6280ca64515e77964995a2cb80d))
+- Add TryGet to Result - ([466e573](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/466e573f987adae76e9d766ba520d8be5e080bea))
+
+### 🚜 Refactor
+
+- Improve formatting consistency across utility classes - ([654356c](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/654356c2f4973624800d2922b74ab18ef687732f))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([8f13cf4](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/8f13cf4c962a166cab971d2516a2501aff5c2bf9))
+
+
 ## [0.12.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.12.0..v0.12.1) - 2026-11-06
 
 ### 🐛 Bug Fixes
