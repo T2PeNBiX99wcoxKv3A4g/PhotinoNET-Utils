@@ -117,7 +117,10 @@ public static class Localization
             if (Cache.TryGetValue(locale, out var cached))
                 return cached;
 
-            var merged = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            // Exact keys only: the interface asks for the string it means, and two entries that
+            // differ just by case (Cut/cut, Video/video) have to stay apart or one of them would
+            // silently fall back to English.
+            var merged = new Dictionary<string, string>(StringComparer.Ordinal);
             foreach (var candidate in FallbackChain(locale))
             foreach (var pair in ReadFile(candidate))
                 merged.TryAdd(pair.Key, pair.Value);
