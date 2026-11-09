@@ -56,6 +56,39 @@ public static class StartMenuShortcut
         }).OnFailure(ex => Log.Warning(ex, "Failed to refresh the Start Menu shortcut for {Title}", windowTitle));
     }
 
+    /// <summary>
+    ///     Renames the shortcut Photino writes for notifications, which it names after the executable,
+    ///     to <paramref name="windowTitle" /> so the Start Menu shows the name people know. When a
+    ///     shortcut with that name already exists, the copy named after the executable is removed
+    ///     instead, because two entries for one app confuse the user.
+    /// </summary>
+    public static void Adopt(string windowTitle, string executableName)
+    {
+        if (string.IsNullOrEmpty(windowTitle) || string.IsNullOrEmpty(executableName))
+            return;
+
+        Try.Run(() =>
+        {
+            var source = ShortcutPath(executableName);
+            if (!File.Exists(source))
+                return;
+
+            var target = ShortcutPath(windowTitle);
+
+            if (!File.Exists(target))
+            {
+                Log.Information("Renaming the Start Menu shortcut {Old} to {New}", source, target);
+                File.Move(source, target);
+                return;
+            }
+
+            // Both exist, so the titled one already opens the app; the second entry only makes the
+            // Start Menu show one program twice.
+            Log.Information("Removing the duplicate Start Menu shortcut {Path}", source);
+            File.Delete(source);
+        }).OnFailure(ex => Log.Warning(ex, "Failed to rename the Start Menu shortcut for {Title}", windowTitle));
+    }
+
     /// <summary>The file Photino names after the window, in the per-user Start Menu's Programs folder.</summary>
     private static string ShortcutPath(string windowTitle) => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.Programs), $"{windowTitle}.lnk");

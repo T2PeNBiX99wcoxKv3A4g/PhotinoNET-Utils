@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.Versioning;
 using JetBrains.Annotations;
+using PhotinoNetUtils.Utils;
 using Serilog;
 
 namespace PhotinoNetUtils.Platform;
@@ -12,21 +13,35 @@ public sealed class StartupRegistration
     private readonly string _appName;
     private readonly Assembly _assembly;
     private readonly string _comment;
+    private readonly string _entryName;
     private readonly string _fallbackIcon;
     private readonly string? _linuxWindowClass;
 
+    /// <param name="entryName">
+    ///     The name the shortcut or desktop entry carries, when it should read differently from the
+    ///     identifier used for the icon and the data folder.
+    /// </param>
     public StartupRegistration(Assembly assembly, string appName, string fallbackIcon, string? comment = null,
-        string? linuxWindowClass = null)
+        string? linuxWindowClass = null, string? entryName = null)
     {
         _assembly = assembly;
         _appName = appName;
-        _comment = comment ?? appName;
+        _entryName = string.IsNullOrWhiteSpace(entryName) ? appName : entryName;
+        _comment = comment ?? _entryName;
         _fallbackIcon = fallbackIcon;
         _linuxWindowClass = linuxWindowClass;
-        EntryPath = OperatingSystem.IsWindows()
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), $"{appName}.lnk")
-            : Path.Combine(ConfigHome(), "autostart", $"{appName}.desktop");
+        EntryPath = EntryAt(_entryName);
     }
+
+    /// <summary>
+    ///     The entry a build before <c>entryName</c> used, when the name changed; it is cleaned up so
+    ///     the user is left with one entry instead of two.
+    /// </summary>
+    private string? LegacyEntryPath => _entryName == _appName ? null : EntryAt(_appName);
+
+    private static string EntryAt(string name) => OperatingSystem.IsWindows()
+        ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), $"{name}.lnk")
+        : Path.Combine(ConfigHome(), "autostart", $"{name}.desktop");
 
     /// <summary>True on platforms with a per-user autostart location.</summary>
     public static bool IsSupported => OperatingSystem.IsWindows() || OperatingSystem.IsLinux();
@@ -52,6 +67,10 @@ public sealed class StartupRegistration
         if (File.Exists(EntryPath))
             File.Delete(EntryPath);
 
+        // An entry an earlier build wrote under the identifier is removed with it.
+        if (LegacyEntryPath is { } legacy && File.Exists(legacy))
+            File.Delete(legacy);
+
         return true;
     }
 
@@ -66,7 +85,12 @@ public sealed class StartupRegistration
         if (OperatingSystem.IsLinux())
             WriteDesktopEntry(executable);
         else if (OperatingSystem.IsWindows())
-            WindowsShortcut.Create(EntryPath, executable, "", Path.GetDirectoryName(executable) ?? "", _appName);
+            WindowsShortcut.Create(EntryPath, executable, "", Path.GetDirectoryName(executable) ?? "", _entryName);
+
+        // A login entry written by an earlier build carried the identifier; keeping it would start
+        // the app twice.
+        if (LegacyEntryPath is { } legacy && File.Exists(legacy))
+            Try.Run(() => File.Delete(legacy));
 
         return true;
     }
@@ -81,7 +105,7 @@ public sealed class StartupRegistration
         {
             "[Desktop Entry]",
             "Type=Application",
-            $"Name={_appName}",
+            $"Name={_entryName}",
             $"Comment={_comment}",
             $"Exec=\"{executable}\"",
             $"Icon={icon}"
