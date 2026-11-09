@@ -140,6 +140,18 @@ public static class ResultExtensions
             return result.IsSuccess ? result.Value : default;
         }
 
+        /// <summary>
+        ///     Whether the call succeeded, and its value — the async form of <c>TryGet</c>, which
+        ///     cannot use an <c>out</c> parameter across an <c>await</c>. The value is only meaningful
+        ///     when the flag is true.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async Task<(bool Success, T? Value)> TryGet()
+        {
+            var result = await task.ConfigureAwait(false);
+            return (result.IsSuccess, result.IsSuccess ? result.Value : default);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public async Task<T> GetOrElse([InstantHandle(RequireAwait = true)] Func<Exception, Task<T>> onFailure)
         {
