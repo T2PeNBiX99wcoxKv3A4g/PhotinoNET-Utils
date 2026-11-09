@@ -72,7 +72,12 @@ internal static class LinuxIconTheme
             using var process = Process.Start(new ProcessStartInfo
             {
                 FileName = "gtk-update-icon-cache",
-                ArgumentList = { "-f", "-t", root },
+                ArgumentList =
+                {
+                    "-f",
+                    "-t",
+                    root
+                },
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,

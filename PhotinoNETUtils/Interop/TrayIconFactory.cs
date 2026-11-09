@@ -45,7 +45,10 @@ public static class TrayIconFactory
         Action? onReload = null,
         string reloadLabel = "Reload interface")
     {
-        var menu = new List<TrayMenuItem> {new(openLabel, onOpen)};
+        var menu = new List<TrayMenuItem>
+        {
+            new(openLabel, onOpen)
+        };
         if (onReload is not null) menu.Add(new(reloadLabel, onReload));
         menu.Add(new(settingsLabel, onSettings));
         menu.Add(new(exitLabel, onExit, true));

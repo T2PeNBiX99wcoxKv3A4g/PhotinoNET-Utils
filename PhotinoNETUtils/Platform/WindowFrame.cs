@@ -41,7 +41,7 @@ public static partial class WindowFrame
         if (previous == IntPtr.Zero)
             return;
 
-        Frames[hWnd] = new Frame(proc, previous);
+        Frames[hWnd] = new(proc, previous);
 
         // The new non-client calculation only takes effect once the frame is recalculated.
         NativeMethods.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, 0, 0,
@@ -95,9 +95,6 @@ public static partial class WindowFrame
         return true;
     }
 
-    /// <summary>One window's subclass: the delegate has to stay reachable while the window lives.</summary>
-    private sealed record Frame(NativeMethods.WndProcDelegate Proc, IntPtr Previous);
-
     [LibraryImport("user32.dll", EntryPoint = "CallWindowProcW")]
     private static partial IntPtr CallWindowProc(IntPtr previous, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
@@ -110,4 +107,7 @@ public static partial class WindowFrame
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool IsZoomed(IntPtr hWnd);
+
+    /// <summary>One window's subclass: the delegate has to stay reachable while the window lives.</summary>
+    private sealed record Frame(NativeMethods.WndProcDelegate Proc, IntPtr Previous);
 }

@@ -9,8 +9,8 @@ namespace PhotinoNetUtils.Platform;
 [PublicAPI]
 public sealed class StartupRegistration
 {
-    private readonly Assembly _assembly;
     private readonly string _appName;
+    private readonly Assembly _assembly;
     private readonly string _comment;
     private readonly string _fallbackIcon;
     private readonly string? _linuxWindowClass;
@@ -38,10 +38,7 @@ public sealed class StartupRegistration
     public bool IsEnabled => IsSupported && File.Exists(EntryPath);
 
     /// <summary>Rewrites an existing entry so it points at the current executable and icon.</summary>
-    public bool Refresh()
-    {
-        return !IsEnabled || Create();
-    }
+    public bool Refresh() => !IsEnabled || Create();
 
     /// <summary>Creates or removes the autostart entry. Returns false when the executable is unknown.</summary>
     public bool SetEnabled(bool enabled)
@@ -98,7 +95,8 @@ public sealed class StartupRegistration
         File.SetUnixFileMode(EntryPath, File.GetUnixFileMode(EntryPath) | UnixFileMode.UserExecute);
     }
 
-    private static string ConfigHome() => Environment.GetEnvironmentVariable("XDG_CONFIG_HOME") is { Length: > 0 } configured
+    private static string ConfigHome() => Environment.GetEnvironmentVariable("XDG_CONFIG_HOME") is
+        { Length: > 0 } configured
         ? configured
         : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config");
 }

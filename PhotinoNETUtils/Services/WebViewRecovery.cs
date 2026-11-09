@@ -1,6 +1,7 @@
+using System.Text.Json;
+using JetBrains.Annotations;
 using Photino.NET;
 using PhotinoNetUtils.Messaging;
-using JetBrains.Annotations;
 using Serilog;
 
 namespace PhotinoNetUtils.Services;
@@ -8,38 +9,50 @@ namespace PhotinoNetUtils.Services;
 /// <summary>
 ///     Watches the app's main Photino page for its first render and for a small heartbeat from the
 ///     shared bridge. A page that never starts, or whose renderer goes blank later, is navigated to
-///     its original URL again. The tray can call <see cref="Reload"/> for a manual retry.
+///     its original URL again. The tray can call <see cref="Reload" /> for a manual retry.
 /// </summary>
 [PublicAPI]
 public sealed class WebViewRecovery : IDisposable
 {
+    private const int AutomaticReloadLimit = 3;
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan HeartbeatTimeout = TimeSpan.FromSeconds(45);
     private static readonly TimeSpan StableRun = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(2);
-    private const int AutomaticReloadLimit = 3;
 
     private readonly object _gate = new();
-    private readonly PhotinoWindow _window;
-    private readonly string _url;
     private readonly Timer _timer;
-    private DateTimeOffset _lastLoad = DateTimeOffset.UtcNow;
-    private DateTimeOffset _lastHeartbeat;
-    private DateTimeOffset _readySince;
-    private bool _ready;
-    private bool _reloading;
-    private bool _disposed;
+    private readonly string _url;
+    private readonly PhotinoWindow _window;
     private bool _automaticRecoveryDisabled;
-    private bool _blankUiDetected;
-    private int _blankHeartbeats;
     private int _automaticReloads;
+    private int _blankHeartbeats;
+    private bool _blankUiDetected;
+    private bool _disposed;
+    private DateTimeOffset _lastHeartbeat;
+    private DateTimeOffset _lastLoad = DateTimeOffset.UtcNow;
+    private bool _ready;
+    private DateTimeOffset _readySince;
+    private bool _reloading;
 
     private WebViewRecovery(PhotinoWindow window, string url)
     {
         _window = window;
         _url = url;
         NativeBridge.MessageReceived += OnMessageAsync;
-        _timer = new Timer(Check, null, CheckInterval, CheckInterval);
+        _timer = new(Check, null, CheckInterval, CheckInterval);
+    }
+
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            if (_disposed) return;
+            _disposed = true;
+        }
+
+        _timer.Dispose();
+        NativeBridge.MessageReceived -= OnMessageAsync;
     }
 
     /// <summary>Starts watching one main window. Call before <c>PhotinoWindow.Load</c>.</summary>
@@ -47,7 +60,7 @@ public sealed class WebViewRecovery : IDisposable
     {
         ArgumentNullException.ThrowIfNull(window);
         ArgumentException.ThrowIfNullOrWhiteSpace(url);
-        return new WebViewRecovery(window, url);
+        return new(window, url);
     }
 
     /// <summary>Reloads the configured URL now; returns false if Photino refused the navigation.</summary>
@@ -65,18 +78,6 @@ public sealed class WebViewRecovery : IDisposable
         }
 
         return Navigate("manual");
-    }
-
-    public void Dispose()
-    {
-        lock (_gate)
-        {
-            if (_disposed) return;
-            _disposed = true;
-        }
-
-        _timer.Dispose();
-        NativeBridge.MessageReceived -= OnMessageAsync;
     }
 
     private Task<NativeResponse?> OnMessageAsync(NativeContext context)
@@ -99,9 +100,9 @@ public sealed class WebViewRecovery : IDisposable
             else if (context.Request.Type == "webview.heartbeat" && _ready)
             {
                 _lastHeartbeat = now;
-                var blank = context.Request.Payload is { ValueKind: System.Text.Json.JsonValueKind.Object } payload
-                    && payload.TryGetProperty("blank", out var value)
-                    && value.ValueKind == System.Text.Json.JsonValueKind.True;
+                var blank = context.Request.Payload is { ValueKind: JsonValueKind.Object } payload
+                            && payload.TryGetProperty("blank", out var value)
+                            && value.ValueKind == JsonValueKind.True;
                 _blankHeartbeats = blank ? _blankHeartbeats + 1 : 0;
                 _blankUiDetected = _blankHeartbeats >= 3;
                 if (_automaticReloads > 0 && now - _readySince >= StableRun)
