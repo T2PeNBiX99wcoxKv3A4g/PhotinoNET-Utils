@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using PhotinoNetUtils.Utils;
@@ -48,6 +49,18 @@ public static class ResultExtensions
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T? GetOrNull() => result.IsSuccess ? result.Value : default;
+
+        /// <summary>
+        ///     The value, and whether the call succeeded. <see cref="GetOrNull" /> cannot answer this
+        ///     for a value type — <c>T?</c> on an unconstrained parameter stays <c>T</c>, so a failed
+        ///     <c>Result&lt;int&gt;</c> would come back as <c>0</c> and look like a real value.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGet([MaybeNullWhen(false)] out T value)
+        {
+            value = result.IsSuccess ? result.Value : default;
+            return result.IsSuccess;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T GetOrElse([InstantHandle] Func<Exception, T> onFailure) =>
