@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.15.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.14.0..v0.15.0) - 2026-11-10
+
+### ⛰️  Features
+
+- Resize windows through Hyprland's command socket - ([94b1826](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/94b1826c082c78fd1dfb78ed18ed54c7d9878089))
+
+### 📚 Documentation
+
+- Show how a window is resized on Hyprland - ([2a4230e](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/2a4230eacddabc26671ee1aada5636b9af4d2656))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([f91d945](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/f91d9456d7940a8dbdec23534b3086d066537ea4))
+
+
 ## [0.14.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.13.0..v0.14.0) - 2026-11-10
 
 ### ⛰️  Features
