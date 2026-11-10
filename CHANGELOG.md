@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.14.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.13.0..v0.14.0) - 2026-11-10
+
+### ⛰️  Features
+
+- Let the startup entry say which executable it starts - ([4b4f34e](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/4b4f34eaa22d350dab5aa07133355de1c1f8bb96))
+- Name the shortcuts after the app, not the executable - ([e83782b](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/e83782bd1d9e23cbd9ae3fdf7a79410aadaaa439))
+
+### 🐛 Bug Fixes
+
+- Keep translation keys that differ only by case - ([5b83b8c](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/5b83b8cbb70b82c7800f686a8c346f5df64491df))
+
+### ◀️ Revert
+
+- Compare translation keys case-insensitively - ([18e016a](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/18e016a608d7d0d7daac6ad7c2f3ad042f3be81b))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([30db9f3](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/30db9f3b5e9811433e77525f49ec14530d2369c2))
+
+
 ## [0.13.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.12.1..v0.13.0) - 2026-11-09
 
 ### ⛰️  Features
