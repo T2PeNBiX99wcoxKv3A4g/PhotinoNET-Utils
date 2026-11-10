@@ -1,8 +1,10 @@
 using System.Reflection;
 using System.Runtime.Versioning;
 using JetBrains.Annotations;
+using PhotinoNetUtils.Extensions;
 using PhotinoNetUtils.Utils;
 using Serilog;
+using ShellLink;
 
 namespace PhotinoNetUtils.Platform;
 
@@ -51,6 +53,68 @@ public sealed class StartupRegistration
 
     /// <summary>Whether the autostart entry currently exists.</summary>
     public bool IsEnabled => IsSupported && File.Exists(EntryPath);
+
+    /// <summary>
+    ///     Whether the entry starts the running executable. A shortcut left by a copy in another
+    ///     folder is not this app starting, so the settings page shows the toggle as off.
+    /// </summary>
+    public bool IsCurrent => IsEnabled && SamePath(TargetPath, Environment.ProcessPath);
+
+    /// <summary>The executable the entry starts, or null when the file cannot be read.</summary>
+    public string? TargetPath => !IsEnabled
+        ? null
+        : OperatingSystem.IsWindows() ? WindowsTarget(EntryPath) : LinuxTarget(EntryPath);
+
+    /// <summary>Compares two executable paths the way the platform compares file names.</summary>
+    public static bool SamePath(string? first, string? second)
+    {
+        if (first is not { Length: > 0 } || second is not { Length: > 0 })
+            return false;
+
+        var comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+
+        return string.Equals(first.TrimEnd('\\', '/'), second.TrimEnd('\\', '/'), comparison);
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static string? WindowsTarget(string linkPath)
+    {
+        var shortcut = Try.Run(() => Shortcut.ReadFromFile(linkPath)).GetOrNull();
+        if (shortcut is null)
+            return null;
+
+        if (shortcut.LinkTargetIDList?.Path is { Length: > 0 } target)
+            return target;
+
+        if (shortcut.LinkInfo is not { } info)
+            return null;
+
+        var basePath = info.LocalBasePathUnicode is { Length: > 0 } unicode ? unicode : info.LocalBasePath;
+        var suffix = info.CommonPathSuffixUnicode is { Length: > 0 } suffixUnicode
+            ? suffixUnicode
+            : info.CommonPathSuffix;
+
+        return $"{basePath}{suffix}" is { Length: > 0 } path ? path : null;
+    }
+
+    private static string? LinuxTarget(string entryPath)
+    {
+        var exec = Try.Run(() => File.ReadAllLines(entryPath))
+            .GetOrNull()?
+            .FirstOrDefault(line => line.StartsWith("Exec=", StringComparison.Ordinal));
+
+        if (exec is null)
+            return null;
+
+        var value = exec["Exec=".Length..].Trim();
+        if (!value.StartsWith('"'))
+            return value.Split(' ')[0];
+
+        var end = value.IndexOf('"', 1);
+        return end > 1 ? value[1..end] : null;
+    }
 
     /// <summary>Rewrites an existing entry so it points at the current executable and icon.</summary>
     public bool Refresh() => !IsEnabled || Create();
