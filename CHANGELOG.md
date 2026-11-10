@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.15.2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.15.1..v0.15.2) - 2026-11-10
+
+### ⚙️ Miscellaneous Tasks
+
+- Add npm upgrade script to package.json - ([078c563](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/078c563f1cd5e9190494dd24f25364d7aea2d470))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([d3ba9e6](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/d3ba9e68d1c8166d42dfda73e0a05241c154085d))
+
+
 ## [0.15.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.15.0..v0.15.1) - 2026-11-10
 
 ### ⚙️ Miscellaneous Tasks
