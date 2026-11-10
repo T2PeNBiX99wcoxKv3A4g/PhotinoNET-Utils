@@ -17,7 +17,8 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "pack": "npm run build && npm pack"
+    "pack": "npm run build && npm pack",
+    "upgrade": "node -e \"require('fs').rmSync('package-lock.json',{force:true})\" && npx npm-check-updates -u"
   },
   "publishConfig": {
     "access": "public"
