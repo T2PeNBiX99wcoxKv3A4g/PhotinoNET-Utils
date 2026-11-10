@@ -254,6 +254,23 @@ The Windows helpers work on a window handle; the GTK ones look the toplevel up b
 Photino exposes no widget handle on Linux. Both hand the actual work to the compositor, which is what
 makes the move and resize work under Wayland.
 
+### Resizing on Wayland
+
+Those helpers start a drag, which the user finishes. Changing a window's size from the application
+is different: `gtk_window_resize` is only a hint, and a compositor may ignore it — Hyprland does for
+a floating window, which then keeps whatever size it was mapped with. Hyprland can do the resize
+itself, and its command socket is `hyprctl` without spawning it:
+
+```csharp
+// A popup that should be exactly as tall as its content.
+if (LinuxHyprland.Resize(window.Title, width, height))
+    return;
+```
+
+It returns false on any other desktop, so the usual `window.SetSize()` + `window.Center()` path can
+stay behind it untouched. The window is centred again as well, since a compositor-side resize grows
+it from the top-left corner.
+
 ### Termination signals
 
 ```csharp
