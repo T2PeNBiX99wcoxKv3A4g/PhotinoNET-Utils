@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.15.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.15.0..v0.15.1) - 2026-11-10
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump Microsoft.Extensions.FileProviders.Embedded to 11.0.0 - ([7396ced](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/7396ced243b8584da335a320328524b015b76776))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([42e3e8d](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/42e3e8df5cb1c9093235276e8099fee384bca27e))
+
+
 ## [0.15.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.14.0..v0.15.0) - 2026-11-10
 
 ### ⛰️  Features
