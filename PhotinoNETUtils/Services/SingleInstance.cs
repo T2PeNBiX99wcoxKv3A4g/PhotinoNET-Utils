@@ -1,6 +1,4 @@
 using System.IO.Pipes;
-using System.Security.Cryptography;
-using System.Text;
 using JetBrains.Annotations;
 using PhotinoNetUtils.Extensions;
 using PhotinoNetUtils.Utils;
@@ -23,18 +21,11 @@ public sealed class SingleInstance : IDisposable
     private readonly FileStream? _lockFile;
     private readonly string _pipeName;
 
-    public SingleInstance(string appName, string? identity = null)
+    public SingleInstance(string appName)
     {
-        // Builds in different folders are separate instances: a development copy must not swallow
-        // the folder opens that the installed copy is registered for.
-        var suffix = identity is { Length: > 0 }
-            ? "." + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Path.GetFullPath(identity))), 0, 4)
-                .ToLowerInvariant()
-            : "";
+        _pipeName = $"{appName}.Ipc";
 
-        _pipeName = $"{appName}.Ipc{suffix}";
-
-        var path = Path.Combine(AppPaths.SettingsDirectory(appName), $"instance{suffix}.lock");
+        var path = Path.Combine(AppPaths.SettingsDirectory(appName), "instance.lock");
 
         try
         {
