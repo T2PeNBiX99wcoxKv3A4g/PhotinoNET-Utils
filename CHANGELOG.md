@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.16.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.16.0..v0.16.1) - 2026-11-11
+
+### 🐛 Bug Fixes
+
+- Mask tray message parameters before narrowing to int - ([75953e2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/75953e250f553d610f19ef08f14e5d4f23ff0140))
+
+### 🚜 Refactor
+
+- Reorder `DownloadDirectory` property in UpdateService and remove trailing newlines - ([1aa5f29](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/1aa5f29237b5e6e49af62f2b02fd388b7148c300))
+- Replace `object` lock with `System.Threading.Lock` in WebViewRecovery - ([306f683](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/306f683bc9f40a17f9c4ccfcf873a25da2db4781))
+- Merge duplicated platform helpers and drop dead recovery state - ([afe5bb1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/afe5bb18b4aac53f0fd584299dfd84110d57ed9f))
+- Apply formatting consistency and reorder members across multiple files - ([ec4cb1c](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/ec4cb1cca0b8e1f37b0a2b4af154f7544c3d9942))
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump UserInterface package version to 0.16.0 - ([c200d2b](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/c200d2b16a5a7c5591454f5724ea0bc6261454b4))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([c001367](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/c0013673e1a5ed79ea10dfd098870e056163ded8))
+
+
 ## [0.16.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.15.2..v0.16.0) - 2026-11-11
 
 ### ⛰️  Features
