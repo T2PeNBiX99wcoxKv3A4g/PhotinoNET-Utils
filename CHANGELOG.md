@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.16.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.15.2..v0.16.0) - 2026-11-11
+
+### ⛰️  Features
+
+- Add shared release update service - ([07fea1c](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/07fea1c2f3b311c939979f8e8e78c5af316171f2))
+- Give each executable path its own single instance - ([8d08746](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/8d08746cd0559cc15db9a004f46d58b5be4c6ad9))
+
+### ◀️ Revert
+
+- Share one single instance between builds again - ([df3a84f](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/df3a84fae661ea32fa884d57a1e20067c3ef7eea))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([a3cc3d3](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/a3cc3d3dff92093d396994359d1f8a22bd9c4726))
+
+
 ## [0.15.2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.15.1..v0.15.2) - 2026-11-10
 
 ### ⚙️ Miscellaneous Tasks
