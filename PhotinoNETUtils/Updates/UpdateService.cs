@@ -194,7 +194,7 @@ public sealed class UpdateService : IDisposable
             token = _download.Token;
         }
 
-        _ = Task.Run(() => DownloadCoreAsync(check.Latest, token));
+        _ = Task.Run(() => DownloadCoreAsync(check.Latest, token), token);
         return Ack(context, "update.download.result", true, null);
     }
 
