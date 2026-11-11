@@ -21,7 +21,7 @@ public sealed class WebViewRecovery : IDisposable
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(2);
 
-    private readonly object _gate = new();
+    private readonly Lock _gate = new();
     private readonly Timer _timer;
     private readonly string _url;
     private readonly PhotinoWindow _window;
