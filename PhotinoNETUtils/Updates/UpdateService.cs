@@ -348,7 +348,7 @@ public sealed class UpdateService : IDisposable
         return Ack(context, "update.install.result", true, null);
     }
 
-    private NativeResponse Open(NativeContext context, string target, string replyType)
+    private static NativeResponse Open(NativeContext context, string target, string replyType)
     {
         try
         {
