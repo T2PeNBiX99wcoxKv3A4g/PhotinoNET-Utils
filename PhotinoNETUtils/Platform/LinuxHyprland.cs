@@ -59,7 +59,10 @@ public static class LinuxHyprland
             return null;
 
         // Hyprland moved its sockets from /tmp into the runtime directory; both are worth trying.
-        foreach (var root in new[] { Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR"), "/tmp" })
+        foreach (var root in new[]
+                 {
+                     Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR"), "/tmp"
+                 })
         {
             if (string.IsNullOrEmpty(root))
                 continue;

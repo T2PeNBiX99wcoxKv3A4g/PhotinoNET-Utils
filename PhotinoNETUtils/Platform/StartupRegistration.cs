@@ -41,10 +41,6 @@ public sealed class StartupRegistration
     /// </summary>
     private string? LegacyEntryPath => _entryName == _appName ? null : EntryAt(_appName);
 
-    private static string EntryAt(string name) => OperatingSystem.IsWindows()
-        ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), $"{name}.lnk")
-        : Path.Combine(ConfigHome(), "autostart", $"{name}.desktop");
-
     /// <summary>True on platforms with a per-user autostart location.</summary>
     public static bool IsSupported => OperatingSystem.IsWindows() || OperatingSystem.IsLinux();
 
@@ -63,7 +59,13 @@ public sealed class StartupRegistration
     /// <summary>The executable the entry starts, or null when the file cannot be read.</summary>
     public string? TargetPath => !IsEnabled
         ? null
-        : OperatingSystem.IsWindows() ? WindowsTarget(EntryPath) : LinuxTarget(EntryPath);
+        : OperatingSystem.IsWindows()
+            ? WindowsTarget(EntryPath)
+            : LinuxTarget(EntryPath);
+
+    private static string EntryAt(string name) => OperatingSystem.IsWindows()
+        ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), $"{name}.lnk")
+        : Path.Combine(ConfigHome(), "autostart", $"{name}.desktop");
 
     /// <summary>Compares two executable paths the way the platform compares file names.</summary>
     public static bool SamePath(string? first, string? second)

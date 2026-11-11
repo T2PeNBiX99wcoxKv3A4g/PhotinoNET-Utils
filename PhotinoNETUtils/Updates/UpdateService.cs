@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Net.Http.Headers;
 using JetBrains.Annotations;
 using PhotinoNetUtils.Extensions;
 using PhotinoNetUtils.Messaging;
@@ -37,7 +36,11 @@ public sealed record UpdateAckPayload(bool Ok, string? Error = null);
 ///     <c>downloading</c>, <c>ready</c>, <c>cancelled</c> or <c>error</c>.
 /// </summary>
 [PublicAPI]
-public sealed record UpdateProgressPayload(string Phase, long Downloaded, long Total, int Percent,
+public sealed record UpdateProgressPayload(
+    string Phase,
+    long Downloaded,
+    long Total,
+    int Percent,
     string? Error = null);
 
 /// <summary>Body for <c>update.changelog</c>, fetched from the repository's markdown file.</summary>
@@ -70,9 +73,12 @@ public sealed class UpdateService : IDisposable
     public UpdateService(UpdateOptions options)
     {
         _options = options;
-        _client = new HttpClient { Timeout = TimeSpan.FromMinutes(30) };
+        _client = new()
+        {
+            Timeout = TimeSpan.FromMinutes(30)
+        };
         _client.DefaultRequestHeaders.UserAgent.Add(
-            new ProductInfoHeaderValue(options.AppName, options.CurrentVersion));
+            new(options.AppName, options.CurrentVersion));
 
         Cleanup();
         NativeBridge.MessageReceived += HandleMessageAsync;
@@ -108,7 +114,7 @@ public sealed class UpdateService : IDisposable
         await ResolveAsync(true) is { } check
             ? context.Reply("update.check.result", check)
             : context.Fail("update.check.result",
-                PhotinoNetUtils.Localization.Localization.Get("error.updateCheckFailed"));
+                Localization.Localization.Get("error.updateCheckFailed"));
 
     private async Task<UpdateCheckPayload?> ResolveAsync(bool force)
     {
@@ -180,7 +186,7 @@ public sealed class UpdateService : IDisposable
 
             _downloading = true;
             _readyPath = null;
-            _download = new CancellationTokenSource();
+            _download = new();
             token = _download.Token;
         }
 
