@@ -158,7 +158,7 @@ internal sealed class WindowsTrayIcon(
         switch (msg)
         {
             case WmTrayIcon:
-                switch ((int)lParam & 0xFFFF)
+                switch (LowWord(lParam))
                 {
                     case WmLButtonUp:
                     case WmLButtonDblClk:
@@ -173,7 +173,7 @@ internal sealed class WindowsTrayIcon(
 
             case WmCommand:
                 // Menu ids are one-based so 0 can mean "nothing selected".
-                var index = ((int)wParam & 0xFFFF) - 1;
+                var index = LowWord(wParam) - 1;
                 if (index >= 0 && index < menu.Count)
                     TrayAction.Invoke(menu[index].Callback);
 
@@ -214,4 +214,11 @@ internal sealed class WindowsTrayIcon(
         if (command > 0)
             WindowProc(_hwnd, WmCommand, command, IntPtr.Zero);
     }
+
+    /// <summary>
+    ///     The unsigned low word of a message parameter. The mask happens at pointer width, so the value
+    ///     is already in range before it is narrowed to <see cref="int" /> — no truncation the analyzer
+    ///     would have to flag (CA2020).
+    /// </summary>
+    private static int LowWord(IntPtr value) => (int)(value.ToInt64() & 0xFFFF);
 }
