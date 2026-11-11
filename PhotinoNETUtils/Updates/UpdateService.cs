@@ -85,6 +85,9 @@ public sealed class UpdateService : IDisposable
         NativeBridge.MessageReceived += HandleMessageAsync;
     }
 
+    /// <summary>Where a download is staged: one folder per app under the temp directory.</summary>
+    private string DownloadDirectory => Path.Combine(Path.GetTempPath(), $"{_options.AppName}-update");
+
     public void Dispose()
     {
         NativeBridge.MessageReceived -= HandleMessageAsync;
@@ -358,9 +361,6 @@ public sealed class UpdateService : IDisposable
             return Ack(context, replyType, false, ex.Message);
         }
     }
-
-    /// <summary>Where a download is staged: one folder per app under the temp directory.</summary>
-    private string DownloadDirectory => Path.Combine(Path.GetTempPath(), $"{_options.AppName}-update");
 
     private void Notify(string type, object? data) => _options.Notify?.Invoke(type, data);
 
