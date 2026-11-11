@@ -323,14 +323,20 @@ public sealed class UpdateService : IDisposable
 
         try
         {
-            // Let this process release its own executable before the MSI replaces it. cmd waits two
-            // seconds, by which point the window has closed, and only then starts the installer.
-            Process.Start(new ProcessStartInfo("cmd.exe",
-                $"/c ping 127.0.0.1 -n 3 >nul & msiexec /i \"{path}\" /passive /norestart")
+            // The MSI replaces this executable, so the installer starts while the app can still close
+            // itself. Nothing shells out: the reply goes back, the app shuts down below, and an
+            // installer that gets to the locked files first only asks for the app to be closed and
+            // the install to be retried.
+            var installer = Path.Combine(Environment.SystemDirectory, "msiexec.exe");
+
+            Process.Start(new ProcessStartInfo(installer)
             {
-                CreateNoWindow = true,
-                UseShellExecute = false
+                ArgumentList = { "/i", path, "/passive", "/norestart" },
+                UseShellExecute = false,
+                CreateNoWindow = true
             });
+
+            Logger.Information("Started the update installer from {Path}", path);
         }
         catch (Exception ex)
         {
