@@ -3,7 +3,6 @@ using JetBrains.Annotations;
 using PhotinoNetUtils.Extensions;
 using PhotinoNetUtils.Utils;
 using Serilog;
-using ShellLink;
 
 namespace PhotinoNetUtils.Platform;
 
@@ -41,9 +40,7 @@ public static class StartMenuShortcut
         {
             var link = ShortcutPath(windowTitle);
 
-            var current = File.Exists(link)
-                ? Try.Run(() => TargetOf(link)).GetOrNull()
-                : null;
+            var current = File.Exists(link) ? WindowsShortcut.ReadTarget(link) : null;
 
             if (current is not null && current.Equals(executablePath, StringComparison.OrdinalIgnoreCase))
                 return;
@@ -92,7 +89,4 @@ public static class StartMenuShortcut
     /// <summary>The file Photino names after the window, in the per-user Start Menu's Programs folder.</summary>
     private static string ShortcutPath(string windowTitle) => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.Programs), $"{windowTitle}.lnk");
-
-    /// <summary>The target stored in a shortcut, or null when it cannot be read.</summary>
-    private static string? TargetOf(string link) => Shortcut.ReadFromFile(link).LinkTargetIDList?.Path;
 }

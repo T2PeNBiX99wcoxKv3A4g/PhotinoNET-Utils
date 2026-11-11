@@ -55,6 +55,7 @@ public sealed record UpdateChangelogPayload(string Text);
 [PublicAPI]
 public sealed class UpdateService : IDisposable
 {
+    private const string WindowsOnlyError = "Updates are only supported on Windows.";
     private static readonly TimeSpan CacheLifetime = TimeSpan.FromHours(6);
     private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan ChangelogTimeout = TimeSpan.FromSeconds(20);
@@ -167,7 +168,7 @@ public sealed class UpdateService : IDisposable
     private async Task<NativeResponse?> DownloadAsync(NativeContext context)
     {
         if (!OperatingSystem.IsWindows())
-            return Ack(context, "update.download.result", false, "Updates are only supported on Windows.");
+            return Ack(context, "update.download.result", false, WindowsOnlyError);
 
         lock (_gate)
             if (_downloading)
@@ -210,13 +211,9 @@ public sealed class UpdateService : IDisposable
             var url =
                 $"https://github.com/{_options.Owner}/{_options.Repository}/releases/latest/download/{Uri.EscapeDataString(fileName)}";
 
-            var directory = Path.Combine(Path.GetTempPath(), $"{_options.AppName}-update");
-            Directory.CreateDirectory(directory);
+            ClearDownloadDirectory();
 
-            foreach (var stale in Directory.EnumerateFiles(directory))
-                Try.Run(() => File.Delete(stale));
-
-            var path = Path.Combine(directory, fileName);
+            var path = Path.Combine(DownloadDirectory, fileName);
             part = path + ".part";
 
             using var response = await _client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token);
@@ -311,7 +308,7 @@ public sealed class UpdateService : IDisposable
     private NativeResponse Install(NativeContext context)
     {
         if (!OperatingSystem.IsWindows())
-            return Ack(context, "update.install.result", false, "Updates are only supported on Windows.");
+            return Ack(context, "update.install.result", false, WindowsOnlyError);
 
         string? path;
 
@@ -362,6 +359,9 @@ public sealed class UpdateService : IDisposable
         }
     }
 
+    /// <summary>Where a download is staged: one folder per app under the temp directory.</summary>
+    private string DownloadDirectory => Path.Combine(Path.GetTempPath(), $"{_options.AppName}-update");
+
     private void Notify(string type, object? data) => _options.Notify?.Invoke(type, data);
 
     private static NativeResponse Ack(NativeContext context, string type, bool ok, string? error) =>
@@ -374,14 +374,20 @@ public sealed class UpdateService : IDisposable
             return false;
         });
 
-    /// <summary>Removes a leftover installer from a previous run; it is no longer usable.</summary>
-    private void Cleanup()
+    /// <summary>Creates the download folder and drops whatever an earlier run left in it.</summary>
+    private void ClearDownloadDirectory()
     {
-        var directory = Path.Combine(Path.GetTempPath(), $"{_options.AppName}-update");
-        if (!Directory.Exists(directory))
-            return;
+        var directory = DownloadDirectory;
+        Directory.CreateDirectory(directory);
 
         foreach (var file in Directory.EnumerateFiles(directory))
             Try.Run(() => File.Delete(file));
+    }
+
+    /// <summary>Removes a leftover installer from a previous run; it is no longer usable.</summary>
+    private void Cleanup()
+    {
+        if (Directory.Exists(DownloadDirectory))
+            ClearDownloadDirectory();
     }
 }

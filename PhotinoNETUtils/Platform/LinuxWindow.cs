@@ -53,7 +53,7 @@ public static partial class LinuxWindow
     public static bool CanPaintCorners => LinuxGtk.CanBeTransparent;
 
     public static bool BeginDrag(string title) =>
-        WithWindow(title, window =>
+        LinuxGtk.WithWindow(title, window =>
         {
             var (x, y) = Pointer();
             gtk_window_begin_move_drag(window, LeftButton, x, y, EventTime());
@@ -61,7 +61,7 @@ public static partial class LinuxWindow
 
     public static bool BeginResize(string title, string direction) =>
         Edges.TryGetValue(direction, out var edge) &&
-        WithWindow(title, window =>
+        LinuxGtk.WithWindow(title, window =>
         {
             var (x, y) = Pointer();
             gtk_window_begin_resize_drag(window, edge, LeftButton, x, y, EventTime());
@@ -78,7 +78,7 @@ public static partial class LinuxWindow
     public static bool ToggleMaximize(string title) =>
         Try.Run(() =>
         {
-            var window = FindByTitle(title);
+            var window = LinuxGtk.FindByTitle(title);
             if (window == IntPtr.Zero)
                 return false;
 
@@ -108,10 +108,10 @@ public static partial class LinuxWindow
     ///     and turning decorations off then removes the titlebar it would have drawn.
     /// </remarks>
     public static bool UseClientSideFrame(string title) =>
-        WithWindow(title, window =>
+        LinuxGtk.WithWindow(title, window =>
         {
             gtk_window_set_titlebar(window, gtk_box_new(GtkOrientationHorizontal, 0));
-            gtk_window_set_decorated(window, false);
+            LinuxGtk.SetDecorated(window, false);
         });
 
     /// <summary>
@@ -128,63 +128,11 @@ public static partial class LinuxWindow
     private static uint EventTime() =>
         Try.Run(gtk_get_current_event_time).GetOrElse(_ => 0u);
 
-    private static bool WithWindow(string title, Action<IntPtr> action) =>
-        Try.Run(() =>
-        {
-            var window = FindByTitle(title);
-            if (window == IntPtr.Zero)
-                return false;
-
-            action(window);
-            return true;
-        }).GetOrElse(ex =>
-        {
-            Log.Debug(ex, "GTK window lookup for {Title} failed", title);
-            return false;
-        });
-
-    private static IntPtr FindByTitle(string title)
-    {
-        var list = gtk_window_list_toplevels();
-        if (list == IntPtr.Zero)
-            return IntPtr.Zero;
-
-        try
-        {
-            // GList is { gpointer data; GList* next; GList* prev; }.
-            for (var node = list; node != IntPtr.Zero; node = Marshal.ReadIntPtr(node, IntPtr.Size))
-            {
-                var window = Marshal.ReadIntPtr(node);
-                if (window == IntPtr.Zero)
-                    continue;
-
-                var current = gtk_window_get_title(window);
-                if (current != IntPtr.Zero && Marshal.PtrToStringUTF8(current) == title)
-                    return window;
-            }
-        }
-        finally
-        {
-            g_list_free(list);
-        }
-
-        return IntPtr.Zero;
-    }
-
-    [LibraryImport(GtkLibrary)]
-    private static partial IntPtr gtk_window_list_toplevels();
-
-    [LibraryImport(GtkLibrary)]
-    private static partial IntPtr gtk_window_get_title(IntPtr window);
-
     [LibraryImport(GtkLibrary)]
     private static partial IntPtr gtk_box_new(int orientation, int spacing);
 
     [LibraryImport(GtkLibrary)]
     private static partial void gtk_window_set_titlebar(IntPtr window, IntPtr titlebar);
-
-    [LibraryImport(GtkLibrary)]
-    private static partial void gtk_window_set_decorated(IntPtr window, [MarshalAs(UnmanagedType.Bool)] bool decorated);
 
     [LibraryImport(GtkLibrary)]
     private static partial void gtk_window_begin_move_drag(IntPtr window, int button, int rootX, int rootY,
@@ -206,7 +154,4 @@ public static partial class LinuxWindow
 
     [LibraryImport(GtkLibrary)]
     private static partial uint gtk_get_current_event_time();
-
-    [LibraryImport("libglib-2.0.so.0")]
-    private static partial void g_list_free(IntPtr list);
 }

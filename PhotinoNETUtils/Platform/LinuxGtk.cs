@@ -61,6 +61,9 @@ public static partial class LinuxGtk
                 return false;
             });
 
+    /// <summary>Whether GDK has a display connection, i.e. whether GTK can be used at all.</summary>
+    internal static bool HasDisplay => gdk_display_get_default() != IntPtr.Zero;
+
     /// <summary>
     ///     Hides a toplevel by title. Returns false when it could not be found. Unmapping is what takes
     ///     a window out of the taskbar here: iconifying it only minimises it, which leaves it there.
@@ -247,15 +250,7 @@ public static partial class LinuxGtk
 
         try
         {
-            var display = gdk_display_get_default();
-            if (display == IntPtr.Zero)
-                return false;
-
-            var seat = gdk_display_get_default_seat(display);
-            if (seat == IntPtr.Zero)
-                return false;
-
-            var pointer = gdk_seat_get_pointer(seat);
+            var pointer = DefaultPointer();
             return pointer != IntPtr.Zero && gdk_device_get_position(pointer, IntPtr.Zero, out x, out y);
         }
         catch (Exception ex)
@@ -275,19 +270,8 @@ public static partial class LinuxGtk
         Try.Run(() =>
         {
             var root = gdk_get_default_root_window();
-            if (root == IntPtr.Zero)
-                return false;
-
-            var display = gdk_display_get_default();
-            if (display == IntPtr.Zero)
-                return false;
-
-            var seat = gdk_display_get_default_seat(display);
-            if (seat == IntPtr.Zero)
-                return false;
-
-            var pointer = gdk_seat_get_pointer(seat);
-            if (pointer == IntPtr.Zero)
+            var pointer = DefaultPointer();
+            if (root == IntPtr.Zero || pointer == IntPtr.Zero)
                 return false;
 
             gdk_device_get_state(pointer, root, IntPtr.Zero, out var mask);
@@ -297,6 +281,17 @@ public static partial class LinuxGtk
             Log.Debug(ex, "Could not read the pointer state");
             return false;
         });
+
+    /// <summary>The pointer of the default seat, or zero when there is no seat to ask.</summary>
+    private static IntPtr DefaultPointer()
+    {
+        var display = gdk_display_get_default();
+        if (display == IntPtr.Zero)
+            return IntPtr.Zero;
+
+        var seat = gdk_display_get_default_seat(display);
+        return seat == IntPtr.Zero ? IntPtr.Zero : gdk_seat_get_pointer(seat);
+    }
 
     /// <summary>
     ///     Watches the clipboard and reports every new text selection. The text is requested
@@ -389,7 +384,11 @@ public static partial class LinuxGtk
         return 0;
     }
 
-    private static bool WithWindow(string title, Action<IntPtr> action) =>
+    /// <summary>
+    ///     Finds the toplevel with this exact title and hands it to <paramref name="action" />; false when
+    ///     no window carries that title or the native call failed.
+    /// </summary>
+    internal static bool WithWindow(string title, Action<IntPtr> action) =>
         Try.Run(() =>
         {
             var window = FindByTitle(title);
@@ -404,7 +403,12 @@ public static partial class LinuxGtk
             return false;
         });
 
-    private static IntPtr FindByTitle(string title)
+    /// <summary>Sets whether GTK draws a frame of its own around the toplevel.</summary>
+    internal static void SetDecorated(IntPtr window, bool decorated) =>
+        gtk_window_set_decorated(window, decorated);
+
+    /// <summary>The toplevel with this exact title, or zero when there is none.</summary>
+    internal static IntPtr FindByTitle(string title)
     {
         var list = gtk_window_list_toplevels();
         if (list == IntPtr.Zero)

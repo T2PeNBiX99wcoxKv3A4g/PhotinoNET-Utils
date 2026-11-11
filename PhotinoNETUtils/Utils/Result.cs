@@ -15,10 +15,10 @@ public readonly struct Result<T>
         Exception = null;
     }
 
-    private Result(Exception exceptionDispatchInfo)
+    private Result(Exception exception)
     {
         Value = default;
-        Exception = exceptionDispatchInfo;
+        Exception = exception;
     }
 
     public static Result<T> Success(T value) => new(value);

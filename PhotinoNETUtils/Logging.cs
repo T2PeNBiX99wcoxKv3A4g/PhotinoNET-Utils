@@ -94,32 +94,27 @@ internal sealed class TeeWriter(TextWriter inner, string source, LogEventLevel l
 
     public override Encoding Encoding => inner.Encoding;
 
-    public override void Write(char value)
-    {
-        inner.Write(value);
-
-        lock (_sync)
-            if (value == '\n')
-                EmitPending();
-            else if (value != '\r')
-                _pending.Append(value);
-    }
+    public override void Write(char value) => Mirror([value]);
 
     public override void Write(string? value)
     {
         inner.Write(value);
-        if (value is null)
-            return;
+        if (value is not null)
+            Mirror(value);
+    }
 
+    public override void WriteLine(string? value) => Write(value + Environment.NewLine);
+
+    /// <summary>Passes the text on and collects the current line, so only complete lines are logged.</summary>
+    private void Mirror(ReadOnlySpan<char> text)
+    {
         lock (_sync)
-            foreach (var character in value)
+            foreach (var character in text)
                 if (character == '\n')
                     EmitPending();
                 else if (character != '\r')
                     _pending.Append(character);
     }
-
-    public override void WriteLine(string? value) => Write(value + Environment.NewLine);
 
     private void EmitPending()
     {

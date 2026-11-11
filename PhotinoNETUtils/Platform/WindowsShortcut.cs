@@ -1,5 +1,7 @@
 using System.Runtime.Versioning;
 using JetBrains.Annotations;
+using PhotinoNetUtils.Extensions;
+using PhotinoNetUtils.Utils;
 using ShellLink;
 
 namespace PhotinoNetUtils.Platform;
@@ -44,5 +46,29 @@ public static class WindowsShortcut
         };
 
         shortcut.WriteToFile(linkPath);
+    }
+
+    /// <summary>
+    ///     The executable a shortcut starts, or null when the file cannot be read. Most links name it in
+    ///     the shell item list; older ones only carry it split across the link info block.
+    /// </summary>
+    public static string? ReadTarget(string linkPath)
+    {
+        var shortcut = Try.Run(() => Shortcut.ReadFromFile(linkPath)).GetOrNull();
+        if (shortcut is null)
+            return null;
+
+        if (shortcut.LinkTargetIDList?.Path is { Length: > 0 } target)
+            return target;
+
+        if (shortcut.LinkInfo is not { } info)
+            return null;
+
+        var basePath = info.LocalBasePathUnicode is { Length: > 0 } unicode ? unicode : info.LocalBasePath;
+        var suffix = info.CommonPathSuffixUnicode is { Length: > 0 } suffixUnicode
+            ? suffixUnicode
+            : info.CommonPathSuffix;
+
+        return $"{basePath}{suffix}" is { Length: > 0 } path ? path : null;
     }
 }

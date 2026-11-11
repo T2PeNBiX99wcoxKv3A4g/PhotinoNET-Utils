@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Text;
+using PhotinoNetUtils.Utils;
 using Serilog;
 
 namespace PhotinoNetUtils.Platform;
@@ -35,10 +36,7 @@ internal static class LinuxIconTheme
             Directory.CreateDirectory(directory);
 
             var target = Path.Combine(directory, name + ".png");
-            var bytes = File.ReadAllBytes(iconPath);
-
-            if (!File.Exists(target) || !File.ReadAllBytes(target).SequenceEqual(bytes))
-                File.WriteAllBytes(target, bytes);
+            FileUtil.WriteAllBytesIfChanged(target, File.ReadAllBytes(iconPath));
 
             var index = Path.Combine(root, "index.theme");
             if (!File.Exists(index) && File.Exists("/usr/share/icons/hicolor/index.theme"))

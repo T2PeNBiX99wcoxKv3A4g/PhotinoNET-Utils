@@ -147,10 +147,8 @@ TrayIconFactory.CreateStandard(
 
 ### WebView recovery
 
-Attach the shared watchdog to the main window before loading the app URL. The bridge starts sending
-heartbeats automatically after the existing `app.ready` message. A page that never reports ready,
-reports an empty `#root` repeatedly, or stops heartbeating is reloaded a few times; after that the
-tray action remains available for a manual retry.
+Attach the shared watchdog to the main window before loading the app URL. A page that never reports
+`app.ready` is reloaded a few times; after that the tray action remains available for a manual retry.
 
 ```csharp
 using PhotinoNetUtils.Services;
@@ -160,8 +158,10 @@ window.Load(appUrl);
 // Dispose recovery when the app exits. Keep it alive while the window is hidden to the tray.
 ```
 
-The defaults wait 20 seconds for the first render and 45 seconds for a missed heartbeat. A reload
-re-navigates the existing Photino window; it does not create another window or another WebView profile.
+The default waits 20 seconds for the first render. Once the page has reported ready it is left alone:
+a missing heartbeat or an empty `#root` never navigates away from a page the user is working in, so
+use the tray's Reload entry for that. A reload re-navigates the existing Photino window; it does not
+create another window or another WebView profile.
 
 ### Shortcuts
 

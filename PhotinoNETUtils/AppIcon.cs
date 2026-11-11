@@ -23,10 +23,14 @@ public static class AppIcon
         Assembly assembly,
         string appName,
         string? windowsResource = null,
-        string? linuxResource = null) =>
-        OperatingSystem.IsWindows()
-            ? Extract(assembly, appName, windowsResource ?? $"{appName}.Resources.icon.ico", "icon.ico")
-            : Extract(assembly, appName, linuxResource ?? $"{appName}.Resources.icon.png", "icon.png");
+        string? linuxResource = null)
+    {
+        var (resource, fileName) = OperatingSystem.IsWindows()
+            ? (windowsResource ?? $"{appName}.Resources.icon.ico", "icon.ico")
+            : (linuxResource ?? $"{appName}.Resources.icon.png", "icon.png");
+
+        return Extract(assembly, appName, resource, fileName);
+    }
 
     private static string? Extract(Assembly assembly, string appName, string resourceName, string fileName) =>
         Try.Run<string?>(() =>
@@ -43,8 +47,7 @@ public static class AppIcon
             var icon = buffer.ToArray();
 
             var path = Path.Combine(AppPaths.DataDirectory(appName), fileName);
-            if (!File.Exists(path) || !File.ReadAllBytes(path).AsSpan().SequenceEqual(icon))
-                File.WriteAllBytes(path, icon);
+            FileUtil.WriteAllBytesIfChanged(path, icon);
 
             return path;
         }).GetOrElse(ex =>

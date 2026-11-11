@@ -1,4 +1,3 @@
-using System.Text.Json;
 using JetBrains.Annotations;
 using Photino.NET;
 using PhotinoNetUtils.Messaging;
@@ -7,17 +6,19 @@ using Serilog;
 namespace PhotinoNetUtils.Services;
 
 /// <summary>
-///     Watches the app's main Photino page for its first render and for a small heartbeat from the
-///     shared bridge. A page that never starts, or whose renderer goes blank later, is navigated to
-///     its original URL again. The tray can call <see cref="Reload" /> for a manual retry.
+///     Watches the app's main Photino page for its first render. A page that never starts is navigated
+///     to its original URL again, and the tray can call <see cref="Reload" /> for a manual retry.
 /// </summary>
+/// <remarks>
+///     Once the page has reported ready it is left alone: this is a startup watchdog, not a renderer
+///     monitor, so a later blank render never navigates away from a page the user is working in.
+/// </remarks>
 [PublicAPI]
 public sealed class WebViewRecovery : IDisposable
 {
     private const int AutomaticReloadLimit = 3;
+    private const string StartupReason = "the page did not report its first render";
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(20);
-    private static readonly TimeSpan HeartbeatTimeout = TimeSpan.FromSeconds(45);
-    private static readonly TimeSpan StableRun = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(2);
 
     private readonly object _gate = new();
@@ -26,13 +27,9 @@ public sealed class WebViewRecovery : IDisposable
     private readonly PhotinoWindow _window;
     private bool _automaticRecoveryDisabled;
     private int _automaticReloads;
-    private int _blankHeartbeats;
-    private bool _blankUiDetected;
     private bool _disposed;
-    private DateTimeOffset _lastHeartbeat;
     private DateTimeOffset _lastLoad = DateTimeOffset.UtcNow;
     private bool _ready;
-    private DateTimeOffset _readySince;
     private bool _reloading;
 
     private WebViewRecovery(PhotinoWindow window, string url)
@@ -72,7 +69,6 @@ public sealed class WebViewRecovery : IDisposable
             _reloading = true;
             _ready = false;
             _lastLoad = DateTimeOffset.UtcNow;
-            _lastHeartbeat = default;
             _automaticReloads = 0;
             _automaticRecoveryDisabled = false;
         }
@@ -82,72 +78,41 @@ public sealed class WebViewRecovery : IDisposable
 
     private Task<NativeResponse?> OnMessageAsync(NativeContext context)
     {
-        if (!ReferenceEquals(context.Window, _window)) return Task.FromResult<NativeResponse?>(null);
+        if (!ReferenceEquals(context.Window, _window) || context.Request.Type != "app.ready")
+            return Task.FromResult<NativeResponse?>(null);
 
-        var now = DateTimeOffset.UtcNow;
         lock (_gate)
-        {
-            if (_disposed) return Task.FromResult<NativeResponse?>(null);
-
-            if (context.Request.Type == "app.ready")
-            {
+            if (!_disposed)
                 _ready = true;
-                _readySince = now;
-                _lastHeartbeat = now;
-                _blankHeartbeats = 0;
-                _blankUiDetected = false;
-            }
-            else if (context.Request.Type == "webview.heartbeat" && _ready)
-            {
-                _lastHeartbeat = now;
-                var blank = context.Request.Payload is { ValueKind: JsonValueKind.Object } payload
-                            && payload.TryGetProperty("blank", out var value)
-                            && value.ValueKind == JsonValueKind.True;
-                _blankHeartbeats = blank ? _blankHeartbeats + 1 : 0;
-                _blankUiDetected = _blankHeartbeats >= 3;
-                if (_automaticReloads > 0 && now - _readySince >= StableRun)
-                    _automaticReloads = 0;
-            }
-        }
 
         return Task.FromResult<NativeResponse?>(null);
     }
 
     private void Check(object? state)
     {
-        string? reason = null;
-
         lock (_gate)
         {
-            if (_disposed || _reloading || _automaticRecoveryDisabled) return;
-
-            // Once the page has reported its first render it is considered healthy. A missing
-            // heartbeat or an empty-looking heartbeat must not navigate away from a page the user
-            // is already working in; the tray's Reload entry is the manual recovery path.
-            if (_ready) return;
+            if (_disposed || _reloading || _automaticRecoveryDisabled || _ready) return;
 
             var now = DateTimeOffset.UtcNow;
-            if (now - _lastLoad >= StartupTimeout)
-                reason = "the page did not report its first render";
+            if (now - _lastLoad < StartupTimeout) return;
 
-            if (reason is null) return;
             if (_automaticReloads >= AutomaticReloadLimit)
             {
-                Log.Error("WebView recovery stopped after {Count} retries ({Reason})", _automaticReloads, reason);
+                Log.Error("WebView recovery stopped after {Count} retries ({Reason})", _automaticReloads,
+                    StartupReason);
                 _automaticRecoveryDisabled = true;
                 return;
             }
 
             _automaticReloads++;
             _reloading = true;
-            _ready = false;
             _lastLoad = now;
-            _lastHeartbeat = default;
         }
 
-        Log.Warning("Reloading the WebView because {Reason}; retry {Retry}/{Limit}", reason,
+        Log.Warning("Reloading the WebView because {Reason}; retry {Retry}/{Limit}", StartupReason,
             _automaticReloads, AutomaticReloadLimit);
-        Navigate(reason);
+        Navigate(StartupReason);
     }
 
     private bool Navigate(string reason)

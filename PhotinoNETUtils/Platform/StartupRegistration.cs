@@ -4,7 +4,6 @@ using JetBrains.Annotations;
 using PhotinoNetUtils.Extensions;
 using PhotinoNetUtils.Utils;
 using Serilog;
-using ShellLink;
 
 namespace PhotinoNetUtils.Platform;
 
@@ -81,25 +80,7 @@ public sealed class StartupRegistration
     }
 
     [SupportedOSPlatform("windows")]
-    private static string? WindowsTarget(string linkPath)
-    {
-        var shortcut = Try.Run(() => Shortcut.ReadFromFile(linkPath)).GetOrNull();
-        if (shortcut is null)
-            return null;
-
-        if (shortcut.LinkTargetIDList?.Path is { Length: > 0 } target)
-            return target;
-
-        if (shortcut.LinkInfo is not { } info)
-            return null;
-
-        var basePath = info.LocalBasePathUnicode is { Length: > 0 } unicode ? unicode : info.LocalBasePath;
-        var suffix = info.CommonPathSuffixUnicode is { Length: > 0 } suffixUnicode
-            ? suffixUnicode
-            : info.CommonPathSuffix;
-
-        return $"{basePath}{suffix}" is { Length: > 0 } path ? path : null;
-    }
+    private static string? WindowsTarget(string linkPath) => WindowsShortcut.ReadTarget(linkPath);
 
     private static string? LinuxTarget(string entryPath)
     {
@@ -133,10 +114,7 @@ public sealed class StartupRegistration
         if (File.Exists(EntryPath))
             File.Delete(EntryPath);
 
-        // An entry an earlier build wrote under the identifier is removed with it.
-        if (LegacyEntryPath is { } legacy && File.Exists(legacy))
-            File.Delete(legacy);
-
+        DeleteLegacyEntry();
         return true;
     }
 
@@ -153,12 +131,18 @@ public sealed class StartupRegistration
         else if (OperatingSystem.IsWindows())
             WindowsShortcut.Create(EntryPath, executable, "", Path.GetDirectoryName(executable) ?? "", _entryName);
 
-        // A login entry written by an earlier build carried the identifier; keeping it would start
-        // the app twice.
+        DeleteLegacyEntry();
+        return true;
+    }
+
+    /// <summary>
+    ///     Removes the entry an earlier build wrote under the identifier; keeping it would start the
+    ///     app twice. A failure here must not undo the entry that was just written.
+    /// </summary>
+    private void DeleteLegacyEntry()
+    {
         if (LegacyEntryPath is { } legacy && File.Exists(legacy))
             Try.Run(() => File.Delete(legacy));
-
-        return true;
     }
 
     [SupportedOSPlatform("linux")]

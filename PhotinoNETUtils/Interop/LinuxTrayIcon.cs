@@ -55,7 +55,7 @@ internal sealed partial class LinuxTrayIcon(
     ///     without one — it aborts the process — so every call is guarded by this.
     /// </summary>
     public static bool IsToolkitReady =>
-        Try.Run(() => gdk_display_get_default() != IntPtr.Zero)
+        Try.Run(() => LinuxGtk.HasDisplay)
             .GetOrElse(ex =>
             {
                 Log.Debug(ex, "GTK is not available");
@@ -153,8 +153,7 @@ internal sealed partial class LinuxTrayIcon(
     ///     Runs the action off the GTK thread: these callbacks are raised from inside the GTK main loop,
     ///     and Photino's <c>Invoke</c> must not be called from the loop it is waiting on.
     /// </summary>
-    private static void Dispatch(Action action) =>
-        _ = Task.Run(() => Try.Run(action).OnFailure(ex => Log.Warning(ex, "Tray callback failed")));
+    private static void Dispatch(Action action) => _ = Task.Run(() => TrayAction.Invoke(action));
 
     /// <summary>Resolves the indicator library, accepting either the Ayatana or the original soname.</summary>
     private static IntPtr ResolveLibrary(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
@@ -184,9 +183,6 @@ internal sealed partial class LinuxTrayIcon(
     private static partial void app_indicator_set_title(IntPtr indicator, string title);
 
     // ---- libgtk-3 ----
-
-    [LibraryImport(GtkLibrary)]
-    private static partial IntPtr gdk_display_get_default();
 
     [LibraryImport(GtkLibrary)]
     private static partial IntPtr gtk_menu_new();

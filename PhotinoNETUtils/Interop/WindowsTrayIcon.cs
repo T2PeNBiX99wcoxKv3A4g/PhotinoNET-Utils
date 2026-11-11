@@ -1,8 +1,5 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using PhotinoNetUtils.Extensions;
-using PhotinoNetUtils.Utils;
-using Serilog;
 
 namespace PhotinoNetUtils.Interop;
 
@@ -165,7 +162,7 @@ internal sealed class WindowsTrayIcon(
                 {
                     case WmLButtonUp:
                     case WmLButtonDblClk:
-                        SafeInvoke(onOpen);
+                        TrayAction.Invoke(onOpen);
                         break;
                     case WmRButtonUp:
                         ShowContextMenu();
@@ -178,7 +175,7 @@ internal sealed class WindowsTrayIcon(
                 // Menu ids are one-based so 0 can mean "nothing selected".
                 var index = ((int)wParam & 0xFFFF) - 1;
                 if (index >= 0 && index < menu.Count)
-                    SafeInvoke(menu[index].Callback);
+                    TrayAction.Invoke(menu[index].Callback);
 
                 return IntPtr.Zero;
 
@@ -217,7 +214,4 @@ internal sealed class WindowsTrayIcon(
         if (command > 0)
             WindowProc(_hwnd, WmCommand, command, IntPtr.Zero);
     }
-
-    private static void SafeInvoke(Action action) =>
-        Try.Run(action).OnFailure(ex => Log.Warning(ex, "Tray callback failed"));
 }
