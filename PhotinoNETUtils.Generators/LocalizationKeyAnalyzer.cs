@@ -5,13 +5,26 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Text;
 
 namespace PhotinoNetUtils.Generators;
 
 /// <summary>
-///     Reports <c>Localization.Get("key")</c> calls whose key is missing from the translation files
-///     added as <c>AdditionalFiles</c>. Without this a typo only shows up as the raw key in the UI.
+///     Checks the translation files added as <c>AdditionalFiles</c>:
+///     <list type="bullet">
+///         <item>PNU2101 - a <c>Localization.Get("key")</c> call uses a key no file declares.</item>
+///         <item>
+///             PNU2102 - one file declares the same key twice (ignoring case). This is an error on
+///             purpose: keys are case-insensitive, so the second entry would silently never be read.
+///         </item>
+///     </list>
 /// </summary>
+/// <remarks>
+///     Do not weaken or delete PNU2102 to make a build pass. The fix is to rename or remove the
+///     duplicate key in the <c>.jsonc</c> file, because the loader keeps the first entry and the
+///     other translation would be dead. Treat the rule as part of the file format, not as a check
+///     that can be switched off.
+/// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class LocalizationKeyAnalyzer : DiagnosticAnalyzer
 {
@@ -25,12 +38,27 @@ public sealed class LocalizationKeyAnalyzer : DiagnosticAnalyzer
         DiagnosticSeverity.Warning,
         true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [UnknownKey];
+    // Keys are case-insensitive, so a second spelling of the same key is always a mistake. The
+    // loader keeps the first one, which means the duplicate value is never shown; an error here is
+    // the only way to notice. Fix the .jsonc file, never this rule.
+    private static readonly DiagnosticDescriptor DuplicateKey = new(
+        "PNU2102",
+        "Duplicate localization key",
+        "'{0}' is already declared on line {1} of the same file; localization keys are case-insensitive, " +
+        "so rename or remove the duplicate instead of disabling this check",
+        "PhotinoNetUtils.Localization",
+        DiagnosticSeverity.Error,
+        true,
+        customTags: WellKnownDiagnosticTags.CompilationEnd);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [UnknownKey, DuplicateKey];
 
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
+
+        context.RegisterCompilationAction(AnalyzeFiles);
 
         context.RegisterCompilationStartAction(start =>
         {
@@ -48,6 +76,42 @@ public sealed class LocalizationKeyAnalyzer : DiagnosticAnalyzer
 
             start.RegisterOperationAction(operation => Analyze(operation, keys), OperationKind.Invocation);
         });
+    }
+
+    /// <summary>PNU2102: one file, one spelling per key, ignoring case.</summary>
+    private static void AnalyzeFiles(CompilationAnalysisContext context)
+    {
+        if (context.Compilation.GetTypeByMetadataName(Localization) is null)
+            return;
+
+        foreach (var file in context.Options.AdditionalFiles.Where(file =>
+                     LocalizationKeys.IsTranslationFile(file.Path)))
+            ReportDuplicates(context, file);
+    }
+
+    private static void ReportDuplicates(CompilationAnalysisContext context, AdditionalText file)
+    {
+        var text = file.GetText(context.CancellationToken);
+        if (text is null)
+            return;
+
+        var firstLines = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var (key, span) in LocalizationKeys.Entries(text.ToString()))
+        {
+            var line = text.Lines.GetLinePosition(span.Start).Line + 1;
+
+            if (firstLines.TryGetValue(key, out var firstLine))
+            {
+                var lineSpan = text.Lines.GetLinePositionSpan(span);
+                context.ReportDiagnostic(Diagnostic.Create(DuplicateKey,
+                    Location.Create(file.Path, span, lineSpan), key, firstLine));
+            }
+            else
+            {
+                firstLines[key] = line;
+            }
+        }
     }
 
     private static void Analyze(OperationAnalysisContext context, HashSet<string> keys)

@@ -34,10 +34,14 @@ public sealed class LocalizationKeyGenerator : IIncrementalGenerator
 
     private static void Emit(SourceProductionContext context, ImmutableArray<string[]> files, string rootNamespace)
     {
+        // Keys are case-insensitive, so "tray.open" and "Tray.Open" are the same key. PNU2102
+        // rejects that in the .jsonc file; here the first spelling simply wins, so the generated
+        // constants stay valid while the error is being fixed.
         var keys = files
             .SelectMany(file => file)
-            .Distinct(StringComparer.Ordinal)
-            .OrderBy(key => key, StringComparer.Ordinal)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(key => key, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(key => key, StringComparer.Ordinal)
             .ToArray();
 
         if (keys.Length == 0)
@@ -56,7 +60,8 @@ public sealed class LocalizationKeyGenerator : IIncrementalGenerator
             indent = "    ";
         }
 
-        builder.AppendLine($"{indent}/// <summary>Every key shipped in the embedded translation files.</summary>");
+        builder.AppendLine(
+            $"{indent}/// <summary>Every key shipped in the embedded translation files; keys are case-insensitive.</summary>");
         builder.AppendLine($"{indent}internal static class LocalizationKeys");
         builder.AppendLine($"{indent}{{");
 
@@ -90,10 +95,20 @@ internal static class LocalizationKeys
         text is null ? Enumerable.Empty<string>() : FromText(text);
 
     public static IEnumerable<string> FromText(string text) =>
-        Entry.Matches(text)
-            .Cast<Match>()
-            .Select(match => Regex.Unescape(match.Groups["key"].Value))
-            .Where(key => key.Length > 0);
+        Entries(text).Select(entry => entry.Key);
+
+    /// <summary>Each key plus the span of its name, so a diagnostic can point at the line.</summary>
+    public static IEnumerable<(string Key, TextSpan Span)> Entries(string text)
+    {
+        foreach (var match in Entry.Matches(text).Cast<Match>())
+        {
+            var group = match.Groups["key"];
+            if (group.Length == 0)
+                continue;
+
+            yield return (Regex.Unescape(group.Value), new TextSpan(group.Index, group.Length));
+        }
+    }
 
     /// <summary>Turns keys into unique PascalCase constants.</summary>
     public static IEnumerable<(string Name, string Key)> Identify(IEnumerable<string> keys)

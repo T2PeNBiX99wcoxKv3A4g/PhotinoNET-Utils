@@ -53,7 +53,18 @@ internal static class Program
                 return 1;
             }
 
-            var keys = Keys(File.ReadAllText(i18nPath));
+            var text = File.ReadAllText(i18nPath);
+
+            // Keys are case-insensitive, so two spellings of one key are a mistake; the app keeps
+            // the first one. Fail here as well, so the UI build never disagrees with the backend.
+            if (DuplicateKey(text) is { } duplicate)
+            {
+                Console.Error.WriteLine($"Duplicate localization key {duplicate}; keys are case-insensitive. " +
+                                        "Rename or remove the duplicate.");
+                return 1;
+            }
+
+            var keys = Keys(text);
 
             if (keys.Count == 0)
             {
@@ -227,9 +238,39 @@ internal static class Program
         .. Regex.Matches(text, "^[ \t]*\"(?<key>(?:\\\\.|[^\"\\\\])*)\"[ \t]*:", RegexOptions.Multiline)
             .Select(match => Regex.Unescape(match.Groups["key"].Value))
             .Where(key => key.Length > 0)
-            .Distinct(StringComparer.Ordinal)
-            .OrderBy(key => key, StringComparer.Ordinal)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(key => key, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(key => key, StringComparer.Ordinal)
     ];
+
+    /// <summary>Returns a description of the first key declared twice, ignoring case, or null.</summary>
+    private static string? DuplicateKey(string text)
+    {
+        var seen = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var line = 1;
+        var previous = 0;
+
+        foreach (Match match in Regex.Matches(text, "^[ \t]*\"(?<key>(?:\\\\.|[^\"\\\\])*)\"[ \t]*:",
+                     RegexOptions.Multiline))
+        {
+            for (var index = previous; index < match.Index; index++)
+                if (text[index] == '\n')
+                    line++;
+
+            previous = match.Index;
+
+            var key = Regex.Unescape(match.Groups["key"].Value);
+            if (key.Length == 0)
+                continue;
+
+            if (seen.TryGetValue(key, out var firstLine))
+                return $"'{key}' on line {line} (first declared on line {firstLine})";
+
+            seen[key] = line;
+        }
+
+        return null;
+    }
 
     private static string KeysTypeScript(string fileName, List<string> keys)
     {

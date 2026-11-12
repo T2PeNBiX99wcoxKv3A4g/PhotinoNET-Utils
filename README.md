@@ -482,13 +482,20 @@ The same DLL carries three analyzers, and the localization generator:
 | `PNU2001` | warning | a payload passed to `Payload<T>()`, `Reply`, `SerializeEvent`, `WebViewEvents.Notify` or `NativeResponse.Success` that is missing `[JsonSerializable]`; a trimmed build would otherwise throw at run time |
 | `PNU1201` | warning | a `[SettingsPayload(typeof(MySettings))]` record without a property for one of the model's `[Setting]` entries, so a new setting never reaches the interface |
 | `PNU2101` | warning | `Localization.Get("…")` with a key that is not in the translation files |
+| `PNU2102` | **error** | the same key declared twice in one `.jsonc` file, ignoring case |
+
+`PNU2102` is an error on purpose. Keys are case-insensitive in the backend, the generated
+constants and the React translator, so a second spelling of a key would never be read: the loader
+keeps the first entry. Fix it by renaming or removing the duplicate in the `.jsonc` file. Do not
+delete or weaken the rule to make a build pass — the duplicate would come back as a silently
+missing translation.
 
 The two localization features read the files added as `AdditionalFiles`:
 
 ```xml
 <ItemGroup>
     <Analyzer Include="Libs\PhotinoNETUtils.Generators.dll" />
-    <AdditionalFiles Include="Resources\i18n\en.jsonc" />
+    <AdditionalFiles Include="Resources\i18n\*.jsonc" />
 </ItemGroup>
 ```
 
@@ -541,6 +548,11 @@ available locales.
 A locale is merged over its language and then over the default locale, so a partially translated file
 still shows something. `Initialize` also answers `i18n.get` on the bridge, so the React side reads the
 same text; register `LocaleRequest` and `LocalePayload` in the app's `JsonSerializerContext`.
+
+Keys are case-insensitive everywhere: `Localization.Get("TRAY.OPEN")`, the generated constants and
+`useTranslation()` all resolve the same entry. One file may therefore not declare the same key twice
+in different spellings; `PNU2102` fails the build, and the loader keeps the first entry. Fix that by
+renaming or removing the key in the `.jsonc` file, not by disabling the check.
 
 ### Front-end bridge
 

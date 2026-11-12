@@ -22,9 +22,18 @@ public sealed record LocalePayload(string Locale, Dictionary<string, string> Str
 ///     backend and the React front-end read the exact same text.
 /// </summary>
 /// <remarks>
-///     A locale is merged over its language and then over the default locale, so a partially
-///     translated file still shows something sensible. Call <see cref="Initialize" /> once, before
-///     anything asks for a string.
+///     <para>
+///         A locale is merged over its language and then over the default locale, so a partially
+///         translated file still shows something sensible. Call <see cref="Initialize" /> once, before
+///         anything asks for a string.
+///     </para>
+///     <para>
+///         Keys are case-insensitive: <c>Localization.Get("Tray.Open")</c> returns the text of
+///         <c>"tray.open"</c>. That also means one file must not declare the same key twice with a
+///         different spelling; the build reports that as <c>PNU2102</c> and keeps the first entry at
+///         run time. Fix a duplicate by renaming or removing the key in the <c>.jsonc</c> file, never
+///         by removing the build check.
+///     </para>
 /// </remarks>
 [PublicAPI]
 public static class Localization
@@ -34,7 +43,13 @@ public static class Localization
     /// <summary>Stored setting that asks the library to follow the OS UI culture.</summary>
     public const string SystemLocale = "system";
 
-    private static readonly Dictionary<string, Dictionary<string, string>> Cache = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>
+    ///     How keys are compared everywhere: the backend, the generated constants and the UI. Keeping
+    ///     one comparer is what makes <c>Localization.Get("TRAY.OPEN")</c> work.
+    /// </summary>
+    public static readonly StringComparer KeyComparer = StringComparer.OrdinalIgnoreCase;
+
+    private static readonly Dictionary<string, Dictionary<string, string>> Cache = new(KeyComparer);
     private static readonly Lock Sync = new();
 
     private static Assembly? _assembly;
@@ -140,7 +155,7 @@ public static class Localization
             if (Cache.TryGetValue(locale, out var cached))
                 return cached;
 
-            var merged = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var merged = new Dictionary<string, string>(KeyComparer);
             foreach (var candidate in FallbackChain(locale))
             foreach (var pair in ReadFile(candidate))
                 merged.TryAdd(pair.Key, pair.Value);
@@ -154,15 +169,24 @@ public static class Localization
     {
         using var stream = _assembly?.GetManifestResourceStream($"{_resourcePrefix}{locale}.jsonc");
         if (stream is null)
-            return new();
+            return new(KeyComparer);
 
-        return Try.Run(() => JsonSerializer.Deserialize(stream, NativeJson.TypeInfo<Dictionary<string, string>>())
-                             ?? new Dictionary<string, string>())
+        var loaded = Try.Run(() => JsonSerializer.Deserialize(stream, NativeJson.TypeInfo<Dictionary<string, string>>())
+                                    ?? new Dictionary<string, string>())
             .GetOrElse(ex =>
             {
                 Log.Warning(ex, "Failed to read the translation file for {Locale}", locale);
-                return new();
+                return new Dictionary<string, string>();
             });
+
+        // Re-key with the shared comparer so lookups ignore case. A file with two spellings of one
+        // key is a build error (PNU2102); keeping the first entry here only prevents a crash in a
+        // build that skipped the analyzer.
+        var table = new Dictionary<string, string>(KeyComparer);
+        foreach (var pair in loaded)
+            table.TryAdd(pair.Key, pair.Value);
+
+        return table;
     }
 
     private static IEnumerable<string> FallbackChain(string locale)

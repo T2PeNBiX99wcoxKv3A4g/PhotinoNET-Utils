@@ -12,8 +12,17 @@ export type Translate = (key: string, params?: Record<string, string | number>) 
 
 /** Falls back to the key itself so a missing translation is obvious but never breaks the UI. */
 export function createTranslator(strings: Record<string, string>): Translate {
+    // Keys are case-insensitive, exactly like PhotinoNetUtils.Localization: a translation file may
+    // not declare the same key twice, and the backend keeps the first spelling when it does. A
+    // lower-cased lookup table reproduces that rule without touching the payload.
+    const lookup = new Map<string, string>();
+    for (const [key, value] of Object.entries(strings)) {
+        const normalized = key.toLowerCase();
+        if (!lookup.has(normalized)) lookup.set(normalized, value);
+    }
+
     return (key, params) => {
-        const template = strings[key] ?? key;
+        const template = lookup.get(key.toLowerCase()) ?? key;
         if (!params) return template;
 
         return template.replace(/\{(\w+)}/g, (match, name: string) =>
