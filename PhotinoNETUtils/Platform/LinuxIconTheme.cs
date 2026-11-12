@@ -69,8 +69,8 @@ internal static class LinuxIconTheme
         {
             // silent keeps the tool's output out of the log and out of a pipe nobody reads, and the
             // timeout guarantees the tray never waits on it.
-            Process.Run("gtk-update-icon-cache", ["-f", "-t", root], silent: true,
-                timeout: TimeSpan.FromSeconds(2));
+            Process.Run("gtk-update-icon-cache", ["-f", "-t", root], true,
+                TimeSpan.FromSeconds(2));
         }
         catch (Exception ex)
         {

@@ -172,11 +172,11 @@ public static class Localization
             return new(KeyComparer);
 
         var loaded = Try.Run(() => JsonSerializer.Deserialize(stream, NativeJson.TypeInfo<Dictionary<string, string>>())
-                                    ?? new Dictionary<string, string>())
+                                   ?? new Dictionary<string, string>())
             .GetOrElse(ex =>
             {
                 Log.Warning(ex, "Failed to read the translation file for {Locale}", locale);
-                return new Dictionary<string, string>();
+                return new();
             });
 
         // Re-key with the shared comparer so lookups ignore case. A file with two spellings of one

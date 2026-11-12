@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -63,7 +62,7 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
         if (symbol.ContainingType is not null || symbol.TypeParameters.Length > 0)
         {
             diagnostics.Add(Diagnostic.Create(NestedModel, symbol.Locations.FirstOrDefault(), symbol.Name));
-            return new ModelInfo(symbol, [], diagnostics);
+            return new(symbol, [], diagnostics);
         }
 
         var entries = new List<Entry>();
@@ -83,7 +82,7 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
             var key = NamedString(attribute, "Key") ?? CamelCase(property.Name);
             var order = NamedInt(attribute, "Order");
 
-            entries.Add(new Entry(key, comment!, order, property.Name, property.Type,
+            entries.Add(new(key, comment!, order, property.Name, property.Type,
                 NamedDouble(attribute, "Min"), NamedDouble(attribute, "Max")));
         }
 
@@ -92,7 +91,7 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
             diagnostics.Add(Diagnostic.Create(DuplicateKey, symbol.Locations.FirstOrDefault(), symbol.Name,
                 duplicate.Key));
 
-        return new ModelInfo(symbol, entries.OrderBy(entry => entry.Order).ToArray(), diagnostics);
+        return new(symbol, entries.OrderBy(entry => entry.Order).ToArray(), diagnostics);
     }
 
     private static void Emit(SourceProductionContext context, ModelInfo model)
@@ -116,7 +115,8 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
 
         declarations.AppendLine($"    internal static class {simpleName}_SettingsMetadata");
         declarations.AppendLine("    {");
-        declarations.AppendLine("        private static readonly global::PhotinoNetUtils.Settings.SettingDefinition[] Definitions =");
+        declarations.AppendLine(
+            "        private static readonly global::PhotinoNetUtils.Settings.SettingDefinition[] Definitions =");
         declarations.AppendLine("        [");
         foreach (var entry in model.Entries)
             declarations.AppendLine(
@@ -226,7 +226,7 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
             : null;
 
     private static string Literal(string value) =>
-        Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(value, true);
+        SymbolDisplay.FormatLiteral(value, true);
 
     private sealed class ModelInfo(
         INamedTypeSymbol symbol,

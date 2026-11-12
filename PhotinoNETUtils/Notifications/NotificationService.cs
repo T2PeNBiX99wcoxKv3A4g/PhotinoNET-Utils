@@ -106,9 +106,7 @@ public static class NotificationService
             Prune(now);
 
             if (_window is { } window)
-            {
                 target = window;
-            }
             else
             {
                 Pending[key] = new(title, message);

@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -76,33 +74,34 @@ public sealed class NativeMessageGenerator : IIncrementalGenerator
             containing.ContainingType is not null || containing.TypeParameters.Length > 0)
         {
             diagnostics.Add(Diagnostic.Create(UnsupportedType, method.Locations.FirstOrDefault(), containing?.Name));
-            return new HandlerInfo(containing, method, "", false, diagnostics);
+            return new(containing, method, "", false, diagnostics);
         }
 
         if (!IsPartial(containing))
             diagnostics.Add(Diagnostic.Create(NotPartial, containing.Locations.FirstOrDefault(), containing.Name));
 
-        var messageType = context.Attributes.FirstOrDefault()?.ConstructorArguments.FirstOrDefault().Value as string ?? "";
+        var messageType = context.Attributes.FirstOrDefault()?.ConstructorArguments.FirstOrDefault().Value as string ??
+                          "";
         if (messageType.Length == 0 ||
             method.Parameters.Length != 1 ||
             method.Parameters[0].Type.ToDisplayString().TrimEnd('?') != Context)
         {
             diagnostics.Add(Diagnostic.Create(BadSignature, method.Locations.FirstOrDefault(), method.Name));
-            return new HandlerInfo(containing, method, messageType, false, diagnostics);
+            return new(containing, method, messageType, false, diagnostics);
         }
 
         if (method.ReturnType.ToDisplayString().TrimEnd('?') == Response)
-            return new HandlerInfo(containing, method, messageType, false, diagnostics);
+            return new(containing, method, messageType, false, diagnostics);
 
         if (method.ReturnType is INamedTypeSymbol task &&
             task.Name == "Task" &&
             task.ContainingNamespace.ToDisplayString() == "System.Threading.Tasks" &&
             task.TypeArguments.Length == 1 &&
             task.TypeArguments[0].ToDisplayString().TrimEnd('?') == Response)
-            return new HandlerInfo(containing, method, messageType, true, diagnostics);
+            return new(containing, method, messageType, true, diagnostics);
 
         diagnostics.Add(Diagnostic.Create(BadSignature, method.Locations.FirstOrDefault(), method.Name));
-        return new HandlerInfo(containing, method, messageType, false, diagnostics);
+        return new(containing, method, messageType, false, diagnostics);
     }
 
     private static void Emit(SourceProductionContext context, ImmutableArray<HandlerInfo> handlers)
@@ -187,7 +186,7 @@ public sealed class NativeMessageGenerator : IIncrementalGenerator
             .Any(syntax => syntax.Modifiers.Any(SyntaxKind.PartialKeyword));
 
     private static string Literal(string value) =>
-        Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(value, true);
+        SymbolDisplay.FormatLiteral(value, true);
 
     private sealed class HandlerInfo(
         INamedTypeSymbol? containing,

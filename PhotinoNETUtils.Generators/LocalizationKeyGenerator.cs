@@ -1,10 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace PhotinoNetUtils.Generators;
@@ -77,7 +75,7 @@ public sealed class LocalizationKeyGenerator : IIncrementalGenerator
     }
 
     private static string Literal(string value) =>
-        Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(value, true);
+        SymbolDisplay.FormatLiteral(value, true);
 }
 
 /// <summary>The shared key reader behind the generator and the analyzer.</summary>
@@ -106,7 +104,7 @@ internal static class LocalizationKeys
             if (group.Length == 0)
                 continue;
 
-            yield return (Regex.Unescape(group.Value), new TextSpan(group.Index, group.Length));
+            yield return (Regex.Unescape(group.Value), new(group.Index, group.Length));
         }
     }
 
@@ -134,17 +132,13 @@ internal static class LocalizationKeys
         var upper = true;
 
         foreach (var character in key)
-        {
             if (char.IsLetterOrDigit(character))
             {
                 builder.Append(upper ? char.ToUpperInvariant(character) : character);
                 upper = false;
             }
             else
-            {
                 upper = true;
-            }
-        }
 
         if (builder.Length == 0)
             return "Key";

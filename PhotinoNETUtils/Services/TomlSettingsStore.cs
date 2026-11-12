@@ -17,12 +17,6 @@ public sealed class TomlSettingsStore<
     private readonly string? _header;
     private readonly TomlTypeInfo<T> _typeInfo;
 
-    /// <summary>Creates a store for <c>settings.toml</c> in the app's settings folder.</summary>
-    public static TomlSettingsStore<T> ForApp(string appName, T defaults, TomlTypeInfo<T> typeInfo,
-        Func<string, T?>? legacyReader = null, string? legacyPath = null, string? header = null) =>
-        new(Path.Combine(AppPaths.SettingsDirectory(appName), "settings.toml"), defaults, typeInfo,
-            legacyReader, legacyPath, header);
-
     /// <param name="filePath">The settings file to read and write.</param>
     /// <param name="defaults">Used when the file is missing or cannot be read.</param>
     /// <param name="typeInfo">The source-generated serializer info for <typeparamref name="T" />.</param>
@@ -36,6 +30,12 @@ public sealed class TomlSettingsStore<
         _typeInfo = typeInfo;
         _header = header;
     }
+
+    /// <summary>Creates a store for <c>settings.toml</c> in the app's settings folder.</summary>
+    public static TomlSettingsStore<T> ForApp(string appName, T defaults, TomlTypeInfo<T> typeInfo,
+        Func<string, T?>? legacyReader = null, string? legacyPath = null, string? header = null) =>
+        new(Path.Combine(AppPaths.SettingsDirectory(appName), "settings.toml"), defaults, typeInfo,
+            legacyReader, legacyPath, header);
 
     protected override T? Deserialize(string text) => TomlSerializer.Deserialize(text, _typeInfo);
 

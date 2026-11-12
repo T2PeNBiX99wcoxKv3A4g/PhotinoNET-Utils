@@ -10,16 +10,14 @@ public sealed class JsonSettingsStore<T> : SettingsStore<T> where T : class
 {
     private readonly JsonTypeInfo<T> _typeInfo;
 
+    public JsonSettingsStore(string filePath, T defaults, JsonTypeInfo<T> typeInfo, string? legacyPath = null)
+        : base(filePath, defaults, legacyPath) =>
+        _typeInfo = typeInfo;
+
     /// <summary>Creates a store for <c>settings.json</c> in the app's settings folder.</summary>
     public static JsonSettingsStore<T> ForApp(string appName, T defaults, JsonTypeInfo<T> typeInfo,
         string? legacyPath = null) =>
         new(Path.Combine(AppPaths.SettingsDirectory(appName), "settings.json"), defaults, typeInfo, legacyPath);
-
-    public JsonSettingsStore(string filePath, T defaults, JsonTypeInfo<T> typeInfo, string? legacyPath = null)
-        : base(filePath, defaults, legacyPath)
-    {
-        _typeInfo = typeInfo;
-    }
 
     protected override T? Deserialize(string text) => JsonSerializer.Deserialize(text, _typeInfo);
 

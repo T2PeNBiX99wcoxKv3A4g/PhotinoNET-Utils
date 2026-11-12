@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Text;
 
 namespace PhotinoNetUtils.Generators;
 
@@ -108,9 +104,7 @@ public sealed class LocalizationKeyAnalyzer : DiagnosticAnalyzer
                     Location.Create(file.Path, span, lineSpan), key, firstLine));
             }
             else
-            {
                 firstLines[key] = line;
-            }
         }
     }
 

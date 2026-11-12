@@ -36,13 +36,13 @@ public sealed partial class StartupService : IDisposable
         Refresh();
     }
 
-    public void Dispose() => _subscription.Dispose();
-
     /// <summary>True on platforms with a per-user autostart location.</summary>
     public bool IsSupported => StartupRegistration.IsSupported;
 
     /// <summary>Whether the autostart entry currently exists.</summary>
     public bool IsEnabled => _registration.IsEnabled;
+
+    public void Dispose() => _subscription.Dispose();
 
     /// <summary>Rewrites an existing entry so a moved executable or a new icon is picked up.</summary>
     private void Refresh()

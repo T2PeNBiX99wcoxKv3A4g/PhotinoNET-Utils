@@ -71,13 +71,11 @@ public static class WebViewEvents
             return;
 
         lock (Gate)
-        {
             if (!_ready || _window is null)
             {
                 Pending[type] = message;
                 return;
             }
-        }
 
         Send(message, type);
     }

@@ -45,7 +45,7 @@ public static class LinuxHyprland
     public static bool Resize(string title, int width, int height) =>
         Run(title, window =>
             Dispatch(window.Socket,
-                     $"hl.dsp.window.resize({{ window = \"{window.Selector}\", x = {width}, y = {height}, relative = false }})") &&
+                $"hl.dsp.window.resize({{ window = \"{window.Selector}\", x = {width}, y = {height}, relative = false }})") &&
             Dispatch(window.Socket, $"hl.dsp.window.center({{ window = \"{window.Selector}\" }})"));
 
     /// <summary>
@@ -61,10 +61,10 @@ public static class LinuxHyprland
                 return false;
 
             var at = ClampToMonitor(Ask(window.Socket, "j/monitors"), cursor,
-                                    (cursor.X + offset, cursor.Y + offset), size);
+                (cursor.X + offset, cursor.Y + offset), size);
 
             return Dispatch(window.Socket,
-                            $"hl.dsp.window.move({{ window = \"{window.Selector}\", x = {at.X}, y = {at.Y} }})");
+                $"hl.dsp.window.move({{ window = \"{window.Selector}\", x = {at.X}, y = {at.Y} }})");
         });
 
     private static string? FindCommandSocket()
@@ -73,7 +73,10 @@ public static class LinuxHyprland
             return null;
 
         // Hyprland moved its sockets from /tmp into the runtime directory; both are worth trying.
-        foreach (var root in new[] { Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR"), "/tmp" })
+        foreach (var root in new[]
+                 {
+                     Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR"), "/tmp"
+                 })
         {
             if (string.IsNullOrEmpty(root))
                 continue;

@@ -31,6 +31,8 @@ public abstract class SettingsServiceBase<T, TPayload> : IDisposable
     /// <summary>The settings in use; updated by <see cref="LoadAsync" /> and <see cref="SaveAsync" />.</summary>
     public T Current { get; private set; }
 
+    public void Dispose() => NativeBridge.MessageReceived -= HandleMessageAsync;
+
     /// <summary>Raised after a save, for backend services that follow the settings.</summary>
     public event Action<T>? Changed;
 
@@ -54,8 +56,6 @@ public abstract class SettingsServiceBase<T, TPayload> : IDisposable
         WebViewEvents.Notify("settings.changed", Payload());
         return saved;
     }
-
-    public void Dispose() => NativeBridge.MessageReceived -= HandleMessageAsync;
 
     /// <summary>The payload the interface reads and receives after a save.</summary>
     protected abstract TPayload Payload();

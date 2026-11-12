@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -69,7 +66,7 @@ public sealed class SettingsPayloadAnalyzer : DiagnosticAnalyzer
                 var key = marker.NamedArguments.FirstOrDefault(item => item.Key == "Key").Value.Value as string;
 
                 if (properties.Contains(Normalize(setting.Name)) ||
-                    (key is not null && properties.Contains(Normalize(key))))
+                    key is not null && properties.Contains(Normalize(key)))
                     continue;
 
                 context.ReportDiagnostic(Diagnostic.Create(MissingProperty,

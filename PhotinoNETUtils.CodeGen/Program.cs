@@ -120,13 +120,13 @@ internal static class Program
             }
         }
 
-        if ((model is null) != (output is null))
+        if (model is null != output is null)
         {
             Console.Error.WriteLine("--model and --out belong together.");
             return null;
         }
 
-        if ((i18n is null) != (i18nOutput is null))
+        if (i18n is null != i18nOutput is null)
         {
             Console.Error.WriteLine("--i18n and --i18n-out belong together.");
             return null;
@@ -138,7 +138,7 @@ internal static class Program
             return null;
         }
 
-        return new Options(model, output, schema, i18n, i18nOutput);
+        return new(model, output, schema, i18n, i18nOutput);
     }
 
     private static string? ModelName(string text) =>
@@ -166,7 +166,7 @@ internal static class Program
             var comment = AttributeString(args, "Comment");
             var key = AttributeString(args, "Key") ?? CamelCase(match.Groups["name"].Value);
 
-            properties.Add(new SettingProperty(
+            properties.Add(new(
                 key,
                 match.Groups["type"].Value.Trim(),
                 comment,
@@ -447,9 +447,15 @@ internal static class Program
             case "DateTimeOffset":
             case "Guid":
             case "TimeSpan":
-                return new() { ["type"] = "string" };
+                return new()
+                {
+                    ["type"] = "string"
+                };
             case "bool":
-                return new() { ["type"] = "boolean" };
+                return new()
+                {
+                    ["type"] = "boolean"
+                };
             case "byte":
             case "sbyte":
             case "short":
@@ -458,15 +464,25 @@ internal static class Program
             case "uint":
             case "long":
             case "ulong":
-                return new() { ["type"] = "integer" };
+                return new()
+                {
+                    ["type"] = "integer"
+                };
             case "float":
             case "double":
             case "decimal":
-                return new() { ["type"] = "number" };
+                return new()
+                {
+                    ["type"] = "number"
+                };
         }
 
         if (type.EndsWith("[]", StringComparison.Ordinal))
-            return new() { ["type"] = "array", ["items"] = JsonType(type[..^2].Trim()) };
+            return new()
+            {
+                ["type"] = "array",
+                ["items"] = JsonType(type[..^2].Trim())
+            };
 
         var generic = Regex.Match(type, @"^(?<outer>[\w.]+)\s*<\s*(?<inner>[\s\S]+)\s*>$");
         if (generic.Success)
@@ -476,28 +492,48 @@ internal static class Program
 
             if (outer is "List" or "IList" or "IReadOnlyList" or "IEnumerable" or "ICollection"
                 or "IReadOnlyCollection" or "HashSet" or "ISet" or "IReadOnlySet")
-                return new() { ["type"] = "array", ["items"] = JsonType(inner) };
+                return new()
+                {
+                    ["type"] = "array",
+                    ["items"] = JsonType(inner)
+                };
 
             if (outer is "Dictionary" or "IDictionary" or "IReadOnlyDictionary")
             {
                 var parts = SplitTopLevel(inner);
                 if (parts.Count == 2)
-                    return new() { ["type"] = "object", ["additionalProperties"] = JsonType(parts[1]) };
+                    return new()
+                    {
+                        ["type"] = "object",
+                        ["additionalProperties"] = JsonType(parts[1])
+                    };
             }
         }
 
-        return new() { };
+        return new();
     }
 
     private static Dictionary<string, object?> Nullable(Dictionary<string, object?> schema)
     {
         if (schema.TryGetValue("type", out var type) && type is string value)
         {
-            schema["type"] = new[] { value, "null" };
+            schema["type"] = new[]
+            {
+                value, "null"
+            };
             return schema;
         }
 
-        return new() { ["anyOf"] = new object[] { schema, new Dictionary<string, object?> { ["type"] = "null" } } };
+        return new()
+        {
+            ["anyOf"] = new object[]
+            {
+                schema, new Dictionary<string, object?>
+                {
+                    ["type"] = "null"
+                }
+            }
+        };
     }
 
     private static List<string> SplitTopLevel(string value)
@@ -507,7 +543,6 @@ internal static class Program
         var start = 0;
 
         for (var index = 0; index < value.Length; index++)
-        {
             switch (value[index])
             {
                 case '<':
@@ -521,7 +556,6 @@ internal static class Program
                     start = index + 1;
                     break;
             }
-        }
 
         parts.Add(value[start..].Trim());
         return parts;

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -69,10 +66,10 @@ public sealed class PayloadRegistrationAnalyzer : DiagnosticAnalyzer
         }
 
         var carriesData =
-            (containing == NativeContext && method.Name == "Reply") ||
-            (containing == NativeBridge && method.Name == "SerializeEvent") ||
-            (containing == WebViewEvents && method.Name == "Notify") ||
-            (containing == NativeResponse && method.Name == "Success");
+            containing == NativeContext && method.Name == "Reply" ||
+            containing == NativeBridge && method.Name == "SerializeEvent" ||
+            containing == WebViewEvents && method.Name == "Notify" ||
+            containing == NativeResponse && method.Name == "Success";
 
         if (!carriesData)
             return;
@@ -124,7 +121,7 @@ public sealed class PayloadRegistrationAnalyzer : DiagnosticAnalyzer
 
                 foreach (var argument in attribute.ConstructorArguments)
                     if (argument.Kind == TypedConstantKind.Type && argument.Value is ITypeSymbol registeredType)
-                        Add(registeredType, registered, new HashSet<string>(StringComparer.Ordinal));
+                        Add(registeredType, registered, new(StringComparer.Ordinal));
             }
         }
 

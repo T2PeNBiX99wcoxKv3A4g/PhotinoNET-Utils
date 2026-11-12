@@ -84,27 +84,6 @@ public abstract class SettingsStore<T> : ISettingsStore<T> where T : class
         return Complete(await Try.Run(() => File.ReadAllTextAsync(FilePath, token)));
     }
 
-    private T Complete(Result<string> text)
-    {
-        if (!text.IsSuccess)
-        {
-            text.OnFailure(ex => Log.Warning(ex, "Failed to read {File}", FilePath));
-            Current = _defaults;
-            return Current;
-        }
-
-        var parsed = Try.Run(() => Deserialize(text.Value!));
-        if (parsed is { IsSuccess: true, Value: { } loaded })
-        {
-            Current = loaded;
-            return Current;
-        }
-
-        parsed.OnFailure(ex => Log.Warning(ex, "Failed to read {File}", FilePath));
-        Current = _defaults;
-        return Current;
-    }
-
     public async Task<bool> SaveAsync(T settings, CancellationToken token = default)
     {
         Current = settings;
@@ -124,6 +103,27 @@ public abstract class SettingsStore<T> : ISettingsStore<T> where T : class
 
         attempt.OnFailure(ex => Log.Warning(ex, "Failed to write {File}", FilePath));
         return attempt.IsSuccess;
+    }
+
+    private T Complete(Result<string> text)
+    {
+        if (!text.IsSuccess)
+        {
+            text.OnFailure(ex => Log.Warning(ex, "Failed to read {File}", FilePath));
+            Current = _defaults;
+            return Current;
+        }
+
+        var parsed = Try.Run(() => Deserialize(text.Value!));
+        if (parsed is { IsSuccess: true, Value: { } loaded })
+        {
+            Current = loaded;
+            return Current;
+        }
+
+        parsed.OnFailure(ex => Log.Warning(ex, "Failed to read {File}", FilePath));
+        Current = _defaults;
+        return Current;
     }
 
     /// <summary>Reads one document; return null when it cannot be understood.</summary>
