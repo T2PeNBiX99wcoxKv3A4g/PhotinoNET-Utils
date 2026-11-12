@@ -61,6 +61,29 @@ public static class Localization
     }
 
     /// <summary>
+    ///     Turns a stored language value into one of <see cref="AvailableLocales" />. <c>system</c>
+    ///     stays as it is, a matching locale is returned in its canonical spelling, and anything the
+    ///     app does not ship falls back to the default locale.
+    /// </summary>
+    public static string Normalize(string? locale, string? defaultLocale = null)
+    {
+        if (string.IsNullOrWhiteSpace(locale) || locale.Equals(SystemLocale, StringComparison.OrdinalIgnoreCase))
+            return SystemLocale;
+
+        var available = AvailableLocales;
+        var exact = available.FirstOrDefault(item => item.Equals(locale, StringComparison.OrdinalIgnoreCase));
+        if (exact is not null)
+            return exact;
+
+        // "ja-JP" should select ja when only ja.jsonc exists, and "zh-tw" should select zh-TW.
+        var language = locale.Split('-', '_')[0];
+        return available.FirstOrDefault(item =>
+                   item.Split('-')[0].Equals(language, StringComparison.OrdinalIgnoreCase))
+               ?? defaultLocale
+               ?? _defaultLocale;
+    }
+
+    /// <summary>
     ///     Starts answering <c>i18n.get</c> from <paramref name="assembly" />'s resources.
     ///     <paramref name="currentLocale" /> supplies the language the settings selected.
     /// </summary>

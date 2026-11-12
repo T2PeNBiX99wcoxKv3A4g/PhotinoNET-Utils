@@ -14,7 +14,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `Interop`                 | `ITrayIcon` / `TrayIconFactory` with Win32 and libayatana-appindicator implementations, plus the Win32 P/Invoke set                                                                                                                                                                                                                            |
 | `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build), window chrome (drag, resize, maximize, frameless title bar on both platforms) and `SystemLauncher` for handing a URL or folder to the system |
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                                                                                                                                                            |
-| `Services/JsonSettingsStore` | Loads and saves one JSON settings object, with defaults, atomic writes and a one-time legacy move                                                                                                                                                                                                                                           |
+| `Services/SettingsStore` | `ISettingsStore<T>` with JSON and TOML implementations: defaults, atomic writes and a one-time legacy move                                                                                                                                                                                                                                      |
 | `Services/StartupService` | Answers `app.startup` / `app.setStartup` and keeps the platform autostart entry in step                                                                                                                                                                                                                                                         |
 | `Services/AppInfoService` | Answers `app.info` with the app's version, platform, log folder, rounded corners and debug flag                                                                                                                                                                                                                                                 |
 | `AppIcon`                 | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources                                                                                                                                                                                                                                                                   |
@@ -371,24 +371,37 @@ cannot close the window. `TerminationSignals` routes SIGTERM, SIGINT and SIGHUP 
 path; a second signal forces the process down if closing hangs. It is a no-op on Windows, so the same
 call is safe everywhere.
 
-### JSON settings
+### Settings files
 
 ```csharp
 using PhotinoNetUtils.Services;
 
-var store = JsonSettingsStore<MySettings>.ForApp(
+// JSON, through the app's source-generated context.
+var json = JsonSettingsStore<MySettings>.ForApp(
     "MyApp",
     MySettings.Default,
     MyJsonContext.Default.MySettings,
     legacyPath: Path.Combine(dataDirectory, "settings.json"));
 
+// TOML, with a comment block before the document.
+var toml = new TomlSettingsStore<MySettings>(
+    Path.Combine(AppPaths.SettingsDirectory("MyApp"), "settings.toml"),
+    MySettings.Default,
+    MyTomlContext.Default.MySettings,
+    legacyReader: text => JsonSerializer.Deserialize(text, MyJsonContext.Default.MySettings),
+    legacyPath: Path.Combine(AppPaths.SettingsDirectory("MyApp"), "settings.json"),
+    header: "# MyApp settings. Rewritten when settings are saved.");
+
+ISettingsStore<MySettings> store = toml;
 var settings = store.Load();
 await store.SaveAsync(settings);
 ```
 
 A missing or unreadable file returns the defaults; writes go through a temporary file and a move, so
-a crash midway cannot truncate the file. The model, its validation and the bridge messages stay in
-the app; only register the model in the app's `JsonSerializerContext`.
+a crash midway cannot truncate the file. `legacyPath` is read once when the target does not exist
+yet, which is how a JSON settings file becomes TOML. The model, its validation and the bridge messages
+stay in the app; register the model in the app's serializer context. TOML serialization writes the
+configured `header`; comments typed into the file are replaced by the next save.
 
 ### Localization
 
@@ -401,7 +414,12 @@ Localization.Initialize(typeof(Program).Assembly, "MyApp.Resources.i18n.",
 
 var label = Localization.Get("tray.open");       // the current language
 var german = Localization.Get("de", "tray.open"); // a specific one
+var stored = Localization.Normalize("ja-JP");    // "ja", because that is what the app ships
 ```
+
+`Normalize` keeps `system`, returns a shipped locale in its canonical spelling, and falls back to the
+default for anything the app does not ship. Call `Initialize` first: that is what discovers the
+available locales.
 
 A locale is merged over its language and then over the default locale, so a partially translated file
 still shows something. `Initialize` also answers `i18n.get` on the bridge, so the React side reads the

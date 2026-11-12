@@ -18,4 +18,9 @@ public static class StringExtensions
     [return: NotNullIfNotNull(nameof(value))]
     public static string? Truncate(this string? value, int maximumLength) =>
         value is null || value.Length <= maximumLength ? value : value[..maximumLength];
+
+    /// <summary>True when the value is an absolute <c>http</c> or <c>https</c> URL.</summary>
+    public static bool IsHttpUrl(this string? value) =>
+        Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
+        (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
 }
