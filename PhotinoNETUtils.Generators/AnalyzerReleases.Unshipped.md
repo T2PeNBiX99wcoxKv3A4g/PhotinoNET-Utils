@@ -22,3 +22,4 @@
 | PNU3003 | PhotinoNetUtils.Utils        | Error    | Singleton needs a parameterless constructor        |
 | PNU3004 | PhotinoNetUtils.Utils        | Error    | Singleton class already declares Instance          |
 | PNU3005 | PhotinoNetUtils.Utils        | Error    | Singleton constructor must be private              |
+| PNU3006 | PhotinoNetUtils.Utils        | Warning  | Singleton class is sealed by the generator         |

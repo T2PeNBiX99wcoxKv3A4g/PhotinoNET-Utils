@@ -64,6 +64,16 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         DiagnosticSeverity.Error,
         true);
 
+    // The generated part already seals the class; writing it in the source as well is only noise and
+    // makes other code copy the habit.
+    private static readonly DiagnosticDescriptor RedundantSealed = new(
+        "PNU3006",
+        "Singleton class is sealed by the generator",
+        "'{0}' does not need the sealed modifier; the generated part seals it",
+        "PhotinoNetUtils.Utils",
+        DiagnosticSeverity.Warning,
+        true);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var types = context.SyntaxProvider.ForAttributeWithMetadataName(
@@ -110,6 +120,10 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         foreach (var diagnostic in diagnostics)
             context.ReportDiagnostic(diagnostic);
 
+        if (type.IsSealed)
+            context.ReportDiagnostic(Diagnostic.Create(RedundantSealed,
+                type.Locations.FirstOrDefault(), type.Name));
+
         if (diagnostics.Count > 0)
             return;
 
@@ -138,13 +152,10 @@ public sealed class SingletonGenerator : IIncrementalGenerator
 
         if (hasLogger && !hasBaseLog)
         {
-            // A sealed class cannot declare a protected member, and the field is private to the
-            // class anyway; keep it available to derived classes only when there can be any.
-            var logAccess = type.IsSealed ? "private" : "protected";
-
+            // The class is sealed by this generated part, so a protected member would only warn.
             builder.AppendLine();
             builder.AppendLine(
-                $"{indent}    {logAccess} readonly global::{Logger} Log = global::{SerilogLog}.ForContext<{typeName}>();");
+                $"{indent}    private readonly global::{Logger} Log = global::{SerilogLog}.ForContext<{typeName}>();");
         }
 
         builder.AppendLine();

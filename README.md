@@ -460,13 +460,14 @@ internal sealed partial class MyLinkService
 
 `[SettingsModel]` registers the comments at startup, so `TomlSettingsStore` does not need reflection
 for that model. `[Singleton]` writes `Instance`, the `SingletonRegistry` entry, a `Log` field, seals
-the class and adds a private parameterless constructor when the class has none. Every constructor of
-a `[Singleton]` class must be private; the generator reports `PNU3005` otherwise. `Create()` lives
-inside the class, so it can still call them, and `new` becomes a compile error for the rest of the
-app. Because the members are generated into the class, it can inherit any base class, which
-`Singleton<T>` cannot offer. An abstract class or a record is rejected (`PNU3002`), because neither
-can be a singleton. `Singleton<T>` is obsolete: it still works for code that already derives from it,
-but new classes use the attribute.
+the class and adds a private parameterless constructor when the class has none. Write the class
+without `sealed`; the generated part seals it, and `PNU3006` warns when the modifier is repeated.
+Every constructor of a `[Singleton]` class must be private; the generator reports `PNU3005`
+otherwise. `Create()` lives inside the class, so it can still call them, and `new` becomes a compile
+error for the rest of the app. Because the members are generated into the class, it can inherit any
+base class, which `Singleton<T>` cannot offer. An abstract class or a record is rejected (`PNU3002`),
+because neither can be a singleton. `Singleton<T>` is obsolete: it still works for code that already
+derives from it, but new classes use the attribute.
 
 `[NativeMessage]` makes the class implement `INativeMessageHandler`; the generator writes the
 `HandleAsync` switch over every annotated method, so the class holds no generated method name. A
