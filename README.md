@@ -16,6 +16,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                                                                                                                                                            |
 | `Services/SettingsStore` | `ISettingsStore<T>`, JSON/TOML stores and `SettingsServiceBase<T,TPayload>`: attribute comments, defaults, atomic writes and a one-time legacy move                                                                                                                                                                         |
 | `Settings` / `Messaging`  | `[SettingsModel]` / `[Setting]` metadata and the `[NativeMessage]` dispatcher generator                                                                                                                                                                                                                                                       |
+| `CodeGen`                 | Small CLI that turns a `[SettingsModel]` file into a TypeScript interface and JSON schema                                                                                                                                                                                                                                                      |
 | `Services/StartupService` | Answers `app.startup` / `app.setStartup` and keeps the platform autostart entry in step                                                                                                                                                                                                                                                         |
 | `Services/AppInfoService` | Answers `app.info` with the app's version, platform, log folder, rounded corners and debug flag                                                                                                                                                                                                                                                 |
 | `AppIcon`                 | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources                                                                                                                                                                                                                                                                   |
@@ -462,6 +463,28 @@ internal sealed partial class MyService
 for that model. `[NativeMessage]` generates `__HandleGeneratedMessageAsync` on the containing partial
 class; the handler takes one `NativeContext` and returns `NativeResponse?` or
 `Task<NativeResponse?>`. The class must be `partial`; duplicate message types are a compile error.
+
+### TypeScript settings types
+
+A Roslyn source generator can only add C#, so the TypeScript side is a small CLI:
+
+```bash
+dotnet run --project PhotinoNETUtils.CodeGen -- \
+  --model ../AntiBot/AntiBot/Models/AppSettings.cs \
+  --out ../AntiBot/AntiBot/UserInterface/src/api/settings.generated.ts \
+  --schema ../AntiBot/AntiBot/UserInterface/src/api/settings.schema.json
+```
+
+It reads `[Setting]` properties and writes a `{Model}Generated` interface plus a JSON schema with the
+comments and numeric limits. `build-and-copy` publishes it to `Libs/CodeGen`; an app can run it from an
+MSBuild target:
+
+```xml
+<Target Name="GenerateSettingsTypes" BeforeTargets="BeforeBuild"
+        Condition="Exists('Libs\CodeGen\PhotinoNETUtils.CodeGen.dll')">
+    <Exec Command="dotnet &quot;$(MSBuildProjectDirectory)\Libs\CodeGen\PhotinoNETUtils.CodeGen.dll&quot; --model &quot;$(MSBuildProjectDirectory)\Models\AppSettings.cs&quot; --out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.generated.ts&quot; --schema &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.schema.json&quot;"/>
+</Target>
+```
 
 ### Localization
 

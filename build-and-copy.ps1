@@ -98,6 +98,12 @@ $generator = Join-Path $root 'PhotinoNETUtils.Generators\bin\Release\netstandard
 if (-not (Test-Path $generator)) { throw "Generator not found: $generator" }
 $generatorHash = (Get-FileHash $generator -Algorithm SHA256).Hash
 
+$codeGenProject = Join-Path $root 'PhotinoNETUtils.CodeGen\PhotinoNETUtils.CodeGen.csproj'
+$codeGenOut = Join-Path $root 'PhotinoNETUtils.CodeGen\bin\Release\net11.0\publish'
+Write-Host 'Building the TypeScript settings generator...' -ForegroundColor Cyan
+dotnet publish $codeGenProject -c Release -o $codeGenOut --nologo
+if ($LASTEXITCODE -ne 0) { throw 'code generator publish failed' }
+
 $tgzName = "photino-net-utils-bridge-$npmVersion.tgz"
 $tgz = Join-Path $ui $tgzName
 
@@ -134,6 +140,10 @@ foreach ($target in $targets) {
     $targetGeneratorHash =
         if (Test-Path $targetGenerator) { (Get-FileHash $targetGenerator -Algorithm SHA256).Hash } else { '' }
     if ($targetGeneratorHash -ne $generatorHash) { Copy-Item $generator $targetGenerator -Force }
+
+    $targetCodeGen = Join-Path $libDirectory 'CodeGen'
+    if (Test-Path $targetCodeGen) { Remove-Item -Recurse -Force $targetCodeGen }
+    Copy-Item $codeGenOut $targetCodeGen -Recurse -Force
 
     Get-ChildItem $libDirectory -Filter 'photino-net-utils-bridge-*.tgz' -File |
         Where-Object Name -ne $tgzName |

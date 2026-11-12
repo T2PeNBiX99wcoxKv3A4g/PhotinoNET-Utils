@@ -95,6 +95,12 @@ DLL="$ROOT/PhotinoNETUtils/bin/Release/net11.0/PhotinoNETUtils.dll"
 GENERATOR="$ROOT/PhotinoNETUtils.Generators/bin/Release/netstandard2.0/PhotinoNETUtils.Generators.dll"
 [[ -f "$GENERATOR" ]] || { echo "Generator not found: $GENERATOR" >&2; exit 1; }
 
+CODEGEN_PROJECT="$ROOT/PhotinoNETUtils.CodeGen/PhotinoNETUtils.CodeGen.csproj"
+CODEGEN_OUT="$ROOT/PhotinoNETUtils.CodeGen/bin/Release/net11.0/publish"
+echo "Building the TypeScript settings generator..."
+dotnet publish "$CODEGEN_PROJECT" -c Release -o "$CODEGEN_OUT" --nologo
+[[ $? -eq 0 ]] || { echo "code generator publish failed" >&2; exit 1; }
+
 TGZ_NAME="photino-net-utils-bridge-$NPM_VERSION.tgz"
 TGZ="$UI/$TGZ_NAME"
 
@@ -130,6 +136,9 @@ while IFS=$'\t' read -r NAME TARGET LIBS UI_DIR; do
     if [[ ! -f "$DEST_GENERATOR" ]] || ! cmp -s "$GENERATOR" "$DEST_GENERATOR"; then
         cp -f "$GENERATOR" "$DEST_GENERATOR"
     fi
+
+    rm -rf "$LIB_DIR/CodeGen"
+    cp -R "$CODEGEN_OUT" "$LIB_DIR/CodeGen"
     for old in "$LIB_DIR"/photino-net-utils-bridge-*.tgz; do        [[ -e "$old" ]] || continue
         [[ "$(basename "$old")" == "$TGZ_NAME" ]] || rm -f "$old"
     done
