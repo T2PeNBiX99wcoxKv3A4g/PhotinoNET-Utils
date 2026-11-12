@@ -14,6 +14,8 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `Interop`                 | `ITrayIcon` / `TrayIconFactory` with Win32 and libayatana-appindicator implementations, plus the Win32 P/Invoke set                                                                                                                                                                                                                            |
 | `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build), window chrome (drag, resize, maximize, frameless title bar on both platforms) and `SystemLauncher` for handing a URL or folder to the system |
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                                                                                                                                                            |
+| `Services/StartupService` | Answers `app.startup` / `app.setStartup` and keeps the platform autostart entry in step                                                                                                                                                                                                                                                         |
+| `Services/AppInfoService` | Answers `app.info` with the app's version, platform, log folder, rounded corners and debug flag                                                                                                                                                                                                                                                 |
 | `AppIcon`                 | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources                                                                                                                                                                                                                                                                   |
 | `AppPaths`                | Per-user settings, local data and log folders, created on demand                                                                                                                                                                                                                                                                               |
 | `Localization`            | Embedded `<prefix><locale>.jsonc` UI strings, merged over the language and the default locale, answered over the bridge as `i18n.get`                                                                                                                                                                                                          |
@@ -264,6 +266,25 @@ startup.SetEnabled(true);
 entry. The comment, fallback icon and Linux window class are app-specific; omit optional values when
 they are not needed. `BuildInfo.BuildTokenFor` uses the executable's write time, falling back to the
 provided assembly's version when no executable path is available.
+
+The bridge services wrap the common parts of those two:
+
+```csharp
+using PhotinoNetUtils.Services;
+
+using var appInfo = new AppInfoService(new AppInfoOptions(
+    typeof(Program).Assembly,
+    LogDirectory,
+    Debug: Constants.IsDebugMode,
+    Rounded: () => windowManager.DrawsWindowCorners));
+
+using var startup = new StartupService(new StartupRegistration(
+    typeof(Program).Assembly, "MyApp", "web-browser"));
+```
+
+`AppInfoService` answers `app.info`, and `StartupService` answers `app.startup` / `app.setStartup`,
+refreshing an existing autostart entry on construction so a moved executable is corrected. Register
+`AppInfoPayload`, `StartupRequest` and `StartupPayload` in the app's `JsonSerializerContext`.
 
 ### App paths and the system launcher
 
