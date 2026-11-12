@@ -69,7 +69,10 @@ public sealed class TomlSettingsStore<
         foreach (var definition in definitions)
         {
             var prefix = definition.Key + " =";
-            var index = lines.FindIndex(line => line.StartsWith(prefix, StringComparison.Ordinal));
+            var table = $"[[{definition.Key}]]";
+            var index = lines.FindIndex(line =>
+                line.StartsWith(prefix, StringComparison.Ordinal) ||
+                line.Equals(table, StringComparison.Ordinal));
 
             if (index >= 0)
                 lines.Insert(index, $"# {definition.Comment}");

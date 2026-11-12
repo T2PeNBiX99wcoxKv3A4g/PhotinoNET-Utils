@@ -19,14 +19,24 @@ public abstract class SettingsServiceBase<T, TPayload> : IDisposable
     where T : class
     where TPayload : class
 {
+    private readonly Action<string, object?> _notify;
     private readonly ISettingsStore<T> _store;
 
-    protected SettingsServiceBase(ISettingsStore<T> store)
+    /// <param name="store">The file the settings live in.</param>
+    /// <param name="notify">
+    ///     Pushes the <c>settings.changed</c> event. Defaults to <see cref="WebViewEvents" />, which is
+    ///     right for a single-window app; a multi-window app passes its own broadcaster.
+    /// </param>
+    protected SettingsServiceBase(ISettingsStore<T> store, Action<string, object?>? notify = null)
     {
         _store = store;
+        _notify = notify ?? WebViewEvents.Notify;
         Current = store.Current;
         NativeBridge.MessageReceived += HandleMessageAsync;
     }
+
+    /// <summary>The settings file this service reads and writes.</summary>
+    public string FilePath => _store.FilePath;
 
     /// <summary>The settings in use; updated by <see cref="LoadAsync" /> and <see cref="SaveAsync" />.</summary>
     public T Current { get; private set; }
@@ -44,18 +54,39 @@ public abstract class SettingsServiceBase<T, TPayload> : IDisposable
     }
 
     /// <summary>Normalizes, stores and publishes the settings. Returns false when the write failed.</summary>
-    public async Task<bool> SaveAsync(T settings, CancellationToken token = default)
+    public Task<bool> SaveAsync(T settings, CancellationToken token = default) =>
+        SaveCoreAsync(settings, true, token);
+
+    /// <summary>
+    ///     Stores the settings without raising <see cref="Changed" /> or the <c>settings.changed</c>
+    ///     event. Use it for bookkeeping that should not make clients reload their settings.
+    /// </summary>
+    public Task<bool> SaveSilentlyAsync(T settings, CancellationToken token = default) =>
+        SaveCoreAsync(settings, false, token);
+
+    private async Task<bool> SaveCoreAsync(T settings, bool notify, CancellationToken token)
     {
-        var normalized = NormalizeAll(settings);
+        var normalized = NormalizeAll(Merge(settings));
         Current = normalized;
 
         var saved = await _store.SaveAsync(normalized, token);
 
-        OnSaved(normalized);
-        Changed?.Invoke(normalized);
-        WebViewEvents.Notify("settings.changed", Payload());
+        if (notify)
+        {
+            OnSaved(normalized);
+            Changed?.Invoke(normalized);
+            _notify("settings.changed", Payload());
+        }
+
         return saved;
     }
+
+    /// <summary>
+    ///     Merges an incoming save with what is already stored, for fields the interface must not
+    ///     own — a window that owns the open tabs, for instance. Only a save goes through here; a
+    ///     load hands the stored value straight to <see cref="Normalize" />.
+    /// </summary>
+    protected virtual T Merge(T settings) => settings;
 
     /// <summary>The payload the interface reads and receives after a save.</summary>
     protected abstract TPayload Payload();
