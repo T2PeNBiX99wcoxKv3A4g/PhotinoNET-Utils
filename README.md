@@ -293,6 +293,18 @@ It returns false on any other desktop, so the usual `window.SetSize()` + `window
 stay behind it untouched. The window is centred again as well, since a compositor-side resize grows
 it from the top-left corner.
 
+The same socket answers questions, so a window that has to appear next to the pointer — which
+Wayland hides from clients — can be put there as well:
+
+```csharp
+// A button that pops up where the pointer is, e.g. after a copy.
+if (LinuxHyprland.MoveNextToCursor(window.Title, offset: 16, size: 52))
+    return;
+```
+
+It asks for `cursorpos` and `monitors`, keeps the window inside the monitor the pointer is on, and
+moves it with `hl.dsp.window.move()`.
+
 ### Termination signals
 
 ```csharp
