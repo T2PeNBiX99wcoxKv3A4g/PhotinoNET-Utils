@@ -35,7 +35,7 @@ public sealed class SingletonGenerator : IIncrementalGenerator
     private static readonly DiagnosticDescriptor UnsupportedType = new(
         "PNU3002",
         "Singleton class is not supported",
-        "'{0}' must be a top-level, non-generic, non-static class",
+        "'{0}' must be a top-level, non-generic, non-static, non-abstract class",
         "PhotinoNetUtils.Utils",
         DiagnosticSeverity.Error,
         true);
@@ -84,7 +84,7 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         var diagnostics = new List<Diagnostic>();
 
         if (type.ContainingType is not null || type.TypeParameters.Length > 0 || type.IsStatic ||
-            type.TypeKind != TypeKind.Class)
+            type.IsAbstract || type.IsRecord || type.TypeKind != TypeKind.Class)
         {
             context.ReportDiagnostic(Diagnostic.Create(UnsupportedType,
                 type.Locations.FirstOrDefault(), type.Name));
@@ -132,7 +132,7 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         var accessibility = type.DeclaredAccessibility == Accessibility.Public ? "public" : "internal";
         var indent = type.ContainingNamespace is { IsGlobalNamespace: false } ? "    " : "";
 
-        builder.AppendLine($"{indent}{accessibility} partial class {type.Name} : global::{Marker}");
+        builder.AppendLine($"{indent}{accessibility} sealed partial class {type.Name} : global::{Marker}");
         builder.AppendLine($"{indent}{{");
         builder.AppendLine($"{indent}    private static readonly {typeName} InstanceValue = Create();");
         builder.AppendLine($"{indent}    public static {typeName} Instance => InstanceValue;");
