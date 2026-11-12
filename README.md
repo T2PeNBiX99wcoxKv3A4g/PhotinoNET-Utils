@@ -450,28 +450,37 @@ public sealed record MySettings
     public string Folder { get; init; } = "";
 }
 
-internal sealed partial class MyService : NativeMessageService
-{
-    [NativeMessage("settings.get")]
-    private NativeResponse GetSettings(NativeContext context) => ...;
-}
-
-// A singleton that answers messages subscribes itself; no constructor is needed at all.
 internal sealed partial class MyLinkService : Singleton<MyLinkService>
 {
     [NativeMessage("system.openUrl")]
     private static NativeResponse Open(NativeContext context) => ...;
 }
+
+internal sealed partial class MyService : IDisposable
+{
+    private readonly IDisposable _subscription;
+
+    public MyService() => _subscription = NativeBridge.Subscribe(this);
+
+    public void Dispose() => _subscription.Dispose();
+
+    [NativeMessage("settings.get")]
+    private NativeResponse GetSettings(NativeContext context) => ...;
+}
 ```
 
 `[SettingsModel]` registers the comments at startup, so `TomlSettingsStore` does not need reflection
 for that model. `[NativeMessage]` makes the class implement `INativeMessageHandler`; the generator
-writes the `HandleAsync` switch over every annotated method, so the class holds no generated name of
-its own and needs no wiring: `NativeMessageService` subscribes in its constructor, and `Singleton<T>`
-subscribes any singleton that implements the interface. A class that already derives from another
-base can call `NativeBridge.Subscribe(this)` and dispose the token. Handlers take one `NativeContext`
-and return `NativeResponse?` or `Task<NativeResponse?>`. The class must be `partial`; duplicate
-message types are a compile error.
+writes the `HandleAsync` switch over every annotated method, so the class holds no generated method
+name. A singleton that implements the interface is subscribed by `Singleton<T>`; any other class
+subscribes once with `NativeBridge.Subscribe(this)` and disposes the token. Handlers take one
+`NativeContext` and return `NativeResponse?` or `Task<NativeResponse?>`. The class must be `partial`;
+duplicate message types are a compile error.
+
+The subscription call cannot be generated for a class with its own constructor: C# has no partial
+constructors, a generator cannot add a base class, and a field initializer cannot reference `this`.
+Avalonia's generated `InitializeComponent()` is the same trade-off — the generator writes the body,
+the constructor has to call it once.
 
 `[Setting(Min = ..., Max = ...)]` also emits a range check that
 `SettingsServiceBase` runs after the app's own `Normalize`, so a hand-edited file cannot leave a

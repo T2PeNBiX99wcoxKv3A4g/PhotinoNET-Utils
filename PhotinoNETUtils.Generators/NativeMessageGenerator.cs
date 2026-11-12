@@ -149,16 +149,11 @@ public sealed class NativeMessageGenerator : IIncrementalGenerator
         var accessibility = type.DeclaredAccessibility == Accessibility.Public ? "public" : "internal";
         var indent = type.ContainingNamespace is { IsGlobalNamespace: false } ? "    " : "";
 
-        // NativeMessageService already implements the interface and subscribes in its constructor,
-        // so the generated dispatcher only has to override the virtual method.
-        var overrides = DerivesFromMessageService(type);
-
-        builder.AppendLine(overrides
-            ? $"{indent}{accessibility} partial class {type.Name}"
-            : $"{indent}{accessibility} partial class {type.Name} : global::PhotinoNetUtils.Messaging.INativeMessageHandler");
+        builder.AppendLine(
+            $"{indent}{accessibility} partial class {type.Name} : global::PhotinoNetUtils.Messaging.INativeMessageHandler");
         builder.AppendLine($"{indent}{{");
         builder.AppendLine(
-            $"{indent}    {(overrides ? "public override" : "public")} global::System.Threading.Tasks.Task<global::PhotinoNetUtils.Messaging.NativeResponse?> HandleAsync(");
+            $"{indent}    public global::System.Threading.Tasks.Task<global::PhotinoNetUtils.Messaging.NativeResponse?> HandleAsync(");
         builder.AppendLine($"{indent}        global::PhotinoNetUtils.Messaging.NativeContext context) =>");
         builder.AppendLine($"{indent}        context.Request.Type switch");
         builder.AppendLine($"{indent}        {{");
@@ -190,16 +185,6 @@ public sealed class NativeMessageGenerator : IIncrementalGenerator
             .Select(reference => reference.GetSyntax())
             .OfType<TypeDeclarationSyntax>()
             .Any(syntax => syntax.Modifiers.Any(SyntaxKind.PartialKeyword));
-
-    /// <summary>True when the base chain contains <c>NativeMessageService</c>, which already subscribes.</summary>
-    private static bool DerivesFromMessageService(INamedTypeSymbol type)
-    {
-        for (var current = type.BaseType; current is not null; current = current.BaseType)
-            if (current.ToDisplayString() == "PhotinoNetUtils.Messaging.NativeMessageService")
-                return true;
-
-        return false;
-    }
 
     private static string Literal(string value) =>
         Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(value, true);
