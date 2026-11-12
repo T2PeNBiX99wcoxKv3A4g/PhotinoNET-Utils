@@ -15,12 +15,14 @@ public abstract class Singleton<T> : ISingleton where T : Singleton<T>, new()
     protected readonly ILogger Log = Serilog.Log.ForContext<T>();
 
     /// <summary>
-    ///     A singleton that answers native messages starts listening as soon as it is created, so a
-    ///     service never has to subscribe by hand. Types without <c>[NativeMessage]</c> do not
-    ///     implement the interface and are left alone.
+    ///     A singleton is registered in <see cref="SingletonRegistry" /> while it is created, so the
+    ///     app can walk every service without reflection. One that answers native messages also
+    ///     starts listening, so its class needs no wiring.
     /// </summary>
     protected Singleton()
     {
+        SingletonRegistry.Register(this);
+
         if (this is INativeMessageHandler handler)
             NativeBridge.Subscribe(handler);
     }

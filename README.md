@@ -23,7 +23,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `AppPaths`                | Per-user settings, local data and log folders, created on demand                                                                                                                                                                                                                                                                               |
 | `Localization`            | Embedded `<prefix><locale>.jsonc` UI strings, merged over the language and the default locale, answered over the bridge as `i18n.get`                                                                                                                                                                                                          |
 | `Notifications`           | OS notifications through Photino's native layer, queued until the window exists, with per-key debounce                                                                                                                                                                                                                                          |
-| `Utils`                   | `Result<T>`, `Try`, `Singleton<T>`                                                                                                                                                                                                                                                                                                             |
+| `Utils`                   | `Result<T>`, `Try`, `Singleton<T>` and `SingletonRegistry`                                                                                                                                                                                                                                                                                    |
 | `Extensions`              | Result/exception/string/object helpers                                                                                                                                                                                                                                                                                                         |
 | `UserInterface`           | `@photino-net-utils/bridge`: the shared `window.external` TypeScript bridge plus the React localization (`LocalizationProvider`, `useTranslation`, `useLocale`) matching `PhotinoNetUtils.Localization`                                                                                                                                        |
 
@@ -476,6 +476,24 @@ name. A singleton that implements the interface subscribes itself in `Singleton<
 any other class subscribes once with `NativeBridge.Subscribe(this)` and disposes the token. Handlers
 take one `NativeContext` and return `NativeResponse?` or `Task<NativeResponse?>`. The class must be
 `partial`; duplicate message types are a compile error.
+
+### Singleton registry
+
+`Singleton<T>` adds every instance to `SingletonRegistry` while it is constructed, in creation
+order; no reflection is involved:
+
+```csharp
+foreach (var handler in SingletonRegistry.OfType<INativeMessageHandler>())
+    NativeBridge.Subscribe(handler);
+
+var database = SingletonRegistry.Get<Database>();   // throws when it was never created
+var player = SingletonRegistry.Find<PlayerService>(); // null instead
+```
+
+`All` returns everything, `Count` says how many, and a second `new MySingleton()` throws — the only
+way to get the instance is `MySingleton.Instance`, so two copies of the same service cannot exist.
+The registry belongs to the library, so one process shares it between the app and every library it
+loads; types are the keys, so equal type names in different namespaces do not collide.
 
 A subscription call inside an arbitrary constructor cannot be generated: C# has no partial
 constructors, a generator cannot add a base class, and a field initializer cannot reference `this`.
