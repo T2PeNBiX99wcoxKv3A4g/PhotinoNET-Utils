@@ -459,8 +459,10 @@ internal sealed partial class MyLinkService
 ```
 
 `[SettingsModel]` registers the comments at startup, so `TomlSettingsStore` does not need reflection
-for that model. `[Singleton]` writes `Instance`, the `SingletonRegistry` entry, a `Log` field and —
-when the class has no constructor of its own — a private constructor, so `new` is a compile error.
+for that model. `[Singleton]` writes `Instance`, the `SingletonRegistry` entry, a `Log` field and a
+private parameterless constructor when the class has none. Every constructor of a `[Singleton]` class
+must be private; the generator reports `PNU3005` otherwise. `Create()` lives inside the class, so it
+can still call them, and `new` becomes a compile error for the rest of the app.
 Because the members are generated into the class, it can inherit any base class, which
 `Singleton<T>` cannot offer. `Singleton<T>` is obsolete: it still works for code that already derives
 from it, but new classes use the attribute.

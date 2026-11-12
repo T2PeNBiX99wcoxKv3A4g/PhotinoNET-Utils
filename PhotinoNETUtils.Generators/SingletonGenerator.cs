@@ -56,6 +56,16 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         DiagnosticSeverity.Error,
         true);
 
+    // `Create()` lives inside the class, so it can call a private constructor. Making every
+    // constructor private turns a second `new Foo()` into a compile error instead of a run-time one.
+    private static readonly DiagnosticDescriptor ConstructorMustBePrivate = new(
+        "PNU3005",
+        "Singleton constructor must be private",
+        "the constructor of '{0}' must be private so new cannot create a second instance; use {0}.Instance",
+        "PhotinoNetUtils.Utils",
+        DiagnosticSeverity.Error,
+        true);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var types = context.SyntaxProvider.ForAttributeWithMetadataName(
@@ -90,6 +100,11 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         if (constructors.Length > 0 && parameterless is null)
             diagnostics.Add(Diagnostic.Create(NeedsParameterlessConstructor,
                 type.Locations.FirstOrDefault(), type.Name));
+
+        foreach (var constructor in constructors.Where(item =>
+                     item.DeclaredAccessibility != Accessibility.Private))
+            diagnostics.Add(Diagnostic.Create(ConstructorMustBePrivate,
+                constructor.Locations.FirstOrDefault(), type.Name));
 
         if (HasMember(type, "Instance"))
             diagnostics.Add(Diagnostic.Create(ExistingInstance, type.Locations.FirstOrDefault(), type.Name));
