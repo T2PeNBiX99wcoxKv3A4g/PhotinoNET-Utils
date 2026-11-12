@@ -14,6 +14,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `Interop`                 | `ITrayIcon` / `TrayIconFactory` with Win32 and libayatana-appindicator implementations, plus the Win32 P/Invoke set                                                                                                                                                                                                                            |
 | `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build), window chrome (drag, resize, maximize, frameless title bar on both platforms) and `SystemLauncher` for handing a URL or folder to the system |
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                                                                                                                                                            |
+| `Services/JsonSettingsStore` | Loads and saves one JSON settings object, with defaults, atomic writes and a one-time legacy move                                                                                                                                                                                                                                           |
 | `Services/StartupService` | Answers `app.startup` / `app.setStartup` and keeps the platform autostart entry in step                                                                                                                                                                                                                                                         |
 | `Services/AppInfoService` | Answers `app.info` with the app's version, platform, log folder, rounded corners and debug flag                                                                                                                                                                                                                                                 |
 | `AppIcon`                 | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources                                                                                                                                                                                                                                                                   |
@@ -369,6 +370,25 @@ On Linux the main thread sits inside Photino's native loop, so the runtime's def
 cannot close the window. `TerminationSignals` routes SIGTERM, SIGINT and SIGHUP to the app's own exit
 path; a second signal forces the process down if closing hangs. It is a no-op on Windows, so the same
 call is safe everywhere.
+
+### JSON settings
+
+```csharp
+using PhotinoNetUtils.Services;
+
+var store = JsonSettingsStore<MySettings>.ForApp(
+    "MyApp",
+    MySettings.Default,
+    MyJsonContext.Default.MySettings,
+    legacyPath: Path.Combine(dataDirectory, "settings.json"));
+
+var settings = store.Load();
+await store.SaveAsync(settings);
+```
+
+A missing or unreadable file returns the defaults; writes go through a temporary file and a move, so
+a crash midway cannot truncate the file. The model, its validation and the bridge messages stay in
+the app; only register the model in the app's `JsonSerializerContext`.
 
 ### Localization
 
