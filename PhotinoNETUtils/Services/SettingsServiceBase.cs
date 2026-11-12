@@ -88,7 +88,7 @@ public abstract class SettingsServiceBase<T, TPayload> : IDisposable
     {
         if (context.Payload<T>() is not { } settings)
             return context.Fail("settings.save.result",
-                PhotinoNetUtils.Localization.Localization.Get("error.invalidSettings"));
+                Localization.Localization.Get("error.invalidSettings"));
 
         if (Validate(settings) is { } error)
             return context.Fail("settings.save.result", error);
