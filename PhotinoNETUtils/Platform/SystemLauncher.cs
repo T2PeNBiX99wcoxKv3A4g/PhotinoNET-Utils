@@ -4,9 +4,9 @@ using JetBrains.Annotations;
 namespace PhotinoNetUtils.Platform;
 
 /// <summary>
-///     Hands a URL or a folder to the system: the shell on Windows, <c>xdg-open</c> elsewhere. This is
-///     the same path a click on a link takes, so whatever the user has registered as the default
-///     handler decides — which may be the app itself.
+///     Hands a URL or a folder to the system: the shell on Windows, <c>open</c> on macOS and
+///     <c>xdg-open</c> on Linux. This is the same path a click on a link takes, so whatever the user
+///     has registered as the default handler decides — which may be the app itself.
 /// </summary>
 [PublicAPI]
 public static class SystemLauncher
@@ -17,7 +17,8 @@ public static class SystemLauncher
         // ShellExecute is what makes Windows ask the shell instead of starting the string itself.
         using var process = Process.Start(new ProcessStartInfo
         {
-            FileName = OperatingSystem.IsWindows() ? target : "xdg-open",
+            FileName = OperatingSystem.IsWindows() ? target :
+                OperatingSystem.IsMacOS() ? "open" : "xdg-open",
             Arguments = OperatingSystem.IsWindows() ? "" : $"\"{target}\"",
             UseShellExecute = OperatingSystem.IsWindows()
         });
