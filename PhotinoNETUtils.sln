@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotinoNETUtils", "PhotinoNETUtils\PhotinoNETUtils.csproj", "{8F889CA2-623D-4324-AD24-57BA931699C9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotinoNETUtils.CodeGen", "PhotinoNETUtils.CodeGen\PhotinoNETUtils.CodeGen.csproj", "{C4FC73AB-EF4B-492E-AA8E-1DCED420810E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotinoNETUtils.Generators", "PhotinoNETUtils.Generators\PhotinoNETUtils.Generators.csproj", "{BD07AC8B-7092-4C04-A5FA-8FEF7A50A864}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,13 @@ Global
 		{8F889CA2-623D-4324-AD24-57BA931699C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F889CA2-623D-4324-AD24-57BA931699C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F889CA2-623D-4324-AD24-57BA931699C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4FC73AB-EF4B-492E-AA8E-1DCED420810E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4FC73AB-EF4B-492E-AA8E-1DCED420810E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4FC73AB-EF4B-492E-AA8E-1DCED420810E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4FC73AB-EF4B-492E-AA8E-1DCED420810E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD07AC8B-7092-4C04-A5FA-8FEF7A50A864}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD07AC8B-7092-4C04-A5FA-8FEF7A50A864}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD07AC8B-7092-4C04-A5FA-8FEF7A50A864}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD07AC8B-7092-4C04-A5FA-8FEF7A50A864}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

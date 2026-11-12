@@ -26,6 +26,18 @@ public sealed class SettingAttribute : Attribute
 
     /// <summary>Sort order for the comments; the serializer decides the document order.</summary>
     public int Order { get; init; }
+
+    /// <summary>
+    ///     Smallest value a numeric setting may hold. The generator clamps it on load and before a
+    ///     save; <see cref="double.NaN" /> (the default) leaves the value alone.
+    /// </summary>
+    public double Min { get; init; } = double.NaN;
+
+    /// <summary>
+    ///     Largest value a numeric setting may hold. The generator clamps it on load and before a
+    ///     save; <see cref="double.NaN" /> (the default) leaves the value alone.
+    /// </summary>
+    public double Max { get; init; } = double.NaN;
 }
 
 /// <summary>One property as the settings document writer sees it.</summary>

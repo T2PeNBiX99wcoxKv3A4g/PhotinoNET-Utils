@@ -464,6 +464,37 @@ for that model. `[NativeMessage]` generates `__HandleGeneratedMessageAsync` on t
 class; the handler takes one `NativeContext` and returns `NativeResponse?` or
 `Task<NativeResponse?>`. The class must be `partial`; duplicate message types are a compile error.
 
+`[Setting(Min = ..., Max = ...)]` also emits a range check that
+`SettingsServiceBase` runs after the app's own `Normalize`, so a hand-edited file cannot leave a
+numeric setting outside its range:
+
+```csharp
+[Setting(Comment = "Port VRChat listens on for OSC.", Min = 1, Max = 65535)]
+public int OscPort { get; init; } = 9000;
+```
+
+### Analyzers
+
+The same DLL carries three analyzers, and the localization generator:
+
+| Id | Severity | Finds |
+| --- | --- | --- |
+| `PNU2001` | warning | a payload passed to `Payload<T>()`, `Reply`, `SerializeEvent`, `WebViewEvents.Notify` or `NativeResponse.Success` that is missing `[JsonSerializable]`; a trimmed build would otherwise throw at run time |
+| `PNU1201` | warning | a `[SettingsPayload(typeof(MySettings))]` record without a property for one of the model's `[Setting]` entries, so a new setting never reaches the interface |
+| `PNU2101` | warning | `Localization.Get("…")` with a key that is not in the translation files |
+
+The two localization features read the files added as `AdditionalFiles`:
+
+```xml
+<ItemGroup>
+    <Analyzer Include="Libs\PhotinoNETUtils.Generators.dll" />
+    <AdditionalFiles Include="Resources\i18n\en.jsonc" />
+</ItemGroup>
+```
+
+They then generate `LocalizationKeys` in the project's root namespace, so a call site can be
+`Localization.Get(LocalizationKeys.TrayOpen)` instead of a string that may not exist.
+
 ### TypeScript settings types
 
 A Roslyn source generator can only add C#, so the TypeScript side is a small CLI:
@@ -472,17 +503,20 @@ A Roslyn source generator can only add C#, so the TypeScript side is a small CLI
 dotnet run --project PhotinoNETUtils.CodeGen -- \
   --model ../AntiBot/AntiBot/Models/AppSettings.cs \
   --out ../AntiBot/AntiBot/UserInterface/src/api/settings.generated.ts \
-  --schema ../AntiBot/AntiBot/UserInterface/src/api/settings.schema.json
+  --schema ../AntiBot/AntiBot/UserInterface/src/api/settings.schema.json \
+  --i18n ../AntiBot/AntiBot/Resources/i18n/en.jsonc \
+  --i18n-out ../AntiBot/AntiBot/UserInterface/src/api/i18n.generated.ts
 ```
 
 It reads `[Setting]` properties and writes a `{Model}Generated` interface plus a JSON schema with the
-comments and numeric limits. `build-and-copy` publishes it to `Libs/CodeGen`; an app can run it from an
+comments and numeric limits; with `--i18n` it also writes the `LocalizationKey` union of every
+translated key. `build-and-copy` publishes it to `Libs/CodeGen`; an app can run it from an
 MSBuild target:
 
 ```xml
 <Target Name="GenerateSettingsTypes" BeforeTargets="BeforeBuild"
         Condition="Exists('Libs\CodeGen\PhotinoNETUtils.CodeGen.dll')">
-    <Exec Command="dotnet &quot;$(MSBuildProjectDirectory)\Libs\CodeGen\PhotinoNETUtils.CodeGen.dll&quot; --model &quot;$(MSBuildProjectDirectory)\Models\AppSettings.cs&quot; --out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.generated.ts&quot; --schema &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.schema.json&quot;"/>
+    <Exec Command="dotnet &quot;$(MSBuildProjectDirectory)\Libs\CodeGen\PhotinoNETUtils.CodeGen.dll&quot; --model &quot;$(MSBuildProjectDirectory)\Models\AppSettings.cs&quot; --out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.generated.ts&quot; --schema &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.schema.json&quot; --i18n &quot;$(MSBuildProjectDirectory)\Resources\i18n\en.jsonc&quot; --i18n-out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\i18n.generated.ts&quot;"/>
 </Target>
 ```
 

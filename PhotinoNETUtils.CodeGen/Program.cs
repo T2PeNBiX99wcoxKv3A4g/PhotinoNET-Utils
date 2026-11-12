@@ -17,29 +17,52 @@ internal static class Program
         if (options is null)
             return 1;
 
-        if (!File.Exists(options.Model))
+        if (options.Model is { } modelPath && options.Output is { } outputPath)
         {
-            Console.Error.WriteLine($"Model not found: {options.Model}");
-            return 1;
+            if (!File.Exists(modelPath))
+            {
+                Console.Error.WriteLine($"Model not found: {modelPath}");
+                return 1;
+            }
+
+            var text = File.ReadAllText(modelPath);
+            var modelName = ModelName(text) ?? Path.GetFileNameWithoutExtension(modelPath);
+            var properties = Properties(text);
+
+            if (properties.Count == 0)
+            {
+                Console.Error.WriteLine($"No [Setting] properties found in {modelPath}");
+                return 1;
+            }
+
+            WriteFile(outputPath, TypeScript(modelName, properties));
+            Console.WriteLine($"{outputPath}: {properties.Count} setting(s)");
+
+            if (options.Schema is { Length: > 0 } schemaPath)
+            {
+                WriteFile(schemaPath, Schema(modelName, properties));
+                Console.WriteLine($"{schemaPath}: JSON schema");
+            }
         }
 
-        var text = File.ReadAllText(options.Model);
-        var modelName = ModelName(text) ?? Path.GetFileNameWithoutExtension(options.Model);
-        var properties = Properties(text);
-
-        if (properties.Count == 0)
+        if (options.I18n is { } i18nPath && options.I18nOutput is { } keysPath)
         {
-            Console.Error.WriteLine($"No [Setting] properties found in {options.Model}");
-            return 1;
-        }
+            if (!File.Exists(i18nPath))
+            {
+                Console.Error.WriteLine($"Translation file not found: {i18nPath}");
+                return 1;
+            }
 
-        WriteFile(options.Output, TypeScript(modelName, properties));
-        Console.WriteLine($"{options.Output}: {properties.Count} setting(s)");
+            var keys = Keys(File.ReadAllText(i18nPath));
 
-        if (options.Schema is { Length: > 0 })
-        {
-            WriteFile(options.Schema, Schema(modelName, properties));
-            Console.WriteLine($"{options.Schema}: JSON schema");
+            if (keys.Count == 0)
+            {
+                Console.Error.WriteLine($"No keys found in {i18nPath}");
+                return 1;
+            }
+
+            WriteFile(keysPath, KeysTypeScript(Path.GetFileName(i18nPath), keys));
+            Console.WriteLine($"{keysPath}: {keys.Count} key(s)");
         }
 
         return 0;
@@ -50,6 +73,8 @@ internal static class Program
         string? model = null;
         string? output = null;
         string? schema = null;
+        string? i18n = null;
+        string? i18nOutput = null;
 
         for (var index = 0; index < args.Length; index++)
         {
@@ -69,20 +94,41 @@ internal static class Program
                     schema = Path.GetFullPath(next);
                     index++;
                     break;
+                case "--i18n" when next is not null:
+                    i18n = Path.GetFullPath(next);
+                    index++;
+                    break;
+                case "--i18n-out" when next is not null:
+                    i18nOutput = Path.GetFullPath(next);
+                    index++;
+                    break;
                 default:
                     Console.Error.WriteLine(
-                        "Usage: PhotinoNETUtils.CodeGen --model <AppSettings.cs> --out <settings.generated.ts> [--schema <settings.schema.json>]");
+                        "Usage: PhotinoNETUtils.CodeGen --model <AppSettings.cs> --out <settings.generated.ts> " +
+                        "[--schema <settings.schema.json>] [--i18n <en.jsonc> --i18n-out <i18n.generated.ts>]");
                     return null;
             }
         }
 
-        if (model is null || output is null)
+        if ((model is null) != (output is null))
         {
-            Console.Error.WriteLine("Both --model and --out are required.");
+            Console.Error.WriteLine("--model and --out belong together.");
             return null;
         }
 
-        return new Options(model, output, schema);
+        if ((i18n is null) != (i18nOutput is null))
+        {
+            Console.Error.WriteLine("--i18n and --i18n-out belong together.");
+            return null;
+        }
+
+        if (model is null && i18n is null)
+        {
+            Console.Error.WriteLine("Nothing to generate: pass --model/--out or --i18n/--i18n-out.");
+            return null;
+        }
+
+        return new Options(model, output, schema, i18n, i18nOutput);
     }
 
     private static string? ModelName(string text) =>
@@ -175,6 +221,29 @@ internal static class Program
 
     private static string TsName(string key) =>
         Regex.IsMatch(key, @"^[A-Za-z_$][A-Za-z0-9_$]*$") ? key : JsonSerializer.Serialize(key);
+
+    private static List<string> Keys(string text) =>
+    [
+        .. Regex.Matches(text, "^[ \t]*\"(?<key>(?:\\\\.|[^\"\\\\])*)\"[ \t]*:", RegexOptions.Multiline)
+            .Select(match => Regex.Unescape(match.Groups["key"].Value))
+            .Where(key => key.Length > 0)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(key => key, StringComparer.Ordinal)
+    ];
+
+    private static string KeysTypeScript(string fileName, List<string> keys)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("// <auto-generated/>");
+        builder.AppendLine($"// Generated from {fileName}; edit the translation file, not this file.");
+        builder.AppendLine();
+        builder.AppendLine("export type LocalizationKey =");
+
+        for (var index = 0; index < keys.Count; index++)
+            builder.AppendLine($"    | {JsonSerializer.Serialize(keys[index])}{(index == keys.Count - 1 ? ";" : "")}");
+
+        return builder.ToString();
+    }
 
     private static string TsType(string type)
     {
@@ -359,7 +428,12 @@ internal static class Program
         File.WriteAllText(path, content);
     }
 
-    private sealed record Options(string Model, string Output, string? Schema);
+    private sealed record Options(
+        string? Model,
+        string? Output,
+        string? Schema,
+        string? I18n,
+        string? I18nOutput);
 
     private sealed record SettingProperty(string Key, string Type, string? Comment, double? Min, double? Max);
 }

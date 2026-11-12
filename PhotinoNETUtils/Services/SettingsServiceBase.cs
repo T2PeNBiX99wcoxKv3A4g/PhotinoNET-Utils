@@ -1,6 +1,7 @@
 using JetBrains.Annotations;
 using PhotinoNetUtils.Hosting;
 using PhotinoNetUtils.Messaging;
+using PhotinoNetUtils.Settings;
 
 namespace PhotinoNetUtils.Services;
 
@@ -36,14 +37,14 @@ public abstract class SettingsServiceBase<T, TPayload> : IDisposable
     /// <summary>Reads the store and normalizes the result.</summary>
     public async Task LoadAsync(CancellationToken token = default)
     {
-        Current = Normalize(await _store.LoadAsync(token));
+        Current = NormalizeAll(await _store.LoadAsync(token));
         OnLoaded(Current);
     }
 
     /// <summary>Normalizes, stores and publishes the settings. Returns false when the write failed.</summary>
     public async Task<bool> SaveAsync(T settings, CancellationToken token = default)
     {
-        var normalized = Normalize(settings);
+        var normalized = NormalizeAll(settings);
         Current = normalized;
 
         var saved = await _store.SaveAsync(normalized, token);
@@ -76,6 +77,9 @@ public abstract class SettingsServiceBase<T, TPayload> : IDisposable
     /// <summary>Handles an app-specific message; return null for types this service does not own.</summary>
     protected virtual Task<NativeResponse?> HandleExtraAsync(NativeContext context) =>
         Task.FromResult<NativeResponse?>(null);
+
+    /// <summary>Runs the app's <see cref="Normalize" /> and then the generated range checks.</summary>
+    private T NormalizeAll(T settings) => (T)SettingsNormalizationRegistry.Normalize(Normalize(settings));
 
     private Task<NativeResponse?> HandleMessageAsync(NativeContext context) => context.Request.Type switch
     {
