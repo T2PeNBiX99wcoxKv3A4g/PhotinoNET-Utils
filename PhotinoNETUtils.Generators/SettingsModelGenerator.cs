@@ -76,14 +76,19 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
                 continue;
 
             var comment = NamedString(attribute, "Comment");
-            if (string.IsNullOrWhiteSpace(comment))
+            var min = NamedDouble(attribute, "Min");
+            var max = NamedDouble(attribute, "Max");
+
+            // A property with a comment documents the file; one with Min/Max is clamped. Neither
+            // needs the other, so collect the property when it has either.
+            if (string.IsNullOrWhiteSpace(comment) && min is null && max is null)
                 continue;
 
             var key = NamedString(attribute, "Key") ?? CamelCase(property.Name);
             var order = NamedInt(attribute, "Order");
 
-            entries.Add(new(key, comment!, order, property.Name, property.Type,
-                NamedDouble(attribute, "Min"), NamedDouble(attribute, "Max")));
+            entries.Add(new(key, string.IsNullOrWhiteSpace(comment) ? "" : comment!, order, property.Name,
+                property.Type, min, max));
         }
 
         var duplicate = entries.GroupBy(entry => entry.Key).FirstOrDefault(group => group.Count() > 1);
@@ -106,6 +111,7 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
         var simpleName = model.Symbol.Name;
         var hint = $"{model.Symbol.ToDisplayString().Replace('.', '_')}.SettingsMetadata.g.cs";
         var declarations = new StringBuilder();
+        var described = model.Entries.Where(entry => entry.Comment.Length > 0).ToArray();
 
         if (model.Symbol.ContainingNamespace is { IsGlobalNamespace: false } ns)
         {
@@ -113,21 +119,26 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
             declarations.AppendLine("{");
         }
 
-        declarations.AppendLine($"    internal static class {simpleName}_SettingsMetadata");
-        declarations.AppendLine("    {");
-        declarations.AppendLine(
-            "        private static readonly global::PhotinoNetUtils.Settings.SettingDefinition[] Definitions =");
-        declarations.AppendLine("        [");
-        foreach (var entry in model.Entries)
+        // Only documented properties go into the file comments; one that only declares Min/Max is
+        // still clamped below.
+        if (described.Length > 0)
+        {
+            declarations.AppendLine($"    internal static class {simpleName}_SettingsMetadata");
+            declarations.AppendLine("    {");
             declarations.AppendLine(
-                $"            new global::PhotinoNetUtils.Settings.SettingDefinition({Literal(entry.Key)}, {Literal(entry.Comment)}),");
-        declarations.AppendLine("        ];");
-        declarations.AppendLine();
-        declarations.AppendLine("        [global::System.Runtime.CompilerServices.ModuleInitializer]");
-        declarations.AppendLine("        internal static void Register() =>");
-        declarations.AppendLine("            global::PhotinoNetUtils.Settings.SettingsMetadataRegistry.Register(");
-        declarations.AppendLine($"                typeof({typeName}), Definitions);");
-        declarations.AppendLine("    }");
+                "        private static readonly global::PhotinoNetUtils.Settings.SettingDefinition[] Definitions =");
+            declarations.AppendLine("        [");
+            foreach (var entry in described)
+                declarations.AppendLine(
+                    $"            new global::PhotinoNetUtils.Settings.SettingDefinition({Literal(entry.Key)}, {Literal(entry.Comment)}),");
+            declarations.AppendLine("        ];");
+            declarations.AppendLine();
+            declarations.AppendLine("        [global::System.Runtime.CompilerServices.ModuleInitializer]");
+            declarations.AppendLine("        internal static void Register() =>");
+            declarations.AppendLine("            global::PhotinoNetUtils.Settings.SettingsMetadataRegistry.Register(");
+            declarations.AppendLine($"                typeof({typeName}), Definitions);");
+            declarations.AppendLine("    }");
+        }
 
         AppendNormalizer(context, declarations, model, typeName, simpleName);
 

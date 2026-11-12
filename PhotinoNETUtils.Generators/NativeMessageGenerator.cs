@@ -51,6 +51,14 @@ public sealed class NativeMessageGenerator : IIncrementalGenerator
         DiagnosticSeverity.Error,
         true);
 
+    private static readonly DiagnosticDescriptor DuplicateTypeAcrossClasses = new(
+        "PNU1105",
+        "Native message type is handled twice",
+        "'{0}' is handled by '{1}' and also by another class; the first subscribed handler wins",
+        "PhotinoNetUtils.Messaging",
+        DiagnosticSeverity.Warning,
+        true);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var methods = context.SyntaxProvider.ForAttributeWithMetadataName(
@@ -108,6 +116,21 @@ public sealed class NativeMessageGenerator : IIncrementalGenerator
     {
         foreach (var diagnostics in handlers.SelectMany(handler => handler.Diagnostics))
             context.ReportDiagnostic(diagnostics);
+
+        // The bridge stops at the first handler that answers, so two classes claiming one type means
+        // one of them silently never runs.
+        foreach (var group in handlers
+                     .Where(handler => handler.MessageType.Length > 0 && handler.Diagnostics.Count == 0)
+                     .GroupBy(handler => handler.MessageType)
+                     .Where(group => group.Select(handler => handler.Containing)
+                         .Distinct(SymbolEqualityComparer.Default).Count() > 1))
+        {
+            var first = group.First();
+
+            foreach (var handler in group.Skip(1))
+                context.ReportDiagnostic(Diagnostic.Create(DuplicateTypeAcrossClasses,
+                    handler.Method.Locations.FirstOrDefault(), handler.MessageType, first.Containing?.Name));
+        }
 
         foreach (var group in handlers
                      .Where(handler => handler.MessageType.Length > 0)
