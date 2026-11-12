@@ -10,8 +10,9 @@ using Microsoft.CodeAnalysis.Text;
 namespace PhotinoNetUtils.Generators;
 
 /// <summary>
-///     Turns <c>[NativeMessage("type")]</c> methods into one <c>__HandleGeneratedMessageAsync</c>
-///     switch on the containing partial class, so services do not repeat the stringly-typed dispatch.
+///     Turns <c>[NativeMessage("type")]</c> methods into one <c>HandleAsync</c> switch that implements
+///     <c>INativeMessageHandler</c> on the containing partial class, so services do not repeat the
+///     stringly-typed dispatch and never hold a generated method name of their own.
 /// </summary>
 [Generator(LanguageNames.CSharp)]
 public sealed class NativeMessageGenerator : IIncrementalGenerator
@@ -19,7 +20,6 @@ public sealed class NativeMessageGenerator : IIncrementalGenerator
     private const string Attribute = "PhotinoNetUtils.Messaging.NativeMessageAttribute";
     private const string Context = "PhotinoNetUtils.Messaging.NativeContext";
     private const string Response = "PhotinoNetUtils.Messaging.NativeResponse";
-    private const string GeneratedMethod = "__HandleGeneratedMessageAsync";
 
     private static readonly DiagnosticDescriptor NotPartial = new(
         "PNU1101",
@@ -149,10 +149,11 @@ public sealed class NativeMessageGenerator : IIncrementalGenerator
         var accessibility = type.DeclaredAccessibility == Accessibility.Public ? "public" : "internal";
         var indent = type.ContainingNamespace is { IsGlobalNamespace: false } ? "    " : "";
 
-        builder.AppendLine($"{indent}{accessibility} partial class {type.Name}");
+        builder.AppendLine(
+            $"{indent}{accessibility} partial class {type.Name} : global::PhotinoNetUtils.Messaging.INativeMessageHandler");
         builder.AppendLine($"{indent}{{");
         builder.AppendLine(
-            $"{indent}    private global::System.Threading.Tasks.Task<global::PhotinoNetUtils.Messaging.NativeResponse?> {GeneratedMethod}(");
+            $"{indent}    public global::System.Threading.Tasks.Task<global::PhotinoNetUtils.Messaging.NativeResponse?> HandleAsync(");
         builder.AppendLine($"{indent}        global::PhotinoNetUtils.Messaging.NativeContext context) =>");
         builder.AppendLine($"{indent}        context.Request.Type switch");
         builder.AppendLine($"{indent}        {{");

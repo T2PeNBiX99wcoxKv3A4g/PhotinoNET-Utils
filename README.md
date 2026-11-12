@@ -450,9 +450,13 @@ public sealed record MySettings
     public string Folder { get; init; } = "";
 }
 
-internal sealed partial class MyService
+internal sealed partial class MyService : IDisposable
 {
-    public MyService() => NativeBridge.MessageReceived += __HandleGeneratedMessageAsync;
+    private readonly IDisposable _subscription;
+
+    public MyService() => _subscription = NativeBridge.Subscribe(this);
+
+    public void Dispose() => _subscription.Dispose();
 
     [NativeMessage("settings.get")]
     private NativeResponse GetSettings(NativeContext context) => ...;
@@ -460,9 +464,12 @@ internal sealed partial class MyService
 ```
 
 `[SettingsModel]` registers the comments at startup, so `TomlSettingsStore` does not need reflection
-for that model. `[NativeMessage]` generates `__HandleGeneratedMessageAsync` on the containing partial
-class; the handler takes one `NativeContext` and returns `NativeResponse?` or
-`Task<NativeResponse?>`. The class must be `partial`; duplicate message types are a compile error.
+for that model. `[NativeMessage]` makes the class implement `INativeMessageHandler`; the generator
+writes the `HandleAsync` switch over every annotated method, so the class holds no generated name of
+its own. `NativeBridge.Subscribe(this)` connects it and returns a token that unsubscribes; a service
+with a lifetime keeps the token, a singleton can ignore it. Handlers take one `NativeContext` and
+return `NativeResponse?` or `Task<NativeResponse?>`. The class must be `partial`; duplicate message
+types are a compile error.
 
 `[Setting(Min = ..., Max = ...)]` also emits a range check that
 `SettingsServiceBase` runs after the app's own `Normalize`, so a hand-edited file cannot leave a

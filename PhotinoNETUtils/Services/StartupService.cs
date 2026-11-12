@@ -27,15 +27,16 @@ public sealed record StartupRequest(bool Enabled);
 public sealed partial class StartupService : IDisposable
 {
     private readonly StartupRegistration _registration;
+    private readonly IDisposable _subscription;
 
     public StartupService(StartupRegistration registration)
     {
         _registration = registration;
-        NativeBridge.MessageReceived += __HandleGeneratedMessageAsync;
+        _subscription = NativeBridge.Subscribe(this);
         Refresh();
     }
 
-    public void Dispose() => NativeBridge.MessageReceived -= __HandleGeneratedMessageAsync;
+    public void Dispose() => _subscription.Dispose();
 
     /// <summary>True on platforms with a per-user autostart location.</summary>
     public bool IsSupported => StartupRegistration.IsSupported;

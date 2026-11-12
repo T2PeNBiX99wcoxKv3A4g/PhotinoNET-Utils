@@ -47,6 +47,18 @@ public static class NativeBridge
             },
             NativeJson.TypeInfo<NativeEvent>());
 
+    /// <summary>
+    ///     Starts sending this service the messages its <c>[NativeMessage]</c> methods own and
+    ///     returns a token that removes it again. Services that live for the whole app can ignore
+    ///     the token; the ones with a lifetime keep it and dispose it.
+    /// </summary>
+    public static IDisposable Subscribe(INativeMessageHandler handler)
+    {
+        NativeMessageHandler callback = handler.HandleAsync;
+        MessageReceived += callback;
+        return new Subscription(() => MessageReceived -= callback);
+    }
+
     private static async Task HandleCoreAsync(PhotinoWindow? window, string rawMessage)
     {
         NativeRequest? request;
@@ -109,6 +121,14 @@ public static class NativeBridge
 
         Try.Run(() => window.Invoke(() => window.SendWebMessage(json)))
             .OnFailure(ex => Log.Warning(ex, "Could not send the reply"));
+    }
+
+    /// <summary>Removes the handler again, and does nothing when it is already gone.</summary>
+    private sealed class Subscription(Action remove) : IDisposable
+    {
+        private Action? _remove = remove;
+
+        public void Dispose() => Interlocked.Exchange(ref _remove, null)?.Invoke();
     }
 }
 

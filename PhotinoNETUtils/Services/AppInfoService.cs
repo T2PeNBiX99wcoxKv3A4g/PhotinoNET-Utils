@@ -26,14 +26,15 @@ public sealed record AppInfoOptions(
 public sealed partial class AppInfoService : IDisposable
 {
     private readonly AppInfoOptions _options;
+    private readonly IDisposable _subscription;
 
     public AppInfoService(AppInfoOptions options)
     {
         _options = options;
-        NativeBridge.MessageReceived += __HandleGeneratedMessageAsync;
+        _subscription = NativeBridge.Subscribe(this);
     }
 
-    public void Dispose() => NativeBridge.MessageReceived -= __HandleGeneratedMessageAsync;
+    public void Dispose() => _subscription.Dispose();
 
     [NativeMessage("app.info")]
     private NativeResponse Info(NativeContext context)
