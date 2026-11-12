@@ -15,6 +15,7 @@ plain class library (`net10.0`) plus a small npm package for the front-end bridg
 | `AppIcon`                 | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources                                                                                                                                                                                                                                                                   |
 | `AppPaths`                | Per-user settings, local data and log folders, created on demand                                                                                                                                                                                                                                                                               |
 | `Localization`            | Embedded `<prefix><locale>.jsonc` UI strings, merged over the language and the default locale, answered over the bridge as `i18n.get`                                                                                                                                                                                                          |
+| `Notifications`           | OS notifications through Photino's native layer, queued until the window exists, with per-key debounce                                                                                                                                                                                                                                          |
 | `Utils`                   | `Result<T>`, `Try`, `Singleton<T>`                                                                                                                                                                                                                                                                                                             |
 | `Extensions`              | Result/exception/string/object helpers                                                                                                                                                                                                                                                                                                         |
 | `UserInterface`           | `@photino-net-utils/bridge`: the shared `window.external` TypeScript bridge plus the React localization (`LocalizationProvider`, `useTranslation`, `useLocale`) matching `PhotinoNetUtils.Localization`                                                                                                                                        |
@@ -185,6 +186,27 @@ if (OperatingSystem.IsWindows())
 `StartMenuShortcut.Refresh` rewrites the shortcut only when its target differs from the executable,
 and creates it when it is missing. It never throws: the failure is logged, because it runs while the
 window is being created.
+
+### Notifications
+
+```csharp
+using PhotinoNetUtils.Notifications;
+
+// The id Windows attributes the toast to; the Start Menu shortcut carries the same one.
+window.SetNotificationRegistrationId("MyApp");
+
+// Once the native window exists (for example in its WindowCreated handler):
+NotificationService.Attach(window);
+
+// From any thread, at any time:
+NotificationService.Notify("auth.expired", "Session expired", "Sign in again.");
+```
+
+A notification raised before `Attach` waits and is delivered as soon as the window exists, so a
+background service can announce a startup failure. Repeats of the same key are suppressed for
+15 seconds; change `NotificationService.Debounce` to taste. Call `NotificationService.Detach()` when
+the app exits. On Windows the native layer registers the AppUserModelID while creating the window, so
+the toast is attributed to the app; on Linux it uses libnotify.
 
 ### Build metadata and autostart
 
