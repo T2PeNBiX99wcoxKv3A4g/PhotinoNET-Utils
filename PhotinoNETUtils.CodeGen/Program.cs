@@ -94,23 +94,18 @@ internal static partial class Program
             {
                 case "--model" when next is not null:
                     model = Path.GetFullPath(next);
-                    index++;
                     break;
                 case "--out" when next is not null:
                     output = Path.GetFullPath(next);
-                    index++;
                     break;
                 case "--schema" when next is not null:
                     schema = Path.GetFullPath(next);
-                    index++;
                     break;
                 case "--i18n" when next is not null:
                     i18n = Path.GetFullPath(next);
-                    index++;
                     break;
                 case "--i18n-out" when next is not null:
                     i18nOutput = Path.GetFullPath(next);
-                    index++;
                     break;
                 default:
                     Console.Error.WriteLine(
@@ -118,6 +113,8 @@ internal static partial class Program
                         "[--schema <settings.schema.json>] [--i18n <en.jsonc> --i18n-out <i18n.generated.ts>]");
                     return null;
             }
+
+            index++;
         }
 
         if (model is null != output is null)
