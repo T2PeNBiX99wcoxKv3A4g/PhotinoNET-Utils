@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.19.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.18.0..v0.19.0) - 2026-11-12
+
+### ⛰️  Features
+
+- Warn when a singleton repeats sealed - ([af022cd](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/af022cdd3a003340d4f21bc2df104583d0ac9991))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([4779448](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/47794486b79f79ff075ead5d9081bb7497672628))
+
+
 ## [0.18.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.17.0..v0.18.0) - 2026-11-12
 
 ### ⛰️  Features
