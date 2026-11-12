@@ -12,12 +12,14 @@ namespace PhotinoNetUtils.Platform;
 public static class SystemLauncher
 {
     /// <summary>Opens <paramref name="target" /> with the system's default handler.</summary>
-    public static void Open(string target) =>
-        Process.Start(new ProcessStartInfo
+    public static void Open(string target)
+    {
+        // ShellExecute is what makes Windows ask the shell instead of starting the string itself.
+        using var process = Process.Start(new ProcessStartInfo
         {
             FileName = OperatingSystem.IsWindows() ? target : "xdg-open",
             Arguments = OperatingSystem.IsWindows() ? "" : $"\"{target}\"",
-            // ShellExecute is what makes Windows ask the shell instead of starting the string itself.
             UseShellExecute = OperatingSystem.IsWindows()
         });
+    }
 }

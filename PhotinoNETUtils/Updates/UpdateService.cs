@@ -329,14 +329,14 @@ public sealed class UpdateService : IDisposable
             // the install to be retried.
             var installer = Path.Combine(Environment.SystemDirectory, "msiexec.exe");
 
-            Process.Start(new ProcessStartInfo(installer)
+            var installerProcessId = Process.StartAndForget(new ProcessStartInfo(installer)
             {
                 ArgumentList = { "/i", path, "/passive", "/norestart" },
                 UseShellExecute = false,
                 CreateNoWindow = true
             });
 
-            Logger.Information("Started the update installer from {Path}", path);
+            Logger.Information("Started the update installer from {Path} (pid {Pid})", path, installerProcessId);
         }
         catch (Exception ex)
         {

@@ -67,22 +67,10 @@ internal static class LinuxIconTheme
     {
         try
         {
-            using var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = "gtk-update-icon-cache",
-                ArgumentList =
-                {
-                    "-f",
-                    "-t",
-                    root
-                },
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            });
-
-            process?.WaitForExit(2000);
+            // silent keeps the tool's output out of the log and out of a pipe nobody reads, and the
+            // timeout guarantees the tray never waits on it.
+            Process.Run("gtk-update-icon-cache", ["-f", "-t", root], silent: true,
+                timeout: TimeSpan.FromSeconds(2));
         }
         catch (Exception ex)
         {
