@@ -14,7 +14,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `Interop`                 | `ITrayIcon` / `TrayIconFactory` with Win32 and libayatana-appindicator implementations, plus the Win32 P/Invoke set                                                                                                                                                                                                                            |
 | `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build), window chrome (drag, resize, maximize, frameless title bar on both platforms) and `SystemLauncher` for handing a URL or folder to the system |
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                                                                                                                                                            |
-| `Services/SettingsStore` | `ISettingsStore<T>` with JSON and TOML implementations: defaults, atomic writes and a one-time legacy move                                                                                                                                                                                                                                      |
+| `Services/SettingsStore` | `ISettingsStore<T>`, JSON/TOML stores and `SettingsServiceBase<T,TPayload>`: attribute comments, defaults, atomic writes and a one-time legacy move                                                                                                                                                                         |
 | `Services/StartupService` | Answers `app.startup` / `app.setStartup` and keeps the platform autostart entry in step                                                                                                                                                                                                                                                         |
 | `Services/AppInfoService` | Answers `app.info` with the app's version, platform, log folder, rounded corners and debug flag                                                                                                                                                                                                                                                 |
 | `AppIcon`                 | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources                                                                                                                                                                                                                                                                   |
@@ -375,15 +375,19 @@ call is safe everywhere.
 
 ```csharp
 using PhotinoNetUtils.Services;
+using PhotinoNetUtils.Settings;
 
-// JSON, through the app's source-generated context.
-var json = JsonSettingsStore<MySettings>.ForApp(
-    "MyApp",
-    MySettings.Default,
-    MyJsonContext.Default.MySettings,
-    legacyPath: Path.Combine(dataDirectory, "settings.json"));
+// The attribute supplies the comment written above the key.
+public sealed record MySettings
+{
+    [Setting(Comment = "The folder MyApp follows.")]
+    public string Folder { get; init; } = "";
 
-// TOML, with a comment block before the document.
+    [Setting(Comment = "Start with the window hidden.")]
+    public bool StartHidden { get; init; }
+}
+
+// TOML, with a comment block and one comment per annotated property.
 var toml = new TomlSettingsStore<MySettings>(
     Path.Combine(AppPaths.SettingsDirectory("MyApp"), "settings.toml"),
     MySettings.Default,
@@ -393,15 +397,36 @@ var toml = new TomlSettingsStore<MySettings>(
     header: "# MyApp settings. Rewritten when settings are saved.");
 
 ISettingsStore<MySettings> store = toml;
-var settings = store.Load();
+var settings = await store.LoadAsync();
 await store.SaveAsync(settings);
+```
+
+`SettingsServiceBase<T, TPayload>` answers `settings.get` / `settings.save` and raises `Changed`;
+the app only supplies the payload, its validation and its side effects:
+
+```csharp
+internal sealed class SettingsService : SettingsServiceBase<MySettings, SettingsPayload>
+{
+    public static readonly SettingsService Instance = new();
+
+    private SettingsService() : base(store) { }
+
+    protected override SettingsPayload Payload() => ...;
+    protected override MySettings Normalize(MySettings settings) => settings with { ... };
+    protected override string? Validate(MySettings settings) => ...;
+    protected override void OnSaved(MySettings settings) { ... }
+}
+
+await SettingsService.Instance.LoadAsync();
 ```
 
 A missing or unreadable file returns the defaults; writes go through a temporary file and a move, so
 a crash midway cannot truncate the file. `legacyPath` is read once when the target does not exist
 yet, which is how a JSON settings file becomes TOML. The model, its validation and the bridge messages
-stay in the app; register the model in the app's serializer context. TOML serialization writes the
-configured `header`; comments typed into the file are replaced by the next save.
+stay in the app; register the model and the payload in the app's serializer context. TOML serialization
+writes the configured `header` and each `[Setting]` comment; comments typed into the file are replaced
+by the next save. The annotated properties are marked for trimming, so the comments also survive a
+trimmed release build.
 
 ### Localization
 

@@ -18,6 +18,9 @@ public interface ISettingsStore<T> where T : class
     /// <summary>Reads the settings, or returns the defaults when the file is missing or unreadable.</summary>
     T Load();
 
+    /// <summary>Reads the settings asynchronously, with the same defaults and fallback as <see cref="Load" />.</summary>
+    Task<T> LoadAsync(CancellationToken token = default);
+
     /// <summary>Writes the settings atomically; returns false when the write failed.</summary>
     Task<bool> SaveAsync(T settings, CancellationToken token = default);
 }
@@ -65,7 +68,24 @@ public abstract class SettingsStore<T> : ISettingsStore<T> where T : class
             return Current;
         }
 
-        var text = Try.Run(() => File.ReadAllText(FilePath));
+        return Complete(Try.Run(() => File.ReadAllText(FilePath)));
+    }
+
+    public async Task<T> LoadAsync(CancellationToken token = default)
+    {
+        MigrateLegacy();
+
+        if (!File.Exists(FilePath))
+        {
+            Current = _defaults;
+            return Current;
+        }
+
+        return Complete(await Try.Run(() => File.ReadAllTextAsync(FilePath, token)));
+    }
+
+    private T Complete(Result<string> text)
+    {
         if (!text.IsSuccess)
         {
             text.OnFailure(ex => Log.Warning(ex, "Failed to read {File}", FilePath));

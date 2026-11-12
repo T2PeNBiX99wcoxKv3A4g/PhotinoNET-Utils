@@ -1,11 +1,18 @@
+using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
+using PhotinoNetUtils.Settings;
 using Tomlyn;
 
 namespace PhotinoNetUtils.Services;
 
-/// <summary>A settings file stored as TOML, through the caller's source-generated serializer.</summary>
+/// <summary>
+///     A settings file stored as TOML, through the caller's source-generated serializer. Properties
+///     marked with <see cref="SettingAttribute" /> get their comment written above the key.
+/// </summary>
 [PublicAPI]
-public sealed class TomlSettingsStore<T> : SettingsStore<T> where T : class
+public sealed class TomlSettingsStore<
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
+    T> : SettingsStore<T> where T : class
 {
     private readonly string? _header;
     private readonly TomlTypeInfo<T> _typeInfo;
@@ -34,10 +41,36 @@ public sealed class TomlSettingsStore<T> : SettingsStore<T> where T : class
 
     protected override string Serialize(T settings)
     {
-        var document = TomlSerializer.Serialize(settings, _typeInfo);
+        var document = AddComments(TomlSerializer.Serialize(settings, _typeInfo));
+        var newLine = Environment.NewLine;
 
         return string.IsNullOrWhiteSpace(_header)
             ? document
-            : _header.TrimEnd() + Environment.NewLine + Environment.NewLine + document;
+            : _header.TrimEnd() + newLine + newLine + document;
+    }
+
+    /// <summary>
+    ///     Inserts each property's comment above its top-level key. The settings models this library
+    ///     targets are flat; a nested table would need its own writer.
+    /// </summary>
+    private string AddComments(string document)
+    {
+        var definitions = SettingMetadata.Read(typeof(T), _typeInfo.Options.PropertyNamingPolicy);
+        if (definitions.Length == 0)
+            return document;
+
+        var newLine = Environment.NewLine;
+        var lines = document.Replace("\r\n", "\n").Split('\n').ToList();
+
+        foreach (var definition in definitions)
+        {
+            var prefix = definition.Key + " =";
+            var index = lines.FindIndex(line => line.StartsWith(prefix, StringComparison.Ordinal));
+
+            if (index >= 0)
+                lines.Insert(index, $"# {definition.Comment}");
+        }
+
+        return string.Join(newLine, lines);
     }
 }
