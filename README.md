@@ -9,6 +9,8 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 |---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `Logging`                 | Serilog console + rolling file log, console mirroring, unhandled-exception hooks                                                                                                                                                                                                                                                               |
 | `Hosting/StaticServer`    | Kestrel static file host on an OS-assigned port (`127.0.0.1:0`), serving `Resources/wwwroot` from embedded resources with disk overrides                                                                                                                                                                                                       |
+| `Hosting/WebViewCache`    | Drops the web view's data folder when a different build filled it, so an upgrade cannot keep serving the old interface from the cache                                                                                                                                                                                                            |
+| `Hosting/WebViewEvents`   | Queues events until the page reports `app.ready`, and answers the standard `window.*` commands from the bridge                                                                                                                                                                                                                                    |
 | `Interop`                 | `ITrayIcon` / `TrayIconFactory` with Win32 and libayatana-appindicator implementations, plus the Win32 P/Invoke set                                                                                                                                                                                                                            |
 | `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build), window chrome (drag, resize, maximize, frameless title bar on both platforms) and `SystemLauncher` for handing a URL or folder to the system |
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                                                                                                                                                            |
@@ -113,6 +115,34 @@ var appUrl = $"{server.BaseUrl}/index.html?v={buildToken}";
 
 The content root is owned by the app, so Kestrel never writes `wwwroot` next to the executable.
 Embedded files are read from the entry assembly under `Resources/wwwroot`.
+
+### Web view cache and events
+
+```csharp
+using PhotinoNetUtils;
+using PhotinoNetUtils.Hosting;
+
+var webViewData = WebViewCache.Prepare(
+    AppPaths.DataDirectory("MyApp"),
+    BuildInfo.BuildTokenFor(typeof(Program).Assembly));
+
+var window = new PhotinoWindow()
+    .SetTemporaryFilesPath(webViewData);
+
+// After the native window is created, before WaitForClose/Run:
+WebViewEvents.Attach(window);
+WebViewEvents.Ready += OnFirstRender;
+
+// From any thread, even before the window exists:
+WebViewEvents.Notify("auth.changed", payload);
+```
+
+`WebViewCache.Prepare` returns the folder to give `SetTemporaryFilesPath`; when the build token
+changes it deletes the previous contents first. `WebViewEvents` holds the newest event of each type
+until the page sends `app.ready`, then pushes them, and answers `window.minimize`,
+`window.toggleMaximize`, `window.close`, `window.drag` and `window.resize` for the bridge's
+`useWindowControls`, `useWindowDrag` and `ResizeHandles`. The app keeps its own close-to-tray policy.
+Register `WindowStatePayload` and `WindowResizeRequest` in the app's `JsonSerializerContext`.
 
 ### Tray icon
 
