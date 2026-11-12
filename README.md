@@ -450,26 +450,28 @@ public sealed record MySettings
     public string Folder { get; init; } = "";
 }
 
-internal sealed partial class MyService : IDisposable
+internal sealed partial class MyService : NativeMessageService
 {
-    private readonly IDisposable _subscription;
-
-    public MyService() => _subscription = NativeBridge.Subscribe(this);
-
-    public void Dispose() => _subscription.Dispose();
-
     [NativeMessage("settings.get")]
     private NativeResponse GetSettings(NativeContext context) => ...;
+}
+
+// A singleton that answers messages subscribes itself; no constructor is needed at all.
+internal sealed partial class MyLinkService : Singleton<MyLinkService>
+{
+    [NativeMessage("system.openUrl")]
+    private static NativeResponse Open(NativeContext context) => ...;
 }
 ```
 
 `[SettingsModel]` registers the comments at startup, so `TomlSettingsStore` does not need reflection
 for that model. `[NativeMessage]` makes the class implement `INativeMessageHandler`; the generator
 writes the `HandleAsync` switch over every annotated method, so the class holds no generated name of
-its own. `NativeBridge.Subscribe(this)` connects it and returns a token that unsubscribes; a service
-with a lifetime keeps the token, a singleton can ignore it. Handlers take one `NativeContext` and
-return `NativeResponse?` or `Task<NativeResponse?>`. The class must be `partial`; duplicate message
-types are a compile error.
+its own and needs no wiring: `NativeMessageService` subscribes in its constructor, and `Singleton<T>`
+subscribes any singleton that implements the interface. A class that already derives from another
+base can call `NativeBridge.Subscribe(this)` and dispose the token. Handlers take one `NativeContext`
+and return `NativeResponse?` or `Task<NativeResponse?>`. The class must be `partial`; duplicate
+message types are a compile error.
 
 `[Setting(Min = ..., Max = ...)]` also emits a range check that
 `SettingsServiceBase` runs after the app's own `Normalize`, so a hand-edited file cannot leave a

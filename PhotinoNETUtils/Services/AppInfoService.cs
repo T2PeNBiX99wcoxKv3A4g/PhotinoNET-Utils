@@ -23,18 +23,11 @@ public sealed record AppInfoOptions(
 ///     request, so it can follow a window that draws its own frame on Linux.
 /// </remarks>
 [PublicAPI]
-public sealed partial class AppInfoService : IDisposable
+public sealed partial class AppInfoService : NativeMessageService
 {
     private readonly AppInfoOptions _options;
-    private readonly IDisposable _subscription;
 
-    public AppInfoService(AppInfoOptions options)
-    {
-        _options = options;
-        _subscription = NativeBridge.Subscribe(this);
-    }
-
-    public void Dispose() => _subscription.Dispose();
+    public AppInfoService(AppInfoOptions options) => _options = options;
 
     [NativeMessage("app.info")]
     private NativeResponse Info(NativeContext context)
