@@ -450,37 +450,31 @@ public sealed record MySettings
     public string Folder { get; init; } = "";
 }
 
+// Program.cs, right after NativeBridge.Initialize(context)
+NativeMessages.Initialize();
+
 internal sealed partial class MyLinkService : Singleton<MyLinkService>
 {
     [NativeMessage("system.openUrl")]
     private static NativeResponse Open(NativeContext context) => ...;
-}
-
-internal sealed partial class MyService : IDisposable
-{
-    private readonly IDisposable _subscription;
-
-    public MyService() => _subscription = NativeBridge.Subscribe(this);
-
-    public void Dispose() => _subscription.Dispose();
-
-    [NativeMessage("settings.get")]
-    private NativeResponse GetSettings(NativeContext context) => ...;
 }
 ```
 
 `[SettingsModel]` registers the comments at startup, so `TomlSettingsStore` does not need reflection
 for that model. `[NativeMessage]` makes the class implement `INativeMessageHandler`; the generator
 writes the `HandleAsync` switch over every annotated method, so the class holds no generated method
-name. A singleton that implements the interface is subscribed by `Singleton<T>`; any other class
-subscribes once with `NativeBridge.Subscribe(this)` and disposes the token. Handlers take one
-`NativeContext` and return `NativeResponse?` or `Task<NativeResponse?>`. The class must be `partial`;
-duplicate message types are a compile error.
+name.
 
-The subscription call cannot be generated for a class with its own constructor: C# has no partial
-constructors, a generator cannot add a base class, and a field initializer cannot reference `this`.
-Avalonia's generated `InitializeComponent()` is the same trade-off — the generator writes the body,
-the constructor has to call it once.
+For an executable the generator also writes `NativeMessages.Initialize`: one call connects every
+class in the assembly that has a `[NativeMessage]` method. A singleton is created through its
+`Instance`; any other class becomes a parameter of that method
+(`NativeMessages.Initialize(myService)`), because only the app knows what to pass to its constructor.
+A library gets no bootstrap, so its own services keep calling `NativeBridge.Subscribe(this)` in their
+constructors. The event is unchanged, so manually written handlers can still subscribe directly.
+
+A call per app cannot be avoided: C# has no partial constructors, a generator cannot add a base class,
+and a field initializer cannot reference `this`. Avalonia's generated `InitializeComponent()` is the
+same trade-off — the generator writes the body, the entry point calls it once.
 
 `[Setting(Min = ..., Max = ...)]` also emits a range check that
 `SettingsServiceBase` runs after the app's own `Normalize`, so a hand-edited file cannot leave a
