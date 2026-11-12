@@ -23,7 +23,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `AppPaths`                | Per-user settings, local data and log folders, created on demand                                                                                                                                                                                                                                                                               |
 | `Localization`            | Embedded `<prefix><locale>.jsonc` UI strings, merged over the language and the default locale, answered over the bridge as `i18n.get`                                                                                                                                                                                                          |
 | `Notifications`           | OS notifications through Photino's native layer, queued until the window exists, with per-key debounce                                                                                                                                                                                                                                          |
-| `Utils`                   | `Result<T>`, `Try`, `Singleton<T>` and `SingletonRegistry`                                                                                                                                                                                                                                                                                    |
+| `Utils`                   | `Result<T>`, `Try`, `Singleton<T>`, `[Singleton]` and `SingletonRegistry`                                                                                                                                                                                                                                                                     |
 | `Extensions`              | Result/exception/string/object helpers                                                                                                                                                                                                                                                                                                         |
 | `UserInterface`           | `@photino-net-utils/bridge`: the shared `window.external` TypeScript bridge plus the React localization (`LocalizationProvider`, `useTranslation`, `useLocale`) matching `PhotinoNetUtils.Localization`                                                                                                                                        |
 
@@ -440,7 +440,7 @@ trimmed release build.
 
 ### Source generators
 
-`PhotinoNETUtils.Generators.dll` adds two incremental generators:
+`PhotinoNETUtils.Generators.dll` adds three incremental generators:
 
 ```csharp
 [SettingsModel]
@@ -450,32 +450,26 @@ public sealed record MySettings
     public string Folder { get; init; } = "";
 }
 
-internal sealed partial class MyLinkService : Singleton<MyLinkService>
+[Singleton]
+internal sealed partial class MyLinkService
 {
     [NativeMessage("system.openUrl")]
     private static NativeResponse Open(NativeContext context) => ...;
 }
-
-internal sealed partial class MyService : IDisposable
-{
-    private readonly IDisposable _subscription;
-
-    public MyService() => _subscription = NativeBridge.Subscribe(this);
-
-    public void Dispose() => _subscription.Dispose();
-
-    [NativeMessage("settings.get")]
-    private NativeResponse GetSettings(NativeContext context) => ...;
-}
 ```
 
 `[SettingsModel]` registers the comments at startup, so `TomlSettingsStore` does not need reflection
-for that model. `[NativeMessage]` makes the class implement `INativeMessageHandler`; the generator
-writes the `HandleAsync` switch over every annotated method, so the class holds no generated method
-name. A singleton that implements the interface subscribes itself in `Singleton<T>`'s constructor;
-any other class subscribes once with `NativeBridge.Subscribe(this)` and disposes the token. Handlers
-take one `NativeContext` and return `NativeResponse?` or `Task<NativeResponse?>`. The class must be
-`partial`; duplicate message types are a compile error.
+for that model. `[Singleton]` writes `Instance`, the `SingletonRegistry` entry, a `Log` field and —
+when the class has no constructor of its own — a private constructor, so `new` is a compile error.
+Because the members are generated into the class, it can inherit any base class, which
+`Singleton<T>` cannot offer. `Singleton<T>` remains for code that already derives from it.
+
+`[NativeMessage]` makes the class implement `INativeMessageHandler`; the generator writes the
+`HandleAsync` switch over every annotated method, so the class holds no generated method name. A
+generated singleton subscribes itself in `Create()`; a plain class subscribes once with
+`NativeBridge.Subscribe(this)` and disposes the token. Handlers take one `NativeContext` and return
+`NativeResponse?` or `Task<NativeResponse?>`. The class must be `partial`; duplicate message types are
+a compile error.
 
 ### Singleton registry
 

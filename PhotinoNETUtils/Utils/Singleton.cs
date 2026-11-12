@@ -9,6 +9,12 @@ public interface ISingleton
 {
 }
 
+/// <summary>
+///     Base class for process-wide services. It registers the instance and subscribes native message
+///     handlers while it is created. A class that needs another base class uses
+///     <see cref="SingletonAttribute" /> instead; the generator writes the same members into the
+///     class itself.
+/// </summary>
 [PublicAPI]
 public abstract class Singleton<T> : ISingleton where T : Singleton<T>, new()
 {
