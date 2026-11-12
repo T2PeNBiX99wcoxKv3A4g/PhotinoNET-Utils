@@ -450,31 +450,39 @@ public sealed record MySettings
     public string Folder { get; init; } = "";
 }
 
-// Program.cs, right after NativeBridge.Initialize(context)
-NativeMessages.Initialize();
-
 internal sealed partial class MyLinkService : Singleton<MyLinkService>
 {
     [NativeMessage("system.openUrl")]
     private static NativeResponse Open(NativeContext context) => ...;
+}
+
+internal sealed partial class MyService : IDisposable
+{
+    private readonly IDisposable _subscription;
+
+    public MyService() => _subscription = NativeBridge.Subscribe(this);
+
+    public void Dispose() => _subscription.Dispose();
+
+    [NativeMessage("settings.get")]
+    private NativeResponse GetSettings(NativeContext context) => ...;
 }
 ```
 
 `[SettingsModel]` registers the comments at startup, so `TomlSettingsStore` does not need reflection
 for that model. `[NativeMessage]` makes the class implement `INativeMessageHandler`; the generator
 writes the `HandleAsync` switch over every annotated method, so the class holds no generated method
-name.
+name. A singleton that implements the interface subscribes itself in `Singleton<T>`'s constructor;
+any other class subscribes once with `NativeBridge.Subscribe(this)` and disposes the token. Handlers
+take one `NativeContext` and return `NativeResponse?` or `Task<NativeResponse?>`. The class must be
+`partial`; duplicate message types are a compile error.
 
-For an executable the generator also writes `NativeMessages.Initialize`: one call connects every
-class in the assembly that has a `[NativeMessage]` method. A singleton is created through its
-`Instance`; any other class becomes a parameter of that method
-(`NativeMessages.Initialize(myService)`), because only the app knows what to pass to its constructor.
-A library gets no bootstrap, so its own services keep calling `NativeBridge.Subscribe(this)` in their
-constructors. The event is unchanged, so manually written handlers can still subscribe directly.
-
-A call per app cannot be avoided: C# has no partial constructors, a generator cannot add a base class,
-and a field initializer cannot reference `this`. Avalonia's generated `InitializeComponent()` is the
-same trade-off — the generator writes the body, the entry point calls it once.
+A subscription call inside an arbitrary constructor cannot be generated: C# has no partial
+constructors, a generator cannot add a base class, and a field initializer cannot reference `this`.
+That is the same trade-off as Avalonia's generated `InitializeComponent()` — the generator writes the
+body, the constructor calls it once. Reflection could scan for handlers instead, but the release
+build is trimmed, so the metadata a scan needs may be gone; the one explicit call is the price of
+staying reflection-free.
 
 `[Setting(Min = ..., Max = ...)]` also emits a range check that
 `SettingsServiceBase` runs after the app's own `Normalize`, so a hand-edited file cannot leave a
