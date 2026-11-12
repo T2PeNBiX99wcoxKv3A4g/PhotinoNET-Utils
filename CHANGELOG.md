@@ -1,5 +1,59 @@
 # Changelog
 
+## [0.18.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.17.0..v0.18.0) - 2026-11-12
+
+### ⛰️  Features
+
+- Tighten the generator diagnostics and tracking - ([13fd09c](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/13fd09c68fa9d915feed66bdbeb1586668cbdac8))
+- Seal generated singletons - ([e313db5](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/e313db542692f7057fc75ef111c481d468a26805))
+- Require private singleton constructors - ([3f20bf1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/3f20bf1c91ea829127f5f2674b3ebdac694fac5c))
+- Generate singletons from an attribute - ([a3aa407](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/a3aa407185d84fc4228797013ba7d0450f49b488))
+- Register every singleton in one registry - ([d1abe1b](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/d1abe1b655a496c42560d620f665efa1cec0b394))
+- Generate a native message bootstrap per executable - ([ff3d9c8](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/ff3d9c8ec4f0b91765087abd967a50d948d5cd1c))
+- Subscribe generated handlers automatically - ([9ea111e](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/9ea111e8f49b6b3a6ecd4a28e18ac6c22aa953f8))
+- Reject duplicate localization keys - ([370490f](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/370490f828746aa66baeb5937e3224d067f6436e))
+- Add payload, localization and settings analyzers - ([9c11ca6](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/9c11ca6757a392125589d40388277a0ed6f3c246))
+- Generate TypeScript settings types and schema - ([e566f02](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/e566f028ddbccde5e2ffef5cdcaa6de3c14deb0f))
+- Add settings and native message source generators - ([16a2f82](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/16a2f824d99bba25436a62ea73b1fc3c492c3eab))
+- Add attribute comments and a shared settings service - ([15882fd](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/15882fd902064ce2f594b26b8d0f8a714a17a6a4))
+- Add a TOML settings store and language normalization - ([72c9d10](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/72c9d1098f0839c0ca2914803b5f421a82da22c6))
+- Add a JSON settings store - ([aa84f47](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/aa84f475e78fcdc09bdc12a11437f5aa29cc2620))
+- Default the release page and log folder in UpdateOptions - ([72457ef](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/72457ef75e797e00629b55a330f5a75cd9962bf8))
+- Add shared app info and startup services - ([3b2c50c](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/3b2c50c0ffd9716c2ed91f0f44ae5dae732da44a))
+- Add web view cache and event helpers - ([3a3ba34](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/3a3ba34eafc4bfedf19bebec7f0d06bfc30d4ba4))
+
+### 🚜 Refactor
+
+- Simplify CodeGen argument parsing - ([e62283f](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/e62283f1f36e79469c96a66d98495f96f2daf9fd))
+- Use GeneratedRegex in the code generator - ([3ed20a1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/3ed20a111dbeaea2fc1793220ff37915d94ba070))
+- Simplify option pattern matching - ([2804814](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/28048141df75a37e02d517138a7989a5982fef8f))
+- Apply formatting consistency and reorder members across multiple files - ([8fc9685](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/8fc9685be09ac0390d3fa522888a43dc82285116))
+- Drop the NativeMessageService base class - ([44ab09c](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/44ab09c861eeaaced8818123423f3ca10bb94947))
+- Dispatch native messages through an interface - ([7ba5187](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/7ba5187f5e63e73499cab67e0929065aaaae665c))
+- Simplify localization namespace reference - ([1c73bc7](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/1c73bc79f1493d9b9d6c05a8ad7d56d709bfa259))
+
+### 📚 Documentation
+
+- Format analyzer release table - ([4471023](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/4471023d62c0d73b8f5774de57d645cfa7e2141f))
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump CodeAnalysis packages to 5.9.0 - ([80fc3c3](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/80fc3c3b668229809d938fafc00b50ae18f2983d))
+- Deprecate Singleton<T> - ([8dfa469](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/8dfa46990aa3c748b2198f3a0462bd464a44393e))
+
+### ◀️ Revert
+
+- Subscribe handlers from Singleton<T> again - ([435227f](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/435227faabadb212862b42fab68eddf79edf7e3d))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([0606381](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/06063816d774dd88d78e8267c94d3df8691666d5))
+
+### Build
+
+- Publish the code generator as native AOT - ([0c45ea6](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/0c45ea62c26c183f392ff2fd7b3b95255b6879b2))
+
+
 ## [0.17.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.16.1..v0.17.0) - 2026-11-12
 
 ### ⛰️  Features
