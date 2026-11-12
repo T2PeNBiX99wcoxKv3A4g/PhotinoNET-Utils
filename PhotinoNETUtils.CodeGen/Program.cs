@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace PhotinoNetUtils.CodeGen;
@@ -227,11 +226,96 @@ internal static class Program
             ["additionalProperties"] = false
         };
 
-        return JsonSerializer.Serialize(root, new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine;
+        return WriteJson(root, 0) + Environment.NewLine;
+    }
+
+    /// <summary>
+    ///     Writes the schema by hand. The generator is published as native AOT, where the reflection
+    ///     based <c>JsonSerializer</c> would either warn or need the whole serializer metadata; the
+    ///     shapes here are a handful of dictionaries, strings and numbers.
+    /// </summary>
+    private static string WriteJson(object? value, int depth) =>
+        value switch
+        {
+            null => "null",
+            string text => Quote(text),
+            bool flag => flag ? "true" : "false",
+            int or long or double or float or decimal =>
+                Convert.ToString(value, CultureInfo.InvariantCulture) ?? "0",
+            Dictionary<string, object?> map => WriteObject(map, depth),
+            IEnumerable<object?> items => WriteArray(items, depth),
+            _ => Quote(Convert.ToString(value, CultureInfo.InvariantCulture) ?? "")
+        };
+
+    private static string WriteObject(Dictionary<string, object?> map, int depth)
+    {
+        if (map.Count == 0)
+            return "{}";
+
+        var indent = new string(' ', (depth + 1) * 2);
+        var closing = new string(' ', depth * 2);
+        var entries = map.Select(pair => $"{indent}{Quote(pair.Key)}: {WriteJson(pair.Value, depth + 1)}");
+
+        return "{\n" + string.Join(",\n", entries) + "\n" + closing + "}";
+    }
+
+    private static string WriteArray(IEnumerable<object?> items, int depth)
+    {
+        var values = items.ToList();
+        if (values.Count == 0)
+            return "[]";
+
+        var indent = new string(' ', (depth + 1) * 2);
+        var closing = new string(' ', depth * 2);
+        var entries = values.Select(item => indent + WriteJson(item, depth + 1));
+
+        return "[\n" + string.Join(",\n", entries) + "\n" + closing + "]";
+    }
+
+    /// <summary>A JSON/JavaScript string literal, so the schema and the TS union share one escaper.</summary>
+    private static string Quote(string value)
+    {
+        var builder = new StringBuilder(value.Length + 2);
+        builder.Append('"');
+
+        foreach (var character in value)
+            switch (character)
+            {
+                case '"':
+                    builder.Append("\\\"");
+                    break;
+                case '\\':
+                    builder.Append("\\\\");
+                    break;
+                case '\n':
+                    builder.Append("\\n");
+                    break;
+                case '\r':
+                    builder.Append("\\r");
+                    break;
+                case '\t':
+                    builder.Append("\\t");
+                    break;
+                case '\b':
+                    builder.Append("\\b");
+                    break;
+                case '\f':
+                    builder.Append("\\f");
+                    break;
+                default:
+                    if (character < ' ')
+                        builder.Append("\\u").Append(((int)character).ToString("x4", CultureInfo.InvariantCulture));
+                    else
+                        builder.Append(character);
+                    break;
+            }
+
+        builder.Append('"');
+        return builder.ToString();
     }
 
     private static string TsName(string key) =>
-        Regex.IsMatch(key, @"^[A-Za-z_$][A-Za-z0-9_$]*$") ? key : JsonSerializer.Serialize(key);
+        Regex.IsMatch(key, @"^[A-Za-z_$][A-Za-z0-9_$]*$") ? key : Quote(key);
 
     private static List<string> Keys(string text) =>
     [
@@ -281,7 +365,7 @@ internal static class Program
         builder.AppendLine("export type LocalizationKey =");
 
         for (var index = 0; index < keys.Count; index++)
-            builder.AppendLine($"    | {JsonSerializer.Serialize(keys[index])}{(index == keys.Count - 1 ? ";" : "")}");
+            builder.AppendLine($"    | {Quote(keys[index])}{(index == keys.Count - 1 ? ";" : "")}");
 
         return builder.ToString();
     }

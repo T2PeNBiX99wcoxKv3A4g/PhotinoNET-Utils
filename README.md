@@ -504,10 +504,12 @@ They then generate `LocalizationKeys` in the project's root namespace, so a call
 
 ### TypeScript settings types
 
-A Roslyn source generator can only add C#, so the TypeScript side is a small CLI:
+A Roslyn source generator can only add C#, so the TypeScript side is a small CLI. It is published as
+native AOT, so an app gets one executable and no `.dll`, `.deps.json` or `.runtimeconfig.json`:
 
 ```bash
-dotnet run --project PhotinoNETUtils.CodeGen -- \
+dotnet publish PhotinoNETUtils.CodeGen -c Release -r win-x64 -o out
+out/PhotinoNETUtils.CodeGen \
   --model ../AntiBot/AntiBot/Models/AppSettings.cs \
   --out ../AntiBot/AntiBot/UserInterface/src/api/settings.generated.ts \
   --schema ../AntiBot/AntiBot/UserInterface/src/api/settings.schema.json \
@@ -517,13 +519,18 @@ dotnet run --project PhotinoNETUtils.CodeGen -- \
 
 It reads `[Setting]` properties and writes a `{Model}Generated` interface plus a JSON schema with the
 comments and numeric limits; with `--i18n` it also writes the `LocalizationKey` union of every
-translated key. `build-and-copy` publishes it to `Libs/CodeGen`; an app can run it from an
-MSBuild target:
+translated key. `build-and-copy` publishes it to `Libs/CodeGen` as that single file; an app can run
+it from an MSBuild target:
 
 ```xml
+<PropertyGroup>
+    <SettingsCodeGenPath>$(MSBuildProjectDirectory)\Libs\CodeGen\PhotinoNETUtils.CodeGen</SettingsCodeGenPath>
+    <SettingsCodeGenPath Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(SettingsCodeGenPath).exe</SettingsCodeGenPath>
+</PropertyGroup>
+
 <Target Name="GenerateSettingsTypes" BeforeTargets="BeforeBuild"
-        Condition="Exists('Libs\CodeGen\PhotinoNETUtils.CodeGen.dll')">
-    <Exec Command="dotnet &quot;$(MSBuildProjectDirectory)\Libs\CodeGen\PhotinoNETUtils.CodeGen.dll&quot; --model &quot;$(MSBuildProjectDirectory)\Models\AppSettings.cs&quot; --out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.generated.ts&quot; --schema &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.schema.json&quot; --i18n &quot;$(MSBuildProjectDirectory)\Resources\i18n\en.jsonc&quot; --i18n-out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\i18n.generated.ts&quot;"/>
+        Condition="Exists('$(SettingsCodeGenPath)')">
+    <Exec Command="&quot;$(SettingsCodeGenPath)&quot; --model &quot;$(MSBuildProjectDirectory)\Models\AppSettings.cs&quot; --out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.generated.ts&quot; --schema &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.schema.json&quot; --i18n &quot;$(MSBuildProjectDirectory)\Resources\i18n\en.jsonc&quot; --i18n-out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\i18n.generated.ts&quot;"/>
 </Target>
 ```
 
