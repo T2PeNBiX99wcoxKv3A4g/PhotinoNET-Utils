@@ -9,19 +9,68 @@ using Serilog;
 namespace PhotinoNetUtils.Updates;
 
 /// <summary>The repository and asset shape one application uses for its releases.</summary>
+/// <remarks>
+///     <para>
+///         <see cref="ReleasePageUrl" /> and <see cref="LogDirectory" /> can be omitted. The page
+///         defaults to the repository's latest release
+///         (<c>https://github.com/{owner}/{repository}/releases/latest</c>), and the log folder to
+///         <see cref="AppPaths.LogDirectory" /> for <see cref="AppName" />.
+///     </para>
+///     <para>
+///         The constructor keeps the original positional order, so passing a page or folder that is
+///         not the default still works as before.
+///     </para>
+/// </remarks>
 [PublicAPI]
-public sealed record UpdateOptions(
-    string Owner,
-    string Repository,
-    string AppName,
-    string CurrentVersion,
-    string AssetPattern,
-    string ReleasePageUrl,
-    string LogDirectory,
-    Action? Shutdown = null,
-    Action<string, object?>? Notify = null,
-    string Branch = "master",
-    string ChangelogPath = "CHANGELOG.md");
+public sealed record UpdateOptions
+{
+    public UpdateOptions(
+        string Owner,
+        string Repository,
+        string AppName,
+        string CurrentVersion,
+        string AssetPattern,
+        string? ReleasePageUrl = null,
+        string? LogDirectory = null,
+        Action? Shutdown = null,
+        Action<string, object?>? Notify = null,
+        string Branch = "master",
+        string ChangelogPath = "CHANGELOG.md")
+    {
+        this.Owner = Owner;
+        this.Repository = Repository;
+        this.AppName = AppName;
+        this.CurrentVersion = CurrentVersion;
+        this.AssetPattern = AssetPattern;
+        this.ReleasePageUrl = string.IsNullOrWhiteSpace(ReleasePageUrl)
+            ? $"https://github.com/{Owner}/{Repository}/releases/latest"
+            : ReleasePageUrl;
+        this.LogDirectory = string.IsNullOrWhiteSpace(LogDirectory)
+            ? AppPaths.LogDirectory(AppName)
+            : LogDirectory;
+        this.Shutdown = Shutdown;
+        this.Notify = Notify;
+        this.Branch = Branch;
+        this.ChangelogPath = ChangelogPath;
+    }
+
+    public string Owner { get; init; }
+    public string Repository { get; init; }
+    public string AppName { get; init; }
+    public string CurrentVersion { get; init; }
+    public string AssetPattern { get; init; }
+
+    /// <summary>The releases page the UI opens; derived from the repository when not supplied.</summary>
+    public string ReleasePageUrl { get; init; }
+
+    /// <summary>Where the log folder lives; <see cref="AppPaths.LogDirectory" /> when not supplied.</summary>
+    public string LogDirectory { get; init; }
+
+    public Action? Shutdown { get; init; }
+    public Action<string, object?>? Notify { get; init; }
+    public string Branch { get; init; }
+    public string ChangelogPath { get; init; }
+}
 
 /// <summary>Body for <c>update.status</c> and <c>update.check</c>.</summary>
 [PublicAPI]
