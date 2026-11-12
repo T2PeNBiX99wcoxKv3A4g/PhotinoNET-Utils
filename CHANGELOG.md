@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.17.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.16.1..v0.17.0) - 2026-11-12
+
+### ⛰️  Features
+
+- Place a window next to the pointer on Hyprland - ([c12ff01](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/c12ff01e47505e1c74424f97981c8441f1bc6f19))
+- Add indexer sugar for JsonElement - ([b4d1408](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/b4d1408866eb72118c3e09342e6a94d2a7f57560))
+- Add a window-aware notification service - ([f63c777](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/f63c77738ddd40a4b3ce71b066fc4d1eecb3307e))
+- Let the static server keep one port when the app asks for it - ([aee53be](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/aee53be99ba0500d23cec096620e3328febffcdc))
+
+### 🐛 Bug Fixes
+
+- Hand targets to macOS with open - ([cef5e08](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/cef5e082876b453f4742e95266dd9151961e1a67))
+- Pass cancellation token to `Task.Run` in `DownloadCoreAsync` - ([b6c8645](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/b6c86457a9ebbbced6b07a157976d451ce3ba7bc))
+
+### 🚜 Refactor
+
+- Use the .NET 11 process APIs - ([b95925f](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/b95925f97e6e13ef954258f7d9e86fd7fbe59993))
+- Start the update installer directly instead of through cmd - ([6eb7d01](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/6eb7d01353e858179bc51e752f705daa70f52a03))
+- Make `Open` method static in UpdateService - ([fa97d58](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/fa97d58eb92be863f0d5334ca2818652fb127ade))
+
+### ◀️ Revert
+
+- Serve the interface from an OS-assigned port again - ([c566e24](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/c566e248dabf912b3968a2ae28a1638a22d53f87))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([1c4b349](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/1c4b3499c80d27dda354b5b7a4ea33d7d1fb9968))
+
+### Build
+
+- Target .NET 11 - ([09f6363](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/09f636311fbd74184a1b4394e2ef636f3b0cec77))
+
+
 ## [0.16.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.16.0..v0.16.1) - 2026-11-11
 
 ### 🐛 Bug Fixes
