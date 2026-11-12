@@ -16,7 +16,7 @@ internal static class Program
         if (options is null)
             return 1;
 
-        if (options.Model is { } modelPath && options.Output is { } outputPath)
+        if (options is { Model: { } modelPath, Output: { } outputPath })
         {
             if (!File.Exists(modelPath))
             {
@@ -44,7 +44,7 @@ internal static class Program
             }
         }
 
-        if (options.I18n is { } i18nPath && options.I18nOutput is { } keysPath)
+        if (options is { I18n: { } i18nPath, I18nOutput: { } keysPath })
         {
             if (!File.Exists(i18nPath))
             {
