@@ -1,7 +1,7 @@
 # Photino.NET Utils
 
 Shared plumbing for Photino.NET desktop apps — the pieces Photino itself does not provide. It is a
-plain class library (`net10.0`) plus a small npm package for the front-end bridge.
+plain class library (`net11.0`) plus a small npm package for the front-end bridge.
 
 ## Contents
 
@@ -412,7 +412,7 @@ question before the window exists.
 dotnet build -c Release
 ```
 
-Output: `PhotinoNETUtils/bin/Release/net10.0/PhotinoNETUtils.dll`.
+Output: `PhotinoNETUtils/bin/Release/net11.0/PhotinoNETUtils.dll`.
 
 The npm package in `UserInterface` is built with `npm run pack`, which produces
 `photino-net-utils-bridge-<version>.tgz`. It is publish-ready:

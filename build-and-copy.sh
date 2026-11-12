@@ -88,7 +88,7 @@ fi
 echo "Building PhotinoNETUtils $LIBRARY_VERSION (Release)..."
 dotnet build "$PROJECT" -c Release --nologo
 
-DLL="$ROOT/PhotinoNETUtils/bin/Release/net10.0/PhotinoNETUtils.dll"
+DLL="$ROOT/PhotinoNETUtils/bin/Release/net11.0/PhotinoNETUtils.dll"
 [[ -f "$DLL" ]] || { echo "DLL not found: $DLL" >&2; exit 1; }
 
 TGZ_NAME="photino-net-utils-bridge-$NPM_VERSION.tgz"

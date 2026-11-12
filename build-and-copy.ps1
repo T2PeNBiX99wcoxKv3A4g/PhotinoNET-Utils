@@ -89,7 +89,7 @@ Write-Host "Building PhotinoNETUtils $libraryVersion (Release)..." -ForegroundCo
 dotnet build $project -c Release --nologo
 if ($LASTEXITCODE -ne 0) { throw 'dotnet build failed' }
 
-$dll = Join-Path $root 'PhotinoNETUtils\bin\Release\net10.0\PhotinoNETUtils.dll'
+$dll = Join-Path $root 'PhotinoNETUtils\bin\Release\net11.0\PhotinoNETUtils.dll'
 if (-not (Test-Path $dll)) { throw "DLL not found: $dll" }
 $dllHash = (Get-FileHash $dll -Algorithm SHA256).Hash
 
