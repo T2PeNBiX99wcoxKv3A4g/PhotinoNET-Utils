@@ -8,7 +8,7 @@ namespace PhotinoNetUtils.CodeGen;
 ///     Reads a C# settings model and writes the matching TypeScript interface and JSON schema.
 ///     Syntax-only on purpose: it runs before the UI build and must not need the app's assemblies.
 /// </summary>
-internal static class Program
+internal static partial class Program
 {
     private static int Main(string[] args)
     {
@@ -142,7 +142,7 @@ internal static class Program
     }
 
     private static string? ModelName(string text) =>
-        Regex.Match(text, @"\[SettingsModel\][\s\S]*?\b(?:record|class|struct)\s+(?<name>\w+)")
+        ModelPattern().Match(text)
             .Groups["name"].Value is { Length: > 0 } name
             ? name
             : null;
@@ -151,14 +151,10 @@ internal static class Program
     {
         var properties = new List<SettingProperty>();
 
-        var pattern = new Regex(
-            @"(?<attrs>(?:^[ \t]*\[[^\]]*\][ \t]*\r?\n)+)[ \t]*public\s+(?!static\b)(?<type>[^\r\n{]+?)\s+(?<name>\w+)\s*\{\s*get;",
-            RegexOptions.Multiline);
-
-        foreach (Match match in pattern.Matches(text))
+        foreach (Match match in PropertyPattern().Matches(text))
         {
             var attributes = match.Groups["attrs"].Value;
-            var setting = Regex.Match(attributes, @"\[Setting\((?<args>[\s\S]*?)\)\]");
+            var setting = SettingPattern().Match(attributes);
             if (!setting.Success)
                 continue;
 
@@ -315,11 +311,11 @@ internal static class Program
     }
 
     private static string TsName(string key) =>
-        Regex.IsMatch(key, @"^[A-Za-z_$][A-Za-z0-9_$]*$") ? key : Quote(key);
+        IdentifierPattern().IsMatch(key) ? key : Quote(key);
 
     private static List<string> Keys(string text) =>
     [
-        .. Regex.Matches(text, "^[ \t]*\"(?<key>(?:\\\\.|[^\"\\\\])*)\"[ \t]*:", RegexOptions.Multiline)
+        .. KeyLinePattern().Matches(text)
             .Select(match => Regex.Unescape(match.Groups["key"].Value))
             .Where(key => key.Length > 0)
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -334,8 +330,7 @@ internal static class Program
         var line = 1;
         var previous = 0;
 
-        foreach (Match match in Regex.Matches(text, "^[ \t]*\"(?<key>(?:\\\\.|[^\"\\\\])*)\"[ \t]*:",
-                     RegexOptions.Multiline))
+        foreach (Match match in KeyLinePattern().Matches(text))
         {
             for (var index = previous; index < match.Index; index++)
                 if (text[index] == '\n')
@@ -408,7 +403,7 @@ internal static class Program
         if (type.EndsWith("[]", StringComparison.Ordinal))
             return $"{MapType(type[..^2].Trim())}[]";
 
-        var generic = Regex.Match(type, @"^(?<outer>[\w.]+)\s*<\s*(?<inner>[\s\S]+)\s*>$");
+        var generic = GenericPattern().Match(type);
         if (generic.Success)
         {
             var outer = generic.Groups["outer"].Value;
@@ -484,7 +479,7 @@ internal static class Program
                 ["items"] = JsonType(type[..^2].Trim())
             };
 
-        var generic = Regex.Match(type, @"^(?<outer>[\w.]+)\s*<\s*(?<inner>[\s\S]+)\s*>$");
+        var generic = GenericPattern().Match(type);
         if (generic.Success)
         {
             var outer = generic.Groups["outer"].Value;
@@ -563,17 +558,61 @@ internal static class Program
 
     private static string? AttributeString(string args, string name)
     {
-        var match = Regex.Match(args, $"{name}\\s*=\\s*\"(?<value>(?:\\\\.|[^\"\\\\])*)\"");
-        return match.Success ? Regex.Unescape(match.Groups["value"].Value) : null;
+        var match = name switch
+        {
+            "Comment" => CommentPattern().Match(args),
+            "Key" => KeyPattern().Match(args),
+            _ => null
+        };
+
+        return match is { Success: true } ? Regex.Unescape(match.Groups["value"].Value) : null;
     }
 
     private static double? AttributeNumber(string args, string name)
     {
-        var match = Regex.Match(args, $"{name}\\s*=\\s*(?<value>-?\\d+(?:\\.\\d+)?)");
-        return match.Success
+        var match = name switch
+        {
+            "Min" => MinPattern().Match(args),
+            "Max" => MaxPattern().Match(args),
+            _ => null
+        };
+
+        return match is { Success: true }
             ? double.Parse(match.Groups["value"].Value, CultureInfo.InvariantCulture)
             : null;
     }
+
+    [GeneratedRegex(@"\[SettingsModel\][\s\S]*?\b(?:record|class|struct)\s+(?<name>\w+)")]
+    private static partial Regex ModelPattern();
+
+    [GeneratedRegex(
+        @"(?<attrs>(?:^[ \t]*\[[^\]]*\][ \t]*\r?\n)+)[ \t]*public\s+(?!static\b)(?<type>[^\r\n{]+?)\s+(?<name>\w+)\s*\{\s*get;",
+        RegexOptions.Multiline)]
+    private static partial Regex PropertyPattern();
+
+    [GeneratedRegex(@"\[Setting\((?<args>[\s\S]*?)\)\]")]
+    private static partial Regex SettingPattern();
+
+    [GeneratedRegex("Comment\\s*=\\s*\"(?<value>(?:\\\\.|[^\"\\\\])*)\"")]
+    private static partial Regex CommentPattern();
+
+    [GeneratedRegex("Key\\s*=\\s*\"(?<value>(?:\\\\.|[^\"\\\\])*)\"")]
+    private static partial Regex KeyPattern();
+
+    [GeneratedRegex(@"Min\s*=\s*(?<value>-?\d+(?:\.\d+)?)")]
+    private static partial Regex MinPattern();
+
+    [GeneratedRegex(@"Max\s*=\s*(?<value>-?\d+(?:\.\d+)?)")]
+    private static partial Regex MaxPattern();
+
+    [GeneratedRegex(@"^(?<outer>[\w.]+)\s*<\s*(?<inner>[\s\S]+)\s*>$")]
+    private static partial Regex GenericPattern();
+
+    [GeneratedRegex("^[A-Za-z_$][A-Za-z0-9_$]*$")]
+    private static partial Regex IdentifierPattern();
+
+    [GeneratedRegex("^[ \t]*\"(?<key>(?:\\\\.|[^\"\\\\])*)\"[ \t]*:", RegexOptions.Multiline)]
+    private static partial Regex KeyLinePattern();
 
     private static string CamelCase(string name) =>
         char.ToLowerInvariant(name[0]) + name[1..];
