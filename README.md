@@ -15,6 +15,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build), window chrome (drag, resize, maximize, frameless title bar on both platforms) and `SystemLauncher` for handing a URL or folder to the system |
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                                                                                                                                                            |
 | `Services/SettingsStore` | `ISettingsStore<T>`, JSON/TOML stores and `SettingsServiceBase<T,TPayload>`: attribute comments, defaults, atomic writes and a one-time legacy move                                                                                                                                                                         |
+| `Settings` / `Messaging`  | `[SettingsModel]` / `[Setting]` metadata and the `[NativeMessage]` dispatcher generator                                                                                                                                                                                                                                                       |
 | `Services/StartupService` | Answers `app.startup` / `app.setStartup` and keeps the platform autostart entry in step                                                                                                                                                                                                                                                         |
 | `Services/AppInfoService` | Answers `app.info` with the app's version, platform, log folder, rounded corners and debug flag                                                                                                                                                                                                                                                 |
 | `AppIcon`                 | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources                                                                                                                                                                                                                                                                   |
@@ -104,6 +105,13 @@ A `Reference` does not flow package dependencies, so the app still needs:
   package's build targets, and the manifest provider is also used at runtime
 - `<FrameworkReference Include="Microsoft.AspNetCore.App" />` (Kestrel)
 - `Serilog`, `Serilog.Sinks.Console`, `Serilog.Sinks.File` if it calls `Logging.Initialize`
+- the analyzer, to use `[SettingsModel]` or `[NativeMessage]`:
+
+  ```xml
+  <ItemGroup>
+      <Analyzer Include="Libs\PhotinoNETUtils.Generators.dll" />
+  </ItemGroup>
+  ```
 
 ## Usage
 
@@ -378,6 +386,7 @@ using PhotinoNetUtils.Services;
 using PhotinoNetUtils.Settings;
 
 // The attribute supplies the comment written above the key.
+[SettingsModel]
 public sealed record MySettings
 {
     [Setting(Comment = "The folder MyApp follows.")]
@@ -427,6 +436,32 @@ stay in the app; register the model and the payload in the app's serializer cont
 writes the configured `header` and each `[Setting]` comment; comments typed into the file are replaced
 by the next save. The annotated properties are marked for trimming, so the comments also survive a
 trimmed release build.
+
+### Source generators
+
+`PhotinoNETUtils.Generators.dll` adds two incremental generators:
+
+```csharp
+[SettingsModel]
+public sealed record MySettings
+{
+    [Setting(Comment = "The folder MyApp follows.")]
+    public string Folder { get; init; } = "";
+}
+
+internal sealed partial class MyService
+{
+    public MyService() => NativeBridge.MessageReceived += __HandleGeneratedMessageAsync;
+
+    [NativeMessage("settings.get")]
+    private NativeResponse GetSettings(NativeContext context) => ...;
+}
+```
+
+`[SettingsModel]` registers the comments at startup, so `TomlSettingsStore` does not need reflection
+for that model. `[NativeMessage]` generates `__HandleGeneratedMessageAsync` on the containing partial
+class; the handler takes one `NativeContext` and returns `NativeResponse?` or
+`Task<NativeResponse?>`. The class must be `partial`; duplicate message types are a compile error.
 
 ### Localization
 

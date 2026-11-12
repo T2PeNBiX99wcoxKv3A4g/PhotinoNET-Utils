@@ -23,31 +23,29 @@ public sealed record AppInfoOptions(
 ///     request, so it can follow a window that draws its own frame on Linux.
 /// </remarks>
 [PublicAPI]
-public sealed class AppInfoService : IDisposable
+public sealed partial class AppInfoService : IDisposable
 {
     private readonly AppInfoOptions _options;
 
     public AppInfoService(AppInfoOptions options)
     {
         _options = options;
-        NativeBridge.MessageReceived += HandleMessageAsync;
+        NativeBridge.MessageReceived += __HandleGeneratedMessageAsync;
     }
 
-    public void Dispose() => NativeBridge.MessageReceived -= HandleMessageAsync;
+    public void Dispose() => NativeBridge.MessageReceived -= __HandleGeneratedMessageAsync;
 
-    private Task<NativeResponse?> HandleMessageAsync(NativeContext context)
+    [NativeMessage("app.info")]
+    private NativeResponse Info(NativeContext context)
     {
-        if (context.Request.Type != "app.info")
-            return Task.FromResult<NativeResponse?>(null);
-
         var rounded = _options.Rounded?.Invoke() ?? false;
 
-        return Task.FromResult<NativeResponse?>(context.Reply("app.info.result",
+        return context.Reply("app.info.result",
             new AppInfoPayload(
                 BuildInfo.VersionOf(_options.Assembly),
                 BuildInfo.Platform,
                 _options.LogDirectory,
                 rounded,
-                _options.Debug)));
+                _options.Debug));
     }
 }

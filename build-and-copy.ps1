@@ -19,6 +19,7 @@ Create build-and-copy.config.json (git-ignored) from build-and-copy.config.examp
 Each target gets:
 
     <target>/<libsDirectory>/PhotinoNETUtils.dll
+    <target>/<libsDirectory>/PhotinoNETUtils.Generators.dll
     <target>/<libsDirectory>/photino-net-utils-bridge-<version>.tgz
 
 The "@photino-net-utils/bridge" dependency in <target>/<userInterfaceDirectory>/package.json
@@ -93,6 +94,10 @@ $dll = Join-Path $root 'PhotinoNETUtils\bin\Release\net11.0\PhotinoNETUtils.dll'
 if (-not (Test-Path $dll)) { throw "DLL not found: $dll" }
 $dllHash = (Get-FileHash $dll -Algorithm SHA256).Hash
 
+$generator = Join-Path $root 'PhotinoNETUtils.Generators\bin\Release\netstandard2.0\PhotinoNETUtils.Generators.dll'
+if (-not (Test-Path $generator)) { throw "Generator not found: $generator" }
+$generatorHash = (Get-FileHash $generator -Algorithm SHA256).Hash
+
 $tgzName = "photino-net-utils-bridge-$npmVersion.tgz"
 $tgz = Join-Path $ui $tgzName
 
@@ -124,6 +129,11 @@ foreach ($target in $targets) {
     $targetDll = Join-Path $libDirectory 'PhotinoNETUtils.dll'
     $targetHash = if (Test-Path $targetDll) { (Get-FileHash $targetDll -Algorithm SHA256).Hash } else { '' }
     if ($targetHash -ne $dllHash) { Copy-Item $dll $targetDll -Force }
+
+    $targetGenerator = Join-Path $libDirectory 'PhotinoNETUtils.Generators.dll'
+    $targetGeneratorHash =
+        if (Test-Path $targetGenerator) { (Get-FileHash $targetGenerator -Algorithm SHA256).Hash } else { '' }
+    if ($targetGeneratorHash -ne $generatorHash) { Copy-Item $generator $targetGenerator -Force }
 
     Get-ChildItem $libDirectory -Filter 'photino-net-utils-bridge-*.tgz' -File |
         Where-Object Name -ne $tgzName |

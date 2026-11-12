@@ -14,6 +14,7 @@
 # Each target gets:
 #
 #   <target>/<libsDirectory>/PhotinoNETUtils.dll
+#   <target>/<libsDirectory>/PhotinoNETUtils.Generators.dll
 #   <target>/<libsDirectory>/photino-net-utils-bridge-<version>.tgz
 #
 # The "@photino-net-utils/bridge" dependency in <target>/<userInterfaceDirectory>/package.json
@@ -91,6 +92,9 @@ dotnet build "$PROJECT" -c Release --nologo
 DLL="$ROOT/PhotinoNETUtils/bin/Release/net11.0/PhotinoNETUtils.dll"
 [[ -f "$DLL" ]] || { echo "DLL not found: $DLL" >&2; exit 1; }
 
+GENERATOR="$ROOT/PhotinoNETUtils.Generators/bin/Release/netstandard2.0/PhotinoNETUtils.Generators.dll"
+[[ -f "$GENERATOR" ]] || { echo "Generator not found: $GENERATOR" >&2; exit 1; }
+
 TGZ_NAME="photino-net-utils-bridge-$NPM_VERSION.tgz"
 TGZ="$UI/$TGZ_NAME"
 
@@ -120,6 +124,11 @@ while IFS=$'\t' read -r NAME TARGET LIBS UI_DIR; do
     DEST_DLL="$LIB_DIR/PhotinoNETUtils.dll"
     if [[ ! -f "$DEST_DLL" ]] || ! cmp -s "$DLL" "$DEST_DLL"; then
         cp -f "$DLL" "$DEST_DLL"
+    fi
+
+    DEST_GENERATOR="$LIB_DIR/PhotinoNETUtils.Generators.dll"
+    if [[ ! -f "$DEST_GENERATOR" ]] || ! cmp -s "$GENERATOR" "$DEST_GENERATOR"; then
+        cp -f "$GENERATOR" "$DEST_GENERATOR"
     fi
     for old in "$LIB_DIR"/photino-net-utils-bridge-*.tgz; do        [[ -e "$old" ]] || continue
         [[ "$(basename "$old")" == "$TGZ_NAME" ]] || rm -f "$old"

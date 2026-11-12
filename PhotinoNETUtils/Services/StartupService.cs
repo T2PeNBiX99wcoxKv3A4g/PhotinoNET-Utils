@@ -24,18 +24,18 @@ public sealed record StartupRequest(bool Enabled);
 ///     bridge messages and the refresh a moved executable needs.
 /// </remarks>
 [PublicAPI]
-public sealed class StartupService : IDisposable
+public sealed partial class StartupService : IDisposable
 {
     private readonly StartupRegistration _registration;
 
     public StartupService(StartupRegistration registration)
     {
         _registration = registration;
-        NativeBridge.MessageReceived += HandleMessageAsync;
+        NativeBridge.MessageReceived += __HandleGeneratedMessageAsync;
         Refresh();
     }
 
-    public void Dispose() => NativeBridge.MessageReceived -= HandleMessageAsync;
+    public void Dispose() => NativeBridge.MessageReceived -= __HandleGeneratedMessageAsync;
 
     /// <summary>True on platforms with a per-user autostart location.</summary>
     public bool IsSupported => StartupRegistration.IsSupported;
@@ -51,16 +51,11 @@ public sealed class StartupService : IDisposable
                 .OnFailure(ex => Log.Warning(ex, "Failed to refresh the autostart entry"));
     }
 
-    private Task<NativeResponse?> HandleMessageAsync(NativeContext context) => context.Request.Type switch
-    {
-        "app.startup" => Task.FromResult<NativeResponse?>(Status(context)),
-        "app.setStartup" => Task.FromResult<NativeResponse?>(Set(context)),
-        _ => Task.FromResult<NativeResponse?>(null)
-    };
-
+    [NativeMessage("app.startup")]
     private NativeResponse Status(NativeContext context) =>
         context.Reply("app.startup.result", new StartupPayload(IsSupported, IsEnabled));
 
+    [NativeMessage("app.setStartup")]
     private NativeResponse Set(NativeContext context)
     {
         var enabled = context.Payload<StartupRequest>()?.Enabled ?? false;

@@ -55,7 +55,11 @@ public sealed class TomlSettingsStore<
     /// </summary>
     private string AddComments(string document)
     {
-        var definitions = SettingMetadata.Read(typeof(T), _typeInfo.Options.PropertyNamingPolicy);
+        var definitions = SettingsMetadataRegistry.Get(typeof(T));
+
+        if (definitions.Length == 0)
+            definitions = SettingMetadata.Read(typeof(T), _typeInfo.Options.PropertyNamingPolicy);
+
         if (definitions.Length == 0)
             return document;
 
