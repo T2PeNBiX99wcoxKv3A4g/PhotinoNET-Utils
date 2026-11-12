@@ -23,7 +23,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `AppPaths`                | Per-user settings, local data and log folders, created on demand                                                                                                                                                                                                                                                                               |
 | `Localization`            | Embedded `<prefix><locale>.jsonc` UI strings, merged over the language and the default locale, answered over the bridge as `i18n.get`                                                                                                                                                                                                          |
 | `Notifications`           | OS notifications through Photino's native layer, queued until the window exists, with per-key debounce                                                                                                                                                                                                                                          |
-| `Utils`                   | `Result<T>`, `Try`, `Singleton<T>`, `[Singleton]` and `SingletonRegistry`                                                                                                                                                                                                                                                                     |
+| `Utils`                   | `Result<T>`, `Try`, `[Singleton]` and `SingletonRegistry` (`Singleton<T>` is obsolete)                                                                                                                                                                                                                                                      |
 | `Extensions`              | Result/exception/string/object helpers                                                                                                                                                                                                                                                                                                         |
 | `UserInterface`           | `@photino-net-utils/bridge`: the shared `window.external` TypeScript bridge plus the React localization (`LocalizationProvider`, `useTranslation`, `useLocale`) matching `PhotinoNetUtils.Localization`                                                                                                                                        |
 
@@ -462,7 +462,8 @@ internal sealed partial class MyLinkService
 for that model. `[Singleton]` writes `Instance`, the `SingletonRegistry` entry, a `Log` field and —
 when the class has no constructor of its own — a private constructor, so `new` is a compile error.
 Because the members are generated into the class, it can inherit any base class, which
-`Singleton<T>` cannot offer. `Singleton<T>` remains for code that already derives from it.
+`Singleton<T>` cannot offer. `Singleton<T>` is obsolete: it still works for code that already derives
+from it, but new classes use the attribute.
 
 `[NativeMessage]` makes the class implement `INativeMessageHandler`; the generator writes the
 `HandleAsync` switch over every annotated method, so the class holds no generated method name. A
@@ -473,7 +474,7 @@ a compile error.
 
 ### Singleton registry
 
-`Singleton<T>` adds every instance to `SingletonRegistry` while it is constructed, in creation
+`[Singleton]` adds every instance to `SingletonRegistry` while it is constructed, in creation
 order; no reflection is involved:
 
 ```csharp
@@ -484,10 +485,11 @@ var database = SingletonRegistry.Get<Database>();   // throws when it was never 
 var player = SingletonRegistry.Find<PlayerService>(); // null instead
 ```
 
-`All` returns everything, `Count` says how many, and a second `new MySingleton()` throws — the only
-way to get the instance is `MySingleton.Instance`, so two copies of the same service cannot exist.
-The registry belongs to the library, so one process shares it between the app and every library it
-loads; types are the keys, so equal type names in different namespaces do not collide.
+`All` returns everything and `Count` says how many. A second instance is rejected: a class without
+its own constructor gets a private one from the generator, so `new` does not compile, and a class
+with its own public constructor is stopped by the registry at run time. The registry belongs to the
+library, so one process shares it between the app and every library it loads; types are the keys, so
+equal type names in different namespaces do not collide.
 
 A subscription call inside an arbitrary constructor cannot be generated: C# has no partial
 constructors, a generator cannot add a base class, and a field initializer cannot reference `this`.

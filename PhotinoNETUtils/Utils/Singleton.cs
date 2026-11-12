@@ -11,10 +11,13 @@ public interface ISingleton
 
 /// <summary>
 ///     Base class for process-wide services. It registers the instance and subscribes native message
-///     handlers while it is created. A class that needs another base class uses
-///     <see cref="SingletonAttribute" /> instead; the generator writes the same members into the
-///     class itself.
+///     handlers while it is created.
 /// </summary>
+/// <remarks>
+///     Prefer <see cref="SingletonAttribute" />: the generator writes the same members into the class,
+///     so the class keeps its own base class and a second <c>new</c> becomes a compile error.
+/// </remarks>
+[Obsolete("Use [Singleton]; the generator writes the same members into the class without taking its base class.")]
 [PublicAPI]
 public abstract class Singleton<T> : ISingleton where T : Singleton<T>, new()
 {
