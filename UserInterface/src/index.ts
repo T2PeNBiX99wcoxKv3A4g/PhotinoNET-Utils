@@ -10,7 +10,7 @@ export {
     useLocale,
     useTranslation,
 } from "./Localization";
-export type {I18nPayload, Translate} from "./Localization";
+export type {I18nPayload, LocalizationKey, LocalizationKeys, Translate} from "./Localization";
 
 export {ResizeHandles, useWindowControls, useWindowCorners, useWindowDrag} from "./Window";
 export type {WindowControls} from "./Window";

@@ -8,14 +8,32 @@ export interface I18nPayload {
     available: string[];
 }
 
-/** The translator; the key type defaults to string and an app narrows it to its generated union. */
-export type Translate<TKey extends string = string> = (
+/**
+ * Filled in by each app's generated key file through module augmentation:
+ *
+ * ```ts
+ * declare module "@photino-net-utils/bridge" {
+ *     interface LocalizationKeys {
+ *         "tray.open": true;
+ *     }
+ * }
+ * ```
+ *
+ * An app that has no generated file leaves it empty and every string is accepted.
+ */
+export interface LocalizationKeys {}
+
+/** Every key the app ships, or `string` until the generated file augments the interface. */
+export type LocalizationKey = keyof LocalizationKeys extends never ? string : keyof LocalizationKeys;
+
+/** The translator; the key type comes from the augmented {@link LocalizationKeys}. */
+export type Translate<TKey extends string = LocalizationKey> = (
     key: TKey,
     params?: Record<string, string | number>
 ) => string;
 
 /** Falls back to the key itself so a missing translation is obvious but never breaks the UI. */
-export function createTranslator<TKey extends string = string>(
+export function createTranslator<TKey extends string = LocalizationKey>(
     strings: Record<string, string>
 ): Translate<TKey> {
     // Keys are case-insensitive, exactly like PhotinoNetUtils.Localization: a translation file may
@@ -49,7 +67,7 @@ export const TranslationContext = createContext<Translate>(createTranslator({}))
 /** BCP-47 tag of the language the backend resolved, for locale-aware formatting. */
 export const LocaleContext = createContext<string>("en");
 
-export function useTranslation<TKey extends string = string>(): Translate<TKey> {
+export function useTranslation<TKey extends string = LocalizationKey>(): Translate<TKey> {
     return useContext(TranslationContext) as Translate<TKey>;
 }
 
