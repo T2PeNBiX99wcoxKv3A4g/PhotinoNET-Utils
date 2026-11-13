@@ -8,10 +8,16 @@ export interface I18nPayload {
     available: string[];
 }
 
-export type Translate = (key: string, params?: Record<string, string | number>) => string;
+/** The translator; the key type defaults to string and an app narrows it to its generated union. */
+export type Translate<TKey extends string = string> = (
+    key: TKey,
+    params?: Record<string, string | number>
+) => string;
 
 /** Falls back to the key itself so a missing translation is obvious but never breaks the UI. */
-export function createTranslator(strings: Record<string, string>): Translate {
+export function createTranslator<TKey extends string = string>(
+    strings: Record<string, string>
+): Translate<TKey> {
     // Keys are case-insensitive, exactly like PhotinoNetUtils.Localization: a translation file may
     // not declare the same key twice, and the backend keeps the first spelling when it does. A
     // lower-cased lookup table reproduces that rule without touching the payload.
@@ -43,8 +49,8 @@ export const TranslationContext = createContext<Translate>(createTranslator({}))
 /** BCP-47 tag of the language the backend resolved, for locale-aware formatting. */
 export const LocaleContext = createContext<string>("en");
 
-export function useTranslation(): Translate {
-    return useContext(TranslationContext);
+export function useTranslation<TKey extends string = string>(): Translate<TKey> {
+    return useContext(TranslationContext) as Translate<TKey>;
 }
 
 export function useLocale(): string {
