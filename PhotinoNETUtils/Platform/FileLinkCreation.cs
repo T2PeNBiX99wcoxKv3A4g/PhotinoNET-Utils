@@ -16,7 +16,6 @@ namespace PhotinoNetUtils.Platform;
 [PublicAPI]
 public static partial class FileLinkCreation
 {
-
     public const string SymbolicFile = "symbolic-file";
     public const string SymbolicFolder = "symbolic-folder";
     public const string Hard = "hard";

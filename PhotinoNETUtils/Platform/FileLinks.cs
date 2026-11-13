@@ -12,7 +12,6 @@ namespace PhotinoNetUtils.Platform;
 [PublicAPI]
 public static partial class FileLinks
 {
-
     private const uint GenericRead = 0x80000000;
     private const uint ShareReadWriteDelete = 0x00000007;
     private const uint OpenExisting = 3;

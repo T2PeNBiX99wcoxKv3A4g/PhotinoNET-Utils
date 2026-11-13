@@ -14,7 +14,6 @@ namespace PhotinoNetUtils.Platform;
 [PublicAPI]
 public static partial class CaseSensitivity
 {
-
     private const uint FileReadAttributes = 0x00000080;
     private const uint FileWriteAttributes = 0x00000100;
     private const uint ShareReadWriteDelete = 0x00000007;

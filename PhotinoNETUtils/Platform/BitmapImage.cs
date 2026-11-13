@@ -12,7 +12,6 @@ namespace PhotinoNetUtils.Platform;
 [PublicAPI]
 public static partial class BitmapImage
 {
-
     private const int DibRgbColors = 0;
     private const int BiRgb = 0;
     private const int MaxSize = 1024;

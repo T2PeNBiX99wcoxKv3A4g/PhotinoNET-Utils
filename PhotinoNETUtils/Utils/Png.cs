@@ -13,7 +13,6 @@ namespace PhotinoNetUtils.Utils;
 [PublicAPI]
 public static class Png
 {
-
     private static readonly byte[] Signature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
     private static readonly uint[] CrcTable = BuildCrcTable();
 

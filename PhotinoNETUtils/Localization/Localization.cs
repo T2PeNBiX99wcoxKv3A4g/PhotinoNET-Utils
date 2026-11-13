@@ -3,9 +3,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
-using PhotinoNetUtils.Extensions;
 using PhotinoNetUtils.Messaging;
-using PhotinoNetUtils.Utils;
 using Serilog;
 
 namespace PhotinoNetUtils.Localization;
@@ -193,7 +191,7 @@ public static partial class Localization
                 var file = ReadFile(candidate);
 
                 if (candidate.Equals(locale, StringComparison.OrdinalIgnoreCase))
-                    own = new HashSet<string>(file.Keys, KeyComparer);
+                    own = new(file.Keys, KeyComparer);
 
                 foreach (var pair in file)
                     merged.TryAdd(pair.Key, pair.Value);
@@ -222,7 +220,7 @@ public static partial class Localization
 
         try
         {
-            using var document = JsonDocument.Parse(stream, new JsonDocumentOptions
+            using var document = JsonDocument.Parse(stream, new()
             {
                 CommentHandling = JsonCommentHandling.Skip,
                 AllowTrailingCommas = true

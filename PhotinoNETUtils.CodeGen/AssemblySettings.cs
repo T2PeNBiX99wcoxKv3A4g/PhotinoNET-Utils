@@ -90,13 +90,14 @@ internal static class AssemblySettings
             return false;
 
         return getter.Attributes.HasFlag(MethodAttributes.Public) ||
-               !accessors.Setter.IsNil && reader.GetMethodDefinition(accessors.Setter).Attributes.HasFlag(MethodAttributes.Public);
+               !accessors.Setter.IsNil && reader.GetMethodDefinition(accessors.Setter).Attributes
+                   .HasFlag(MethodAttributes.Public);
     }
 
     private static AttributeArguments Arguments(CustomAttribute attribute)
     {
         var value = attribute.DecodeValue(AttributeTypes.Instance);
-        string? comment = value.FixedArguments is [{ Value: string fixedComment }, ..] ? fixedComment : null;
+        var comment = value.FixedArguments is [{ Value: string fixedComment }, ..] ? fixedComment : null;
         string? key = null;
         double? min = null;
         double? max = null;

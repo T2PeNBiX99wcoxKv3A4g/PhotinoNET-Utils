@@ -13,7 +13,6 @@ namespace PhotinoNetUtils.Utils;
 [PublicAPI]
 public static partial class PathGlob
 {
-
     /// <summary>Whether a rule matches the target, or the target is a parent of the rule's base.</summary>
     public static bool Covers(string target, string pattern)
     {

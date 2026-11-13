@@ -15,7 +15,6 @@ namespace PhotinoNetUtils.Platform;
 [PublicAPI]
 public static class LinuxDesktop
 {
-
     private const string SystemDirectory = "/usr/share/applications";
 
     public static string UserDirectory => Path.Combine(

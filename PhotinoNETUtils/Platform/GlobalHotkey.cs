@@ -130,7 +130,8 @@ public static partial class GlobalHotkey
     {
         var names = new List<string>();
 
-        foreach (var part in combination.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach (var part in combination.Split('+',
+                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             if (LinuxKeyName(part) is not { } name)
                 return;
@@ -170,7 +171,7 @@ public static partial class GlobalHotkey
                 {
                     XQueryKeymap(display, state);
 
-                    var down = codes.All(code => (state[code >> 3] & (1 << (code & 7))) != 0);
+                    var down = codes.All(code => (state[code >> 3] & 1 << (code & 7)) != 0);
 
                     if (down && !_wasDown)
                     {
@@ -202,7 +203,7 @@ public static partial class GlobalHotkey
             return char.ToLowerInvariant(part[0]).ToString();
 
         if (part.Length is >= 2 and <= 3 && part[0] is 'f' or 'F'
-                                            && int.TryParse(part[1..], out var function) && function is >= 1 and <= 24)
+                                         && int.TryParse(part[1..], out var function) && function is >= 1 and <= 24)
             return $"F{function}";
 
         return part.ToLowerInvariant() switch

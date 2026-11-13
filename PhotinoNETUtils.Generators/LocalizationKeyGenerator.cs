@@ -125,6 +125,14 @@ internal static class LocalizationKeys
         "^[ \t]*\"(?<key>(?:\\\\.|[^\"\\\\])*)\"[ \t]*:",
         RegexOptions.Multiline | RegexOptions.Compiled);
 
+    /// <summary>
+    ///     The only accepted shape: lowercase letters, digits and <c>_</c>, joined by dots, as in
+    ///     <c>ui.section.open_key</c>. A free-form sentence is an error (PNU2103).
+    /// </summary>
+    private static readonly Regex Shape = new(
+        @"^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*$",
+        RegexOptions.Compiled);
+
     public static bool IsTranslationFile(string path) =>
         path.EndsWith(".jsonc", StringComparison.OrdinalIgnoreCase);
 
@@ -147,22 +155,7 @@ internal static class LocalizationKeys
         }
     }
 
-    /// <summary>
-    ///     The only accepted shape: lowercase letters, digits and <c>_</c>, joined by dots, as in
-    ///     <c>ui.section.open_key</c>. A free-form sentence is an error (PNU2103).
-    /// </summary>
-    private static readonly Regex Shape = new(
-        @"^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*$",
-        RegexOptions.Compiled);
-
     public static bool IsValid(string key) => Shape.IsMatch(key);
-
-    /// <summary>A level of the key tree: dot segments become nested classes, the last one a constant.</summary>
-    public sealed class Node
-    {
-        public Dictionary<string, Node> Segments { get; } = new(StringComparer.Ordinal);
-        public Dictionary<string, string> Leaves { get; } = new(StringComparer.Ordinal);
-    }
 
     public static Node Tree(IEnumerable<string> keys)
     {
@@ -176,7 +169,7 @@ internal static class LocalizationKeys
             for (var i = 0; i < segments.Length - 1; i++)
             {
                 if (!node.Segments.TryGetValue(segments[i], out var child))
-                    node.Segments[segments[i]] = child = new Node();
+                    node.Segments[segments[i]] = child = new();
 
                 node = child;
             }
@@ -192,7 +185,10 @@ internal static class LocalizationKeys
     {
         var builder = new StringBuilder(segment.Length);
 
-        foreach (var part in segment.Split(new[] { '_' }, StringSplitOptions.RemoveEmptyEntries))
+        foreach (var part in segment.Split(new[]
+                 {
+                     '_'
+                 }, StringSplitOptions.RemoveEmptyEntries))
         {
             builder.Append(char.ToUpperInvariant(part[0]));
 
@@ -201,5 +197,12 @@ internal static class LocalizationKeys
         }
 
         return builder.Length == 0 ? "Key" : builder.ToString();
+    }
+
+    /// <summary>A level of the key tree: dot segments become nested classes, the last one a constant.</summary>
+    public sealed class Node
+    {
+        public Dictionary<string, Node> Segments { get; } = new(StringComparer.Ordinal);
+        public Dictionary<string, string> Leaves { get; } = new(StringComparer.Ordinal);
     }
 }

@@ -12,7 +12,6 @@ namespace PhotinoNetUtils.Platform;
 [PublicAPI]
 public static partial class FileVisibility
 {
-
     private const uint RrfRtRegDword = 0x00000010;
     private const string AdvancedKey = @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced";
 
