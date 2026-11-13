@@ -559,8 +559,10 @@ out/PhotinoNETUtils.CodeGen.exe \
 
 It reads `[Setting]` properties and writes a `{Model}Generated` interface plus a JSON schema with the
 comments and numeric limits; with `--i18n` it also writes the `LocalizationKey` union of every
-translated key. `build-and-copy` publishes `win-x64` and `linux-x64` and copies both to
-`Libs/CodeGen/<rid>/`; an app can run the one that matches its host from an MSBuild target:
+translated key. `build-and-copy` publishes the RID of the machine it runs on (`win-x64` on Windows,
+`dotnet --info` elsewhere) into `Libs/CodeGen/<rid>/`; the other platform's folder is left alone, so
+each machine keeps its own executable current. An app runs the one that matches its host from an
+MSBuild target:
 
 ```xml
 <PropertyGroup>

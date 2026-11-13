@@ -96,19 +96,18 @@ GENERATOR="$ROOT/PhotinoNETUtils.Generators/bin/Release/netstandard2.0/PhotinoNE
 [[ -f "$GENERATOR" ]] || { echo "Generator not found: $GENERATOR" >&2; exit 1; }
 
 CODEGEN_PROJECT="$ROOT/PhotinoNETUtils.CodeGen/PhotinoNETUtils.CodeGen.csproj"
-CODEGEN_RIDS=("linux-x64" "win-x64")
-echo "Building the TypeScript settings generator (${CODEGEN_RIDS[*]})..."
-for RID in "${CODEGEN_RIDS[@]}"; do
-    CODEGEN_OUT="$ROOT/PhotinoNETUtils.CodeGen/bin/Release/$RID/publish"
-    dotnet publish "$CODEGEN_PROJECT" -c Release -r "$RID" -o "$CODEGEN_OUT" --nologo
-    [[ $? -eq 0 ]] || { echo "code generator publish failed ($RID)" >&2; exit 1; }
-    if [[ "$RID" == win-* ]]; then
-        CODEGEN_BIN="$CODEGEN_OUT/PhotinoNETUtils.CodeGen.exe"
-    else
-        CODEGEN_BIN="$CODEGEN_OUT/PhotinoNETUtils.CodeGen"
-    fi
-    [[ -f "$CODEGEN_BIN" ]] || { echo "Code generator not found: $CODEGEN_BIN" >&2; exit 1; }
-done
+CODEGEN_RID="$(dotnet --info 2>/dev/null | sed -n 's/^ *RID: *//p' | head -n 1)"
+[[ -n "$CODEGEN_RID" ]] || CODEGEN_RID="linux-x64"
+echo "Building the TypeScript settings generator ($CODEGEN_RID)..."
+CODEGEN_OUT="$ROOT/PhotinoNETUtils.CodeGen/bin/Release/$CODEGEN_RID/publish"
+dotnet publish "$CODEGEN_PROJECT" -c Release -r "$CODEGEN_RID" -o "$CODEGEN_OUT" --nologo
+[[ $? -eq 0 ]] || { echo "code generator publish failed ($CODEGEN_RID)" >&2; exit 1; }
+if [[ "$CODEGEN_RID" == win-* ]]; then
+    CODEGEN_BIN="$CODEGEN_OUT/PhotinoNETUtils.CodeGen.exe"
+else
+    CODEGEN_BIN="$CODEGEN_OUT/PhotinoNETUtils.CodeGen"
+fi
+[[ -f "$CODEGEN_BIN" ]] || { echo "Code generator not found: $CODEGEN_BIN" >&2; exit 1; }
 
 TGZ_NAME="photino-net-utils-bridge-$NPM_VERSION.tgz"
 TGZ="$UI/$TGZ_NAME"
@@ -146,16 +145,8 @@ while IFS=$'\t' read -r NAME TARGET LIBS UI_DIR; do
         cp -f "$GENERATOR" "$DEST_GENERATOR"
     fi
 
-    rm -rf "$LIB_DIR/CodeGen"
-    for RID in "${CODEGEN_RIDS[@]}"; do
-        mkdir -p "$LIB_DIR/CodeGen/$RID"
-        if [[ "$RID" == win-* ]]; then
-            CODEGEN_BIN="$ROOT/PhotinoNETUtils.CodeGen/bin/Release/$RID/publish/PhotinoNETUtils.CodeGen.exe"
-        else
-            CODEGEN_BIN="$ROOT/PhotinoNETUtils.CodeGen/bin/Release/$RID/publish/PhotinoNETUtils.CodeGen"
-        fi
-        cp -f "$CODEGEN_BIN" "$LIB_DIR/CodeGen/$RID/"
-    done
+    mkdir -p "$LIB_DIR/CodeGen/$CODEGEN_RID"
+    cp -f "$CODEGEN_BIN" "$LIB_DIR/CodeGen/$CODEGEN_RID/"
     for old in "$LIB_DIR"/photino-net-utils-bridge-*.tgz; do        [[ -e "$old" ]] || continue
         [[ "$(basename "$old")" == "$TGZ_NAME" ]] || rm -f "$old"
     done
