@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.20.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.20.0..v0.20.1) - 2026-11-13
+
+### 🚜 Refactor
+
+- Add logger to SettingsServiceBase - ([93eeaca](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/93eeacaf66b9cdddbb2b58682da697a23491d3e0))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([6189b73](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/6189b73c8a7ecc0777fd5e99bf7d1457b02a7965))
+
+
 ## [0.20.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.19.0..v0.20.0) - 2026-11-13
 
 ### ⛰️  Features
