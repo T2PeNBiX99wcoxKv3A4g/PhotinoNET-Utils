@@ -18,6 +18,9 @@ export type {WindowControls} from "./Window";
 export {resolveTheme, systemPrefersDark, useTheme} from "./Theme";
 export type {ResolvedTheme, ThemeMode} from "./Theme";
 
+export {Markdown} from "./Markdown";
+export type {MarkdownProps} from "./Markdown";
+
 export {
     type AppInfo,
     type StartupStatus,

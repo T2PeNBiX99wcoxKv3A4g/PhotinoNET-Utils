@@ -25,3 +25,17 @@ const off = Native.on((message) => {
 
 `Native.available` is false in a plain browser, so UI code can fall back to browser behaviour
 during `npm run dev` without the desktop host.
+
+## Markdown
+
+`Markdown` renders a GitHub release body, or any other Markdown, as HTML. The result is sanitized
+with DOMPurify before it reaches the DOM, because the text comes from a release rather than from
+the app. The class you pass styles the elements:
+
+```tsx
+import {Markdown} from "@photino-net-utils/bridge";
+
+<div className="changelog">
+    <Markdown source={release.notes}/>
+</div>
+```

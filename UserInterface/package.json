@@ -30,5 +30,9 @@
     "@types/react": "^19",
     "react": "^19",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "dompurify": "^3.4.17",
+    "marked": "^18.2.0"
   }
 }
