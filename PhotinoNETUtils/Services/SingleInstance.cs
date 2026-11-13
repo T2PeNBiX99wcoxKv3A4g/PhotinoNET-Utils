@@ -88,8 +88,10 @@ public sealed class SingleInstance : IDisposable
                 var payload = await reader.ReadToEndAsync(_cts.Token);
 
                 var args = payload.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (args.Length > 0)
-                    onArguments(args);
+
+                // Every forwarded launch reaches the callback, including one with no arguments: a
+                // second launch with no folder (Win+E, the Start menu) still asks for the window.
+                onArguments(args);
             }
             catch (OperationCanceledException)
             {

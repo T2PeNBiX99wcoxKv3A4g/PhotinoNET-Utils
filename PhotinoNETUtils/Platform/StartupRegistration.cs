@@ -17,13 +17,15 @@ public sealed class StartupRegistration
     private readonly string _entryName;
     private readonly string _fallbackIcon;
     private readonly string? _linuxWindowClass;
+    private readonly string _arguments;
 
     /// <param name="entryName">
     ///     The name the shortcut or desktop entry carries, when it should read differently from the
     ///     identifier used for the icon and the data folder.
     /// </param>
+    /// <param name="arguments">Command line arguments the login entry passes to the app.</param>
     public StartupRegistration(Assembly assembly, string appName, string fallbackIcon, string? comment = null,
-        string? linuxWindowClass = null, string? entryName = null)
+        string? linuxWindowClass = null, string? entryName = null, string? arguments = null)
     {
         _assembly = assembly;
         _appName = appName;
@@ -31,6 +33,7 @@ public sealed class StartupRegistration
         _comment = comment ?? _entryName;
         _fallbackIcon = fallbackIcon;
         _linuxWindowClass = linuxWindowClass;
+        _arguments = arguments ?? "";
         EntryPath = EntryAt(_entryName);
     }
 
@@ -129,7 +132,8 @@ public sealed class StartupRegistration
         if (OperatingSystem.IsLinux())
             WriteDesktopEntry(executable);
         else if (OperatingSystem.IsWindows())
-            WindowsShortcut.Create(EntryPath, executable, "", Path.GetDirectoryName(executable) ?? "", _entryName);
+            WindowsShortcut.Create(EntryPath, executable, _arguments, Path.GetDirectoryName(executable) ?? "",
+                _entryName);
 
         DeleteLegacyEntry();
         return true;
@@ -157,7 +161,7 @@ public sealed class StartupRegistration
             "Type=Application",
             $"Name={_entryName}",
             $"Comment={_comment}",
-            $"Exec=\"{executable}\"",
+            $"Exec=\"{executable}\"{(_arguments.Length > 0 ? " " + _arguments : "")}",
             $"Icon={icon}"
         };
 
