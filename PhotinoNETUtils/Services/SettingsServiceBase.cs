@@ -79,7 +79,10 @@ public abstract class SettingsServiceBase<TSelf, T, TPayload> : IDisposable
 
     private async Task<bool> SaveCoreAsync(T settings, bool notify, CancellationToken token)
     {
-        var normalized = NormalizeAll(Merge(settings));
+        // A public save comes from the interface, so the app may keep fields it owns itself (the
+        // open tabs, for one). A silent save is the app writing its own bookkeeping, and merging
+        // would replace exactly the value it just changed.
+        var normalized = NormalizeAll(notify ? Merge(settings) : settings);
         Current = normalized;
 
         var saved = await _store.SaveAsync(normalized, token);
@@ -96,8 +99,8 @@ public abstract class SettingsServiceBase<TSelf, T, TPayload> : IDisposable
 
     /// <summary>
     ///     Merges an incoming save with what is already stored, for fields the interface must not
-    ///     own — a window that owns the open tabs, for instance. Only a save goes through here; a
-    ///     load hands the stored value straight to <see cref="Normalize" />.
+    ///     own — a window that owns the open tabs, for instance. A public save goes through here; a
+    ///     load and a silent bookkeeping save use the value as it is.
     /// </summary>
     protected virtual T Merge(T settings) => settings;
 
