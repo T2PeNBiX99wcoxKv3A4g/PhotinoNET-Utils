@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.21.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.20.2..v0.21.0) - 2026-11-13
+
+### ⛰️  Features
+
+- *(codegen)* Read settings declared as record parameters - ([0ae91e2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/0ae91e278758fb28f1a5af9a0d471b0c0aef9ce2))
+- Ship the app, update and startup client in the bridge - ([45c68c3](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/45c68c3bb6692157b94ddcabd3981475462d4f24))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([4ecc846](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/4ecc846bdea8fc6ca5a24e3f899f9469739cccb9))
+
+
 ## [0.20.2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.20.1..v0.20.2) - 2026-11-13
 
 ### 🚜 Refactor
