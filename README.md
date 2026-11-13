@@ -595,11 +595,25 @@ host from an MSBuild target:
     <SettingsCodeGenPath Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(SettingsCodeGenPath).exe</SettingsCodeGenPath>
 </PropertyGroup>
 
-<Target Name="GenerateSettingsTypes" BeforeTargets="BeforeBuild"
-        Condition="Exists('$(SettingsCodeGenPath)')">
-    <Exec Command="&quot;$(SettingsCodeGenPath)&quot; --model &quot;$(MSBuildProjectDirectory)\Models\AppSettings.cs&quot; --out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.generated.ts&quot; --schema &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.schema.json&quot; --i18n &quot;$(MSBuildProjectDirectory)\Resources\i18n\en.jsonc&quot; --i18n-out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\i18n.generated.ts&quot;"/>
+<!-- The keys are not a build product; the file is read directly. -->
+<Target Name="GenerateLocalizationKeys" BeforeTargets="BeforeBuild"
+        Condition="Exists('$(SettingsCodeGenPath)')"
+        Inputs="$(MSBuildProjectDirectory)\Resources\i18n\en.jsonc"
+        Outputs="$(MSBuildProjectDirectory)\UserInterface\src\api\i18n.generated.ts">
+    <Exec Command="&quot;$(SettingsCodeGenPath)&quot; --i18n &quot;$(MSBuildProjectDirectory)\Resources\i18n\en.jsonc&quot; --i18n-out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\i18n.generated.ts&quot;"/>
+</Target>
+
+<!-- The settings come from the compiled model, so the interface cannot disagree with the app. -->
+<Target Name="GenerateSettingsTypes" AfterTargets="CoreCompile"
+        Condition="Exists('$(SettingsCodeGenPath)')"
+        Inputs="@(IntermediateAssembly)"
+        Outputs="$(MSBuildProjectDirectory)\UserInterface\src\api\settings.generated.ts;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.schema.json">
+    <Exec Command="&quot;$(SettingsCodeGenPath)&quot; --assembly &quot;@(IntermediateAssembly)&quot; --out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.generated.ts&quot; --schema &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.schema.json&quot;"/>
 </Target>
 ```
+
+The `Inputs`/`Outputs` keep the targets from running again when nothing changed; a build that only
+touches the translation file still refreshes the key union.
 
 ### Localization
 
