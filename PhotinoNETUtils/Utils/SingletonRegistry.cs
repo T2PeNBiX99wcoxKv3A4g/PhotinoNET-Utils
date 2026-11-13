@@ -35,7 +35,7 @@ public static class SingletonRegistry
         get
         {
             lock (Gate)
-                return Instances.ToArray();
+                return [.. Instances];
         }
     }
 
