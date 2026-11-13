@@ -402,7 +402,7 @@ public sealed class UpdateService : IDisposable
         // Let the reply reach the web view before the window goes away.
         _ = Task.Run(async () =>
         {
-            await Task.Delay(300);
+            await Task.Delay(100);
             _options.Shutdown?.Invoke();
         });
 
