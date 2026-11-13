@@ -438,8 +438,11 @@ await SettingsService.Instance.LoadAsync();
 points at `Instance`.
 
 A missing or unreadable file returns the defaults; writes go through a temporary file and a move, so
-a crash midway cannot truncate the file. `legacyPath` is read once when the target does not exist
-yet, which is how a JSON settings file becomes TOML. The model, its validation and the bridge messages
+a crash midway cannot truncate the file. `legacyPath` is the file from the older layout: when the
+target is missing it is read, written in the current format and deleted, which is how a JSON settings
+file becomes TOML. When the target already exists the legacy file is deleted without being read, so
+two generations of settings are never merged; an unreadable legacy file is kept instead of removed,
+because it is the only copy of those values. The model, its validation and the bridge messages
 stay in the app; register the model and the payload in the app's serializer context. TOML serialization
 writes the configured `header` and each `[Setting]` comment; comments typed into the file are replaced
 by the next save. The annotated properties are marked for trimming, so the comments also survive a

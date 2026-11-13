@@ -27,8 +27,8 @@ public interface ISettingsStore<T> where T : class
 
 /// <summary>
 ///     Shared file plumbing for a settings document: defaults, an atomic temporary-file write and a
-///     one-time migration from an older path. The format is left to <see cref="Deserialize" /> and
-///     <see cref="Serialize" />.
+///     one-time migration from an older path that removes the old file. The format is left to
+///     <see cref="Deserialize" /> and <see cref="Serialize" />.
 /// </summary>
 [PublicAPI]
 public abstract class SettingsStore<T> : ISettingsStore<T> where T : class
@@ -39,7 +39,11 @@ public abstract class SettingsStore<T> : ISettingsStore<T> where T : class
 
     /// <param name="filePath">The settings file to read and write.</param>
     /// <param name="defaults">Used when the file is missing or cannot be read.</param>
-    /// <param name="legacyPath">A file from an older layout, read once when the target does not exist.</param>
+    /// <param name="legacyPath">
+    ///     A file from an older layout. When the current file does not exist it is read, written in
+    ///     the current format and deleted; when the current file already exists it is deleted without
+    ///     being read, so two generations of settings are never merged.
+    /// </param>
     /// <param name="legacyReader">
     ///     Deserializes the legacy file. Defaults to <see cref="Deserialize" />, which is right when
     ///     the old file had the same format; pass a reader when the format changed.
@@ -133,13 +137,28 @@ public abstract class SettingsStore<T> : ISettingsStore<T> where T : class
     protected abstract string Serialize(T settings);
 
     /// <summary>
-    ///     Reads the older file, writes it in the current format and removes it. A legacy file in a
-    ///     different format is handled by <c>legacyReader</c>.
+    ///     The current file wins over an older one: when it exists the legacy file is only removed,
+    ///     because reading both would merge two generations of settings and bring back values the
+    ///     app has already replaced. When the current file is missing, the legacy one is read, written
+    ///     in the current format and then removed.
     /// </summary>
     private void MigrateLegacy()
     {
-        if (_legacyPath is not { Length: > 0 } legacy || !File.Exists(legacy) || File.Exists(FilePath))
+        if (_legacyPath is not { Length: > 0 } legacy || !File.Exists(legacy))
             return;
+
+        // A store configured with the same file for both would delete the settings it just read.
+        var same = Try.Run(() => string.Equals(Path.GetFullPath(legacy), Path.GetFullPath(FilePath),
+            OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
+
+        if (same is { IsSuccess: true, Value: true })
+            return;
+
+        if (File.Exists(FilePath))
+        {
+            Delete(legacy);
+            return;
+        }
 
         var text = Try.Run(() => File.ReadAllText(legacy)).GetOrNull();
         if (text is null)
@@ -147,19 +166,37 @@ public abstract class SettingsStore<T> : ISettingsStore<T> where T : class
 
         var reader = _legacyReader ?? Deserialize;
         var value = Try.Run(() => reader(text)).GetOrNull();
-        if (value is null)
+
+        // Keep an unreadable file: it is the only copy of those settings, and a later release can
+        // still teach the app to read it.
+        if (value is null || !Write(FilePath, Serialize(value)))
             return;
 
-        Try.Run(() =>
+        Delete(legacy);
+    }
+
+    private static void Delete(string path)
+    {
+        Try.Run(() => File.Delete(path))
+            .OnFailure(ex => Log.Warning(ex, "Could not remove the old settings file {File}", path));
+    }
+
+    /// <summary>Writes through a temporary file, so a crash midway cannot truncate the settings.</summary>
+    private static bool Write(string path, string text)
+    {
+        var attempt = Try.Run(() =>
         {
-            var directory = Path.GetDirectoryName(FilePath);
+            var directory = Path.GetDirectoryName(path);
             if (directory is { Length: > 0 })
                 Directory.CreateDirectory(directory);
 
-            File.WriteAllText(FilePath, Serialize(value));
-            File.Delete(legacy);
-        }).OnFailure(ex => Log.Warning(ex, "Could not move the settings from {Legacy}", legacy));
+            var temporary = path + ".tmp";
 
-        Current = value;
+            File.WriteAllText(temporary, text);
+            File.Move(temporary, path, true);
+        });
+
+        attempt.OnFailure(ex => Log.Warning(ex, "Failed to write {File}", path));
+        return attempt.IsSuccess;
     }
 }
