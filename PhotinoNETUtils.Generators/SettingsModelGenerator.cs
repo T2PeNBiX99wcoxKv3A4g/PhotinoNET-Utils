@@ -69,6 +69,12 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
 
         foreach (var property in symbol.GetMembers().OfType<IPropertySymbol>())
         {
+            // The serializer writes public instance properties only; a static, private or indexer
+            // member would produce a document key that never exists and, for a static one, a
+            // normalizer that cannot compile.
+            if (property.IsStatic || property.IsIndexer || property.DeclaredAccessibility != Accessibility.Public)
+                continue;
+
             var attribute = property.GetAttributes()
                 .FirstOrDefault(item => item.AttributeClass?.ToDisplayString() == SettingAttribute);
 
@@ -88,7 +94,7 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
             var order = NamedInt(attribute, "Order");
 
             entries.Add(new(key, string.IsNullOrWhiteSpace(comment) ? "" : comment!, order, property.Name,
-                property.Type, min, max));
+                property.Type, min, max, property.SetMethod is not null));
         }
 
         var duplicate = entries.GroupBy(entry => entry.Key).FirstOrDefault(group => group.Count() > 1);
@@ -160,7 +166,7 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
             return;
 
         var assignable = model.Entries
-            .Where(entry => (entry.Min is not null || entry.Max is not null) && IsNumeric(entry.Type) &&
+            .Where(entry => (entry.Min is not null || entry.Max is not null) && entry.Settable && IsNumeric(entry.Type) &&
                             (model.Symbol.IsRecord || model.Symbol.IsValueType))
             .ToArray();
 
@@ -269,7 +275,8 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
         string propertyName,
         ITypeSymbol type,
         double? min,
-        double? max)
+        double? max,
+        bool settable)
     {
         public string Key { get; } = key;
         public string Comment { get; } = comment;
@@ -278,5 +285,6 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
         public ITypeSymbol Type { get; } = type;
         public double? Min { get; } = min;
         public double? Max { get; } = max;
+        public bool Settable { get; } = settable;
     }
 }

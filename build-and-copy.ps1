@@ -113,6 +113,11 @@ foreach ($rid in $codeGenRids) {
     $codeGenBinaries[$rid] = $binary
 }
 
+# The reader is text based; run its fixtures so a regression cannot reach the committed binaries.
+Write-Host 'Running the settings reader self-test...' -ForegroundColor Cyan
+& $codeGenBinaries['win-x64'] --self-test
+if ($LASTEXITCODE -ne 0) { throw 'code generator self-test failed' }
+
 $tgzName = "photino-net-utils-bridge-$npmVersion.tgz"
 $tgz = Join-Path $ui $tgzName
 

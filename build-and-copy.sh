@@ -110,6 +110,13 @@ for RID in "${CODEGEN_RIDS[@]}"; do
     [[ -f "$CODEGEN_BIN" ]] || { echo "Code generator not found: $CODEGEN_BIN" >&2; exit 1; }
 done
 
+# The reader is text based; run its fixtures so a regression cannot reach the committed binaries.
+SELF_TEST="$ROOT/PhotinoNETUtils.CodeGen/bin/Release/linux-x64/publish/PhotinoNETUtils.CodeGen"
+if [[ -x "$SELF_TEST" && "$(uname -m)" == "x86_64" ]]; then
+    echo "Running the settings reader self-test..."
+    "$SELF_TEST" --self-test
+fi
+
 TGZ_NAME="photino-net-utils-bridge-$NPM_VERSION.tgz"
 TGZ="$UI/$TGZ_NAME"
 

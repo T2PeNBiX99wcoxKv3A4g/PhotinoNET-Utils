@@ -31,9 +31,10 @@ internal static class SettingsSource
     public static SettingsFile Read(string text)
     {
         var properties = new List<SettingProperty>();
-        var duplicates = new List<string>();
+        var errors = new List<string>();
         var warnings = new List<string>();
         var keys = new Dictionary<string, int>(StringComparer.Ordinal);
+        var constants = Constants(text);
         string? model = null;
 
         for (var i = 0; i < text.Length;)
@@ -68,12 +69,13 @@ internal static class SettingsSource
                 }
                 else
                 {
-                    var args = Arguments(setting, line, warnings);
+                    var args = Arguments(setting, line, warnings, constants);
                     var key = args.Key ?? CamelCase(member.Name);
 
                     if (keys.TryGetValue(key, out var first))
                     {
-                        duplicates.Add($"'{key}' on line {line} and on line {first}");
+                        errors.Add($"duplicate setting key '{key}' on line {line} and on line {first}; " +
+                                   "rename one of them.");
                     }
                     else
                     {
@@ -84,16 +86,33 @@ internal static class SettingsSource
             }
             else if (attributes.Any(item => IsAttribute(item.Name, "SettingsModel")))
             {
-                model ??= ReadType(text, declarations);
+                if (ReadType(text, declarations) is { } type)
+                {
+                    if (model is not null && model != type.Name)
+                        errors.Add($"the file declares more than one settings model ('{model}' and '{type.Name}'); " +
+                                   "point --model at one model file.");
+
+                    model ??= type.Name;
+
+                    if (type.Partial)
+                        warnings.Add($"'{type.Name}' is partial; settings declared in another file are not read.");
+                }
             }
 
             i = listEnd;
         }
 
-        return new(model, properties, duplicates, warnings);
+        if (text.Contains("#if", StringComparison.Ordinal))
+            warnings.Add("the file uses #if; every branch is read, so a setting from an inactive branch may be generated.");
+
+        return new(model, properties, errors, warnings);
     }
 
-    private static AttributeArguments Arguments(AttributeInfo attribute, int line, List<string> warnings)
+    private static AttributeArguments Arguments(
+        AttributeInfo attribute,
+        int line,
+        List<string> warnings,
+        IReadOnlyDictionary<string, string> constants)
     {
         string? comment = null;
         string? key = null;
@@ -110,7 +129,7 @@ internal static class SettingsSource
             if (assignment < 0)
             {
                 if (positional++ == 0)
-                    comment = StringValue(argument);
+                    comment = Value(argument, constants) as string;
 
                 continue;
             }
@@ -121,29 +140,93 @@ internal static class SettingsSource
             switch (name)
             {
                 case "Comment":
-                    comment = StringValue(value);
+                    comment = Value(value, constants) as string;
                     if (comment is null)
                         warnings.Add($"[Setting] on line {line} has a comment the generator cannot read; " +
-                                     "only a literal string is used.");
+                                     "only a literal string or a const is used.");
                     break;
                 case "Key":
-                    key = StringValue(value);
+                    key = Value(value, constants) as string;
                     if (key is null)
                         warnings.Add($"[Setting] on line {line} has a key the generator cannot read; " +
                                      "the member name is used instead.");
                     break;
                 case "Min":
                 case "Max":
-                    var number = NumberValue(value);
+                    var number = Value(value, constants) as double?;
                     if (name == "Min") min = number; else max = number;
                     if (number is null)
                         warnings.Add($"[Setting] on line {line} has a {name.ToLowerInvariant()} the generator " +
-                                     "cannot read; only a number literal is used.");
+                                     "cannot read; only a number literal or a const is used.");
                     break;
             }
         }
 
         return new(comment, key, min, max);
+    }
+
+    /// <summary>
+    ///     Evaluates an attribute argument the way the compiler would for the common cases: a
+    ///     literal, <c>nameof(...)</c>, concatenated literals, or a <c>const</c> declared in the
+    ///     file. Anything else returns null, which the caller reports instead of guessing.
+    /// </summary>
+    private static object? Value(string expression, IReadOnlyDictionary<string, string> constants, int depth = 0)
+    {
+        var text = expression.Trim();
+        if (text.Length == 0 || depth > 8)
+            return null;
+
+        if (text[0] == '(' && SkipBalanced(text, 0, '(', ')') == text.Length)
+            return Value(text[1..^1], constants, depth + 1);
+
+        if (WordAt(text, 0, "nameof"))
+        {
+            var open = text.IndexOf('(');
+            var close = text.LastIndexOf(')');
+
+            if (open > 0 && close > open)
+            {
+                var inside = text[(open + 1)..close].Trim();
+                var start = NameStart(inside);
+
+                if (start >= 0 && start < inside.Length)
+                    return inside[start..].Trim().TrimStart('@');
+            }
+
+            return null;
+        }
+
+        var parts = Split(text, '+');
+
+        if (parts.Count > 1)
+        {
+            var combined = "";
+
+            foreach (var part in parts)
+            {
+                if (Value(part, constants, depth + 1) is not string piece)
+                    return null;
+
+                combined += piece;
+            }
+
+            return combined;
+        }
+
+        if (StringValue(text) is { } literal)
+            return literal;
+
+        if (NumberValue(text) is { } number)
+            return number;
+
+        if (text.All(character => char.IsLetterOrDigit(character) || character is '_' or '.' or '@'))
+        {
+            var name = text[(text.LastIndexOf('.') + 1)..].TrimStart('@');
+
+            return constants.TryGetValue(name, out var declared) ? Value(declared, constants, depth + 1) : null;
+        }
+
+        return null;
     }
 
     /// <summary>Skips whitespace, comments and string literals, so the scanner never sees their text.</summary>
@@ -360,8 +443,8 @@ internal static class SettingsSource
         return simple == expected || simple == expected + "Attribute";
     }
 
-    /// <summary>Splits on commas that are not inside a string, a comment or a bracket.</summary>
-    private static List<string> Split(string text)
+    /// <summary>Splits on a separator that is not inside a string, a comment or a bracket.</summary>
+    private static List<string> Split(string text, char separator = ',')
     {
         var parts = new List<string>();
         var depth = 0;
@@ -384,9 +467,13 @@ internal static class SettingsSource
                 case ')' or ']' or '}' or '>':
                     if (depth > 0) depth--;
                     break;
-                case ',' when depth == 0:
-                    parts.Add(text[start..i]);
-                    start = i + 1;
+                default:
+                    if (text[i] == separator && depth == 0)
+                    {
+                        parts.Add(text[start..i]);
+                        start = i + 1;
+                    }
+
                     break;
             }
 
@@ -465,7 +552,83 @@ internal static class SettingsSource
         };
     }
 
-    private static string? ReadType(string text, int start)
+    /// <summary>Every <c>const</c> declared in the file, by simple name, with its value text.</summary>
+    private static Dictionary<string, string> Constants(string text)
+    {
+        var constants = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        for (var i = 0; i < text.Length;)
+        {
+            var token = SkipToken(text, i);
+            if (token > i)
+            {
+                i = token;
+                continue;
+            }
+
+            if (!WordAt(text, i, "const"))
+            {
+                i++;
+                continue;
+            }
+
+            var head = Head(text, i, out var terminator, out var end);
+            var nameStart = head is null ? -1 : NameStart(head);
+
+            if (head is null || terminator != '=' || nameStart <= 0 || nameStart >= head.Length)
+            {
+                i++;
+                continue;
+            }
+
+            var name = head[nameStart..].Trim().TrimStart('@');
+            var close = StatementEnd(text, end + 1);
+            constants[name] = text[(end + 1)..close];
+            i = close + 1;
+        }
+
+        return constants;
+    }
+
+    /// <summary>Index of the <c>;</c> that ends the statement at <paramref name="i" />.</summary>
+    private static int StatementEnd(string text, int i)
+    {
+        var depth = 0;
+
+        while (i < text.Length)
+        {
+            var token = SkipToken(text, i);
+            if (token > i)
+            {
+                i = token;
+                continue;
+            }
+
+            if (text[i] is '(' or '[' or '{')
+            {
+                depth++;
+            }
+            else if (text[i] is ')' or ']' or '}')
+            {
+                if (depth > 0) depth--;
+            }
+            else if (text[i] == ';' && depth == 0)
+            {
+                return i;
+            }
+
+            i++;
+        }
+
+        return text.Length;
+    }
+
+    private static bool WordAt(string text, int i, string word) =>
+        string.CompareOrdinal(text, i, word, 0, word.Length) == 0 &&
+        (i + word.Length >= text.Length || !IsWord(text[i + word.Length])) &&
+        (i == 0 || !IsWord(text[i - 1]));
+
+    private static ModelType? ReadType(string text, int start)
     {
         var head = Head(text, start, out var terminator, out _, stopAtParenthesis: true);
         if (head is null)
@@ -480,7 +643,7 @@ internal static class SettingsSource
         if (nameStart <= 0 || nameStart >= head.Length || terminator is not ('{' or ';' or ':' or '('))
             return null;
 
-        return head[nameStart..].Trim().TrimStart('@');
+        return new(head[nameStart..].Trim().TrimStart('@'), HasModifier(head, "partial"));
     }
 
     /// <summary>Reads a declaration up to the bracket that ends its head.</summary>
@@ -808,6 +971,8 @@ internal static class SettingsSource
     private sealed record AttributeArguments(string? Comment, string? Key, double? Min, double? Max);
 
     private sealed record Member(string Name, string Type);
+
+    private sealed record ModelType(string Name, bool Partial);
 }
 
 /// <summary>One property as the generated interface and schema see it.</summary>
@@ -817,5 +982,5 @@ internal sealed record SettingProperty(string Key, string Type, string? Comment,
 internal sealed record SettingsFile(
     string? ModelName,
     List<SettingProperty> Properties,
-    List<string> Duplicates,
+    List<string> Errors,
     List<string> Warnings);

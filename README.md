@@ -569,11 +569,13 @@ comments and numeric limits; with `--i18n` it also writes the `LocalizationKey` 
 translated key. The reader is a scanner rather than a set of patterns, so an attribute is found
 however it is written — one line or many, the namespace spelled out, `[Setting("text")]` instead of
 `[Setting(Comment = "text")]`, `[property: ...]` on a record parameter, or a string that contains
-`]`. A value it cannot evaluate, such as a `const` reference, is reported as a warning and the
-member name is used for the key; only two settings sharing one key stops the build. `build-and-copy`
-publishes `win-x64` and `linux-x64` and copies both to `Libs/CodeGen/<rid>/`, so a fresh checkout
-has the executable for either build machine. An app runs the one that matches its host from an
-MSBuild target:
+`]`. Values may also be `nameof(...)`, concatenated literals or a `const` declared in the same file;
+anything else is reported as a warning instead of being guessed. Two settings sharing one key, or
+two `[SettingsModel]` types in one file, stop the build. `--self-test` runs the reader over the
+supported spellings, so a change to the scanner can be checked without building an app.
+`build-and-copy` publishes `win-x64` and `linux-x64` and copies both to `Libs/CodeGen/<rid>/`, so a
+fresh checkout has the executable for either build machine. An app runs the one that matches its
+host from an MSBuild target:
 
 ```xml
 <PropertyGroup>

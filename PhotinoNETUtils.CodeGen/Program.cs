@@ -31,6 +31,9 @@ internal static partial class Program
 
     private static int Main(string[] args)
     {
+        if (args is ["--self-test"])
+            return SelfTest.Run();
+
         var options = Parse(args);
         if (options is null)
             return 1;
@@ -51,10 +54,10 @@ internal static partial class Program
 
             // Two settings with one key would give the interface one property for two backend
             // values, which is always a mistake in the model.
-            if (settings.Duplicates.Count > 0)
+            if (settings.Errors.Count > 0)
             {
-                foreach (var duplicate in settings.Duplicates)
-                    Console.Error.WriteLine($"Duplicate setting key {duplicate}; rename one of them.");
+                foreach (var error in settings.Errors)
+                    Console.Error.WriteLine(error);
 
                 return 1;
             }
@@ -145,7 +148,8 @@ internal static partial class Program
                 default:
                     Console.Error.WriteLine(
                         "Usage: PhotinoNETUtils.CodeGen --model <AppSettings.cs> --out <settings.generated.ts> " +
-                        "[--schema <settings.schema.json>] [--i18n <en.jsonc> --i18n-out <i18n.generated.ts>]");
+                        "[--schema <settings.schema.json>] [--i18n <en.jsonc> --i18n-out <i18n.generated.ts>] " +
+                        "[--self-test]");
                     return null;
             }
 
