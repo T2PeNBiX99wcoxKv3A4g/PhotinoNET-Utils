@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.26.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.25.1..v0.26.0) - 2026-11-13
+
+### ⛰️  Features
+
+- *(bridge)* Render markdown - ([3c6fe1a](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/3c6fe1a6ef89815a381d61b7f0a34f13849eee15))
+- Share the link, hotkey, association and icon helpers - ([84adbbe](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/84adbbe0bd53f8908387bc0c167ffb26a0a8be79))
+
+### 🚜 Refactor
+
+- Apply formatting consistency and reorder members across multiple files - ([86ee819](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/86ee819eebb5352b84239e930a8a8573c1b8b848))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([dc7863e](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/dc7863ef7c47f46b9de80958a0193f2dbf78d078))
+
+
 ## [0.25.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.25.0..v0.25.1) - 2026-11-13
 
 ### 🐛 Bug Fixes
