@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.26.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.26.0..v0.26.1) - 2026-11-13
+
+### 🐛 Bug Fixes
+
+- *(settings)* Keep silent bookkeeping saves out of Merge - ([4650642](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/465064288a71e6608851f0a28b8b62957ed9aede))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([4a4b891](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/4a4b89175a51cae02d561c4f09c3427f3c4a8ee7))
+
+
 ## [0.26.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.25.1..v0.26.0) - 2026-11-13
 
 ### ⛰️  Features
