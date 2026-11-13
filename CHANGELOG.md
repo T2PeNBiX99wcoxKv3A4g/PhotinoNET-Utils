@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.25.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.25.0..v0.25.1) - 2026-11-13
+
+### 🐛 Bug Fixes
+
+- *(settings)* Delete the old settings file after a migration - ([4638cf4](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/4638cf4d40a2f2d8a8b8bbd29a39ee7f603a55b7))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([9be5c89](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/9be5c898b718222075a353a63b84dcfc2fa86983))
+
+
 ## [0.25.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.24.0..v0.25.0) - 2026-11-13
 
 ### ⛰️  Features
