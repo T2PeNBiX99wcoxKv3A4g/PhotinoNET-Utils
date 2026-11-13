@@ -557,37 +557,23 @@ has the runtime:
 ```bash
 dotnet publish PhotinoNETUtils.CodeGen -c Release -r win-x64 -o out
 out/PhotinoNETUtils.CodeGen.exe \
-  --model ../AntiBot/AntiBot/Models/AppSettings.cs \
+  --assembly ../AntiBot/AntiBot/bin/Release/net11.0/AntiBot.dll \
   --out ../AntiBot/AntiBot/UserInterface/src/api/settings.generated.ts \
   --schema ../AntiBot/AntiBot/UserInterface/src/api/settings.schema.json \
   --i18n ../AntiBot/AntiBot/Resources/i18n/en.jsonc \
   --i18n-out ../AntiBot/AntiBot/UserInterface/src/api/i18n.generated.ts
 ```
 
-It reads `[Setting]` properties and writes a `{Model}Generated` interface plus a JSON schema with the
+It reads the compiled model and writes a `{Model}Generated` interface plus a JSON schema with the
 comments and numeric limits; with `--i18n` it also writes the `LocalizationKey` union of every
-translated key. `--assembly` reads the compiled model instead of the source:
+translated key.
 
-```bash
-out/PhotinoNETUtils.CodeGen --assembly ../MyApp/MyApp/bin/Release/net11.0/MyApp.dll \
-  --out ../MyApp/MyApp/UserInterface/src/api/settings.generated.ts \
-  --schema ../MyApp/MyApp/UserInterface/src/api/settings.schema.json
-```
-
-The assembly already has `#if`, partial files, `const` references and `nameof` resolved, so this mode
-cannot disagree with the running app. It has to run after the C# compile, which is why the source
-mode is still the default for a build that generates the interface before compiling.
-
-The source reader is a scanner rather than a set of patterns, so an attribute is found however it is
-written — one line or many, the namespace spelled out, `[Setting("text")]` instead of
-`[Setting(Comment = "text")]`, `[property: ...]` on a record parameter, or a string that contains
-`]`. Values may also be `nameof(...)`, concatenated literals or a `const` declared in the same file;
-anything else is reported as a warning instead of being guessed. Two settings sharing one key, or
-two `[SettingsModel]` types in one file, stop the build. `--self-test` runs the reader over the
-supported spellings, so a change to the scanner can be checked without building an app.
-`build-and-copy` publishes `win-x64` and `linux-x64` and copies both to `Libs/CodeGen/<rid>/`, so a
-fresh checkout has the executable for either build machine. An app runs the one that matches its
-host from an MSBuild target:
+The model is read from metadata, where `#if`, partial files, `const` references and `nameof` are
+already resolved, so the interface cannot disagree with the running app. That also means it runs
+after the C# compile and a failed compile produces no new files. Two settings sharing one key, or one
+assembly declaring two `[SettingsModel]` types, stop the build. `build-and-copy` publishes `win-x64`
+and `linux-x64` and copies both to `Libs/CodeGen/<rid>/`, so a fresh checkout has the executable for
+either build machine. An app runs the one that matches its host from an MSBuild target:
 
 ```xml
 <PropertyGroup>

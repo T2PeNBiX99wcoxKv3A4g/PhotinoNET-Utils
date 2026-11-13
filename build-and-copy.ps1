@@ -113,11 +113,6 @@ foreach ($rid in $codeGenRids) {
     $codeGenBinaries[$rid] = $binary
 }
 
-# The reader is text based; run its fixtures so a regression cannot reach the committed binaries.
-Write-Host 'Running the settings reader self-test...' -ForegroundColor Cyan
-& $codeGenBinaries['win-x64'] --self-test
-if ($LASTEXITCODE -ne 0) { throw 'code generator self-test failed' }
-
 $tgzName = "photino-net-utils-bridge-$npmVersion.tgz"
 $tgz = Join-Path $ui $tgzName
 
@@ -162,6 +157,10 @@ foreach ($target in $targets) {
         New-Item -ItemType Directory -Path $ridDirectory -Force | Out-Null
         Copy-Item $codeGenBinaries[$rid] $ridDirectory -Force
     }
+
+    # Windows has no executable bit, so a Linux checkout of the copied Linux binary would be a plain
+    # file and the build would fail with "Permission denied". Record the bit in the target's index.
+    git -C $target.Path update-index --add --chmod=+x "$($target.Libs)/CodeGen/linux-x64/PhotinoNETUtils.CodeGen" 2>$null
 
     Get-ChildItem $libDirectory -Filter 'photino-net-utils-bridge-*.tgz' -File |
         Where-Object Name -ne $tgzName |

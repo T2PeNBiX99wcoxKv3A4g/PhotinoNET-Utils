@@ -110,13 +110,6 @@ for RID in "${CODEGEN_RIDS[@]}"; do
     [[ -f "$CODEGEN_BIN" ]] || { echo "Code generator not found: $CODEGEN_BIN" >&2; exit 1; }
 done
 
-# The reader is text based; run its fixtures so a regression cannot reach the committed binaries.
-SELF_TEST="$ROOT/PhotinoNETUtils.CodeGen/bin/Release/linux-x64/publish/PhotinoNETUtils.CodeGen"
-if [[ -x "$SELF_TEST" && "$(uname -m)" == "x86_64" ]]; then
-    echo "Running the settings reader self-test..."
-    "$SELF_TEST" --self-test
-fi
-
 TGZ_NAME="photino-net-utils-bridge-$NPM_VERSION.tgz"
 TGZ="$UI/$TGZ_NAME"
 
@@ -163,6 +156,8 @@ while IFS=$'\t' read -r NAME TARGET LIBS UI_DIR; do
         fi
         cp -f "$CODEGEN_BIN" "$LIB_DIR/CodeGen/$RID/"
     done
+    # A checkout that lost the executable bit would fail with "Permission denied" on the next build.
+    chmod +x "$LIB_DIR/CodeGen/linux-x64/PhotinoNETUtils.CodeGen" 2>/dev/null || true
     for old in "$LIB_DIR"/photino-net-utils-bridge-*.tgz; do        [[ -e "$old" ]] || continue
         [[ "$(basename "$old")" == "$TGZ_NAME" ]] || rm -f "$old"
     done

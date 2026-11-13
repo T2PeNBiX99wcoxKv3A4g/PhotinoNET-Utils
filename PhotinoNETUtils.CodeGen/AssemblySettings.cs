@@ -67,7 +67,7 @@ internal static class AssemblySettings
             }
         }
 
-        return new(model, properties, errors, []);
+        return new(model, properties, errors);
     }
 
     private static bool IsSetting(MetadataReader reader, PropertyDefinition property, bool indexed)
@@ -273,3 +273,12 @@ internal static class AssemblySettings
         private static string Name(string ns, string name) => ns.Length == 0 ? name : ns + "." + name;
     }
 }
+
+/// <summary>The values one <c>[Setting]</c> carries.</summary>
+internal sealed record AttributeArguments(string? Comment, string? Key, double? Min, double? Max);
+
+/// <summary>One property as the generated interface and schema see it.</summary>
+internal sealed record SettingProperty(string Key, string Type, string? Comment, double? Min, double? Max);
+
+/// <summary>Everything the generator found in the settings model.</summary>
+internal sealed record SettingsFile(string? ModelName, List<SettingProperty> Properties, List<string> Errors);

@@ -31,28 +31,11 @@ internal static partial class Program
 
     private static int Main(string[] args)
     {
-        if (args is ["--self-test"])
-            return SelfTest.Run();
-
         var options = Parse(args);
         if (options is null)
             return 1;
 
-        if (options is { Model: { } modelPath, Output: { } outputPath })
-        {
-            if (!File.Exists(modelPath))
-            {
-                Console.Error.WriteLine($"Model not found: {modelPath}");
-                return 1;
-            }
-
-            var settings = SettingsSource.Read(File.ReadAllText(modelPath));
-
-            if (WriteSettings(settings, outputPath, options.Schema, Path.GetFileNameWithoutExtension(modelPath),
-                    modelPath) is { } code)
-                return code;
-        }
-        else if (options is { Assembly: { } assemblyPath, Output: { } assemblyOutput })
+        if (options is { Assembly: { } assemblyPath, Output: { } outputPath })
         {
             if (!File.Exists(assemblyPath))
             {
@@ -72,7 +55,7 @@ internal static partial class Program
                 return 1;
             }
 
-            if (WriteSettings(settings, assemblyOutput, options.Schema, Path.GetFileNameWithoutExtension(assemblyPath),
+            if (WriteSettings(settings, outputPath, options.Schema, Path.GetFileNameWithoutExtension(assemblyPath),
                     assemblyPath) is { } code)
                 return code;
         }
@@ -119,9 +102,6 @@ internal static partial class Program
         string fallbackName,
         string source)
     {
-        foreach (var warning in settings.Warnings)
-            Console.Error.WriteLine($"warning: {warning}");
-
         // Two settings with one key would give the interface one property for two backend values,
         // which is always a mistake in the model.
         if (settings.Errors.Count > 0)
@@ -154,7 +134,6 @@ internal static partial class Program
 
     private static Options? Parse(string[] args)
     {
-        string? model = null;
         string? assembly = null;
         string? output = null;
         string? schema = null;
@@ -167,9 +146,6 @@ internal static partial class Program
 
             switch (args[index])
             {
-                case "--model" when next is not null:
-                    model = Path.GetFullPath(next);
-                    break;
                 case "--assembly" when next is not null:
                     assembly = Path.GetFullPath(next);
                     break;
@@ -187,26 +163,17 @@ internal static partial class Program
                     break;
                 default:
                     Console.Error.WriteLine(
-                        "Usage: PhotinoNETUtils.CodeGen (--model <AppSettings.cs> | --assembly <App.dll>) " +
-                        "--out <settings.generated.ts> [--schema <settings.schema.json>] " +
-                        "[--i18n <en.jsonc> --i18n-out <i18n.generated.ts>] [--self-test]");
+                        "Usage: PhotinoNETUtils.CodeGen --assembly <App.dll> --out <settings.generated.ts> " +
+                        "[--schema <settings.schema.json>] [--i18n <en.jsonc> --i18n-out <i18n.generated.ts>]");
                     return null;
             }
 
             index++;
         }
 
-        if (model is not null && assembly is not null)
+        if (assembly is null != output is null)
         {
-            Console.Error.WriteLine("--model and --assembly are alternatives; pass one of them.");
-            return null;
-        }
-
-        var input = model ?? assembly;
-
-        if (input is null != output is null)
-        {
-            Console.Error.WriteLine("--model/--assembly and --out belong together.");
+            Console.Error.WriteLine("--assembly and --out belong together.");
             return null;
         }
 
@@ -216,13 +183,13 @@ internal static partial class Program
             return null;
         }
 
-        if (input is null && i18n is null)
+        if (assembly is null && i18n is null)
         {
-            Console.Error.WriteLine("Nothing to generate: pass --model/--assembly with --out, or --i18n/--i18n-out.");
+            Console.Error.WriteLine("Nothing to generate: pass --assembly with --out, or --i18n/--i18n-out.");
             return null;
         }
 
-        return new(model, assembly, output, schema, i18n, i18nOutput);
+        return new(assembly, output, schema, i18n, i18nOutput);
     }
 
     private static string TypeScript(string modelName, List<SettingProperty> properties)
@@ -658,7 +625,6 @@ internal static partial class Program
     }
 
     private sealed record Options(
-        string? Model,
         string? Assembly,
         string? Output,
         string? Schema,
