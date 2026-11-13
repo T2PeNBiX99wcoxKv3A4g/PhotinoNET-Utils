@@ -584,7 +584,7 @@ either build machine. An app runs the one that matches its host from an MSBuild 
 <!-- The keys are not a build product; the file is read directly. -->
 <Target Name="GenerateLocalizationKeys" BeforeTargets="BeforeBuild"
         Condition="Exists('$(SettingsCodeGenPath)')"
-        Inputs="$(MSBuildProjectDirectory)\Resources\i18n\en.jsonc"
+        Inputs="$(MSBuildProjectDirectory)\Resources\i18n\en.jsonc;$(SettingsCodeGenPath)"
         Outputs="$(MSBuildProjectDirectory)\UserInterface\src\api\i18n.generated.ts">
     <Exec Command="&quot;$(SettingsCodeGenPath)&quot; --i18n &quot;$(MSBuildProjectDirectory)\Resources\i18n\en.jsonc&quot; --i18n-out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\i18n.generated.ts&quot;"/>
 </Target>
@@ -592,7 +592,7 @@ either build machine. An app runs the one that matches its host from an MSBuild 
 <!-- The settings come from the compiled model, so the interface cannot disagree with the app. -->
 <Target Name="GenerateSettingsTypes" AfterTargets="CoreCompile"
         Condition="Exists('$(SettingsCodeGenPath)')"
-        Inputs="@(IntermediateAssembly)"
+        Inputs="@(IntermediateAssembly);$(SettingsCodeGenPath)"
         Outputs="$(MSBuildProjectDirectory)\UserInterface\src\api\settings.generated.ts;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.schema.json">
     <Exec Command="&quot;$(SettingsCodeGenPath)&quot; --assembly &quot;@(IntermediateAssembly)&quot; --out &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.generated.ts&quot; --schema &quot;$(MSBuildProjectDirectory)\UserInterface\src\api\settings.schema.json&quot;"/>
 </Target>

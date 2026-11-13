@@ -13,6 +13,7 @@ namespace PhotinoNetUtils.CodeGen;
 internal static class AssemblySettings
 {
     private const string SettingsNamespace = "PhotinoNetUtils.Settings";
+    private const string CompilerServices = "System.Runtime.CompilerServices";
     private const string ModelAttribute = "SettingsModelAttribute";
     private const string SettingAttribute = "SettingAttribute";
 
@@ -63,7 +64,14 @@ internal static class AssemblySettings
                 }
 
                 keys[key] = member;
-                properties.Add(new(key, signature.ReturnType, args.Comment, args.Min, args.Max));
+
+                // A nullable reference type is an annotation, not a signature: the '?' only exists
+                // in the NullableAttribute the compiler emits.
+                var declared = signature.ReturnType.EndsWith('?') || !IsNullable(reader, type, property)
+                    ? signature.ReturnType
+                    : signature.ReturnType + "?";
+
+                properties.Add(new(key, declared, args.Comment, args.Min, args.Max));
             }
         }
 
@@ -129,7 +137,8 @@ internal static class AssemblySettings
         return null;
     }
 
-    private static bool IsAttribute(MetadataReader reader, CustomAttribute attribute, string name)
+    private static bool IsAttribute(MetadataReader reader, CustomAttribute attribute, string name,
+        string space = SettingsNamespace)
     {
         switch (attribute.Constructor.Kind)
         {
@@ -140,17 +149,62 @@ internal static class AssemblySettings
 
                 var reference = reader.GetTypeReference((TypeReferenceHandle)member.Parent);
                 return reader.StringComparer.Equals(reference.Name, name) &&
-                       reader.StringComparer.Equals(reference.Namespace, SettingsNamespace);
+                       reader.StringComparer.Equals(reference.Namespace, space);
 
             case HandleKind.MethodDefinition:
                 var method = reader.GetMethodDefinition((MethodDefinitionHandle)attribute.Constructor);
                 var type = reader.GetTypeDefinition(method.GetDeclaringType());
                 return reader.StringComparer.Equals(type.Name, name) &&
-                       reader.StringComparer.Equals(type.Namespace, SettingsNamespace);
+                       reader.StringComparer.Equals(type.Namespace, space);
 
             default:
                 return false;
         }
+    }
+
+    /// <summary>
+    ///     Whether the property was declared with <c>?</c>. The annotation lives in
+    ///     <c>[Nullable]</c>, or in the <c>[NullableContext]</c> of the property or its type.
+    /// </summary>
+    private static bool IsNullable(MetadataReader reader, TypeDefinition owner, PropertyDefinition property)
+    {
+        foreach (var handle in property.GetCustomAttributes())
+        {
+            var attribute = reader.GetCustomAttribute(handle);
+
+            if (IsAttribute(reader, attribute, "NullableAttribute", CompilerServices))
+                return Flag(reader, attribute) == 2;
+        }
+
+        return Context(reader, property.GetCustomAttributes())
+               ?? Context(reader, owner.GetCustomAttributes())
+               ?? false;
+    }
+
+    private static bool? Context(MetadataReader reader, CustomAttributeHandleCollection attributes)
+    {
+        foreach (var handle in attributes)
+        {
+            var attribute = reader.GetCustomAttribute(handle);
+
+            if (IsAttribute(reader, attribute, "NullableContextAttribute", CompilerServices))
+                return Flag(reader, attribute) == 2;
+        }
+
+        return null;
+    }
+
+    /// <summary>The first nullable flag of an attribute: 1 is not nullable, 2 is nullable.</summary>
+    private static byte Flag(MetadataReader reader, CustomAttribute attribute)
+    {
+        var value = reader.GetBlobBytes(attribute.Value);
+
+        // The prolog is 2 bytes and the named-argument count closes the blob with 2 more, so a
+        // single byte argument makes 5; an array adds a 4-byte length before its flags.
+        if (value.Length == 5)
+            return value[2];
+
+        return value.Length > 8 ? value[6] : (byte)0;
     }
 
     private static string CamelCase(string name) =>
