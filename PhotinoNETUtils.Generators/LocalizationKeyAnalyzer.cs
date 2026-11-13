@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Text;
 
 namespace PhotinoNetUtils.Generators;
 
@@ -60,8 +61,19 @@ public sealed class LocalizationKeyAnalyzer : DiagnosticAnalyzer
         true,
         customTags: WellKnownDiagnosticTags.CompilationEnd);
 
+    // A key a file does not declare falls back to the default locale at run time; that is fine
+    // while a translation is in progress, but a warning is the only way to notice a forgotten one.
+    private static readonly DiagnosticDescriptor MissingKey = new(
+        "PNU2104",
+        "Localization key is missing from a locale",
+        "'{0}' is missing from {1}; the run time falls back to the default locale",
+        "PhotinoNetUtils.Localization",
+        DiagnosticSeverity.Warning,
+        true,
+        customTags: WellKnownDiagnosticTags.CompilationEnd);
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        [UnknownKey, DuplicateKey, InvalidKey];
+        [UnknownKey, DuplicateKey, InvalidKey, MissingKey];
 
     public override void Initialize(AnalysisContext context)
     {
@@ -99,6 +111,61 @@ public sealed class LocalizationKeyAnalyzer : DiagnosticAnalyzer
         {
             ReportDuplicates(context, file);
             ReportInvalid(context, file);
+        }
+
+        ReportMissing(context);
+    }
+
+    /// <summary>
+    ///     PNU2104: every locale should declare every key. A missing one falls back to the default
+    ///     locale at run time, which is easy to forget.
+    /// </summary>
+    private static void ReportMissing(CompilationAnalysisContext context)
+    {
+        var files = context.Options.AdditionalFiles
+            .Where(file => LocalizationKeys.IsTranslationFile(file.Path))
+            .ToArray();
+
+        if (files.Length < 2)
+            return;
+
+        var first = new Dictionary<string, (string Path, TextSpan Span, LinePositionSpan Lines)>(
+            StringComparer.OrdinalIgnoreCase);
+        var declared = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var file in files)
+        {
+            var text = file.GetText(context.CancellationToken);
+            if (text is null)
+                continue;
+
+            var keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var (key, span) in LocalizationKeys.Entries(text.ToString()))
+            {
+                keys.Add(key);
+
+                if (!first.ContainsKey(key))
+                    first[key] = (file.Path, span, text.Lines.GetLinePositionSpan(span));
+            }
+
+            declared[file.Path] = keys;
+        }
+
+        foreach (var file in files)
+        {
+            if (!declared.TryGetValue(file.Path, out var keys))
+                continue;
+
+            foreach (var pair in first)
+            {
+                if (keys.Contains(pair.Key))
+                    continue;
+
+                context.ReportDiagnostic(Diagnostic.Create(MissingKey,
+                    Location.Create(pair.Value.Path, pair.Value.Span, pair.Value.Lines), pair.Key,
+                    Path.GetFileName(file.Path)));
+            }
         }
     }
 

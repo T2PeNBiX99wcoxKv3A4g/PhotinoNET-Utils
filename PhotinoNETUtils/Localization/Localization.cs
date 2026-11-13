@@ -56,6 +56,7 @@ public static partial class Localization
     public static readonly StringComparer KeyComparer = StringComparer.OrdinalIgnoreCase;
 
     private static readonly Dictionary<string, Dictionary<string, string>> Cache = new(KeyComparer);
+    private static readonly HashSet<string> MissingKeys = new(KeyComparer);
     private static readonly Lock Sync = new();
 
     private static Assembly? _assembly;
@@ -133,8 +134,26 @@ public static partial class Localization
     public static string Get(string key) => Get(CurrentLanguage, key);
 
     /// <summary>Looks a key up in <paramref name="locale" />, falling back to the default locale.</summary>
-    public static string Get(string locale, string key) =>
-        Load(Resolve(locale)).TryGetValue(key, out var value) ? value : key;
+    public static string Get(string locale, string key)
+    {
+        var table = Load(Resolve(locale));
+
+        if (table.TryGetValue(key, out var value))
+            return value;
+
+        WarnMissing(key);
+        return key;
+    }
+
+    /// <summary>One warning per key that no shipped locale defines; the interface shows the key.</summary>
+    private static void WarnMissing(string key)
+    {
+        lock (Sync)
+            if (!MissingKeys.Add(key))
+                return;
+
+        Log.Warning("No shipped locale defines the localization key {Key}; the interface shows the key", key);
+    }
 
     /// <summary>Best matching embedded locale for the OS UI culture.</summary>
     public static string ResolveSystemLocale()
@@ -167,9 +186,26 @@ public static partial class Localization
                 return cached;
 
             var merged = new Dictionary<string, string>(KeyComparer);
+            HashSet<string>? own = null;
+
             foreach (var candidate in FallbackChain(locale))
-            foreach (var pair in ReadFile(candidate))
-                merged.TryAdd(pair.Key, pair.Value);
+            {
+                var file = ReadFile(candidate);
+
+                if (candidate.Equals(locale, StringComparison.OrdinalIgnoreCase))
+                    own = new HashSet<string>(file.Keys, KeyComparer);
+
+                foreach (var pair in file)
+                    merged.TryAdd(pair.Key, pair.Value);
+            }
+
+            // Anything the locale's own file does not have came from a fallback; say so once per
+            // locale instead of per lookup, so a half-translated language is visible in the log.
+            var missing = merged.Count - (own?.Count ?? 0);
+
+            if (missing > 0)
+                Log.Warning("{Locale} is missing {Missing} of {Total} localization key(s); " +
+                            "they fall back to {Default}", locale, missing, merged.Count, _defaultLocale);
 
             Cache[locale] = merged;
             return merged;

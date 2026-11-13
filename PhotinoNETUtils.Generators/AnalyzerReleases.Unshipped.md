@@ -18,6 +18,7 @@
 | PNU2101 | PhotinoNetUtils.Localization | Warning  | Unknown localization key                           |
 | PNU2102 | PhotinoNetUtils.Localization | Error    | Duplicate localization key                         |
 | PNU2103 | PhotinoNetUtils.Localization | Error    | Localization key does not follow the format        |
+| PNU2104 | PhotinoNetUtils.Localization | Warning  | Localization key is missing from a locale          |
 | PNU3001 | PhotinoNetUtils.Utils        | Error    | Singleton class must be partial                    |
 | PNU3002 | PhotinoNetUtils.Utils        | Error    | Singleton class is not supported                   |
 | PNU3003 | PhotinoNetUtils.Utils        | Error    | Singleton needs a parameterless constructor        |

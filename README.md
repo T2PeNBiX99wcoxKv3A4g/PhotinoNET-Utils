@@ -641,6 +641,12 @@ LocalizationKeys.Ui.Section.OpenKey          // the same key, checked by the com
 `ui.section.open_key` becomes `LocalizationKeys.Ui.Section.OpenKey`, so a segment groups its keys
 instead of repeating a prefix in every name. The front end is untouched: it keeps the literal key.
 
+A locale may omit a key: the loader merges each locale over its language and then over the default
+locale, so the missing text falls back to English, and a key no locale defines is shown as-is.
+`PNU2104` warns when one locale lacks a key another declares, and the loader logs one warning per
+locale that falls back (plus one per key that no locale defines), so a half-translated language is
+visible without opening the UI.
+
 ### Front-end bridge
 
 ```ts
