@@ -968,12 +968,13 @@ internal static class SettingsSource
 
     private sealed record AttributeInfo(string Name, string? Arguments);
 
-    private sealed record AttributeArguments(string? Comment, string? Key, double? Min, double? Max);
-
     private sealed record Member(string Name, string Type);
 
     private sealed record ModelType(string Name, bool Partial);
 }
+
+/// <summary>The values one <c>[Setting]</c> carries.</summary>
+internal sealed record AttributeArguments(string? Comment, string? Key, double? Min, double? Max);
 
 /// <summary>One property as the generated interface and schema see it.</summary>
 internal sealed record SettingProperty(string Key, string Type, string? Comment, double? Min, double? Max);

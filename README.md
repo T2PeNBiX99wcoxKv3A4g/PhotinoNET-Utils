@@ -566,8 +566,20 @@ out/PhotinoNETUtils.CodeGen.exe \
 
 It reads `[Setting]` properties and writes a `{Model}Generated` interface plus a JSON schema with the
 comments and numeric limits; with `--i18n` it also writes the `LocalizationKey` union of every
-translated key. The reader is a scanner rather than a set of patterns, so an attribute is found
-however it is written — one line or many, the namespace spelled out, `[Setting("text")]` instead of
+translated key. `--assembly` reads the compiled model instead of the source:
+
+```bash
+out/PhotinoNETUtils.CodeGen --assembly ../MyApp/MyApp/bin/Release/net11.0/MyApp.dll \
+  --out ../MyApp/MyApp/UserInterface/src/api/settings.generated.ts \
+  --schema ../MyApp/MyApp/UserInterface/src/api/settings.schema.json
+```
+
+The assembly already has `#if`, partial files, `const` references and `nameof` resolved, so this mode
+cannot disagree with the running app. It has to run after the C# compile, which is why the source
+mode is still the default for a build that generates the interface before compiling.
+
+The source reader is a scanner rather than a set of patterns, so an attribute is found however it is
+written — one line or many, the namespace spelled out, `[Setting("text")]` instead of
 `[Setting(Comment = "text")]`, `[property: ...]` on a record parameter, or a string that contains
 `]`. Values may also be `nameof(...)`, concatenated literals or a `const` declared in the same file;
 anything else is reported as a warning instead of being guessed. Two settings sharing one key, or
