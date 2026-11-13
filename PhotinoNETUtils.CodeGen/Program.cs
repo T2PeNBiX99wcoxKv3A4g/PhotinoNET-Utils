@@ -148,26 +148,37 @@ internal static partial class Program
     {
         var properties = new List<SettingProperty>();
 
-        foreach (Match match in PropertyPattern().Matches(text))
+        Add(properties, PropertyPattern(), text);
+        // A positional record declares its settings as constructor parameters, which have no
+        // `{ get; }`; the attribute above the parameter (usually `[property: Setting(...)]`) is
+        // the only marker.
+        Add(properties, ParameterPattern(), text);
+
+        return properties;
+    }
+
+    /// <summary>Reads the <c>[Setting]</c> block above each declaration one pattern matched.</summary>
+    private static void Add(List<SettingProperty> properties, Regex pattern, string text)
+    {
+        foreach (Match match in pattern.Matches(text))
         {
-            var attributes = match.Groups["attrs"].Value;
-            var setting = SettingPattern().Match(attributes);
+            var setting = SettingPattern().Match(match.Groups["attrs"].Value);
             if (!setting.Success)
                 continue;
 
             var args = setting.Groups["args"].Value;
-            var comment = AttributeString(args, "Comment");
             var key = AttributeString(args, "Key") ?? CamelCase(match.Groups["name"].Value);
+
+            if (properties.Any(property => property.Key == key))
+                continue;
 
             properties.Add(new(
                 key,
                 match.Groups["type"].Value.Trim(),
-                comment,
+                AttributeString(args, "Comment"),
                 AttributeNumber(args, "Min"),
                 AttributeNumber(args, "Max")));
         }
-
-        return properties;
     }
 
     private static string TypeScript(string modelName, List<SettingProperty> properties)
@@ -587,8 +598,13 @@ internal static partial class Program
         RegexOptions.Multiline)]
     private static partial Regex PropertyPattern();
 
-    [GeneratedRegex(@"\[Setting\((?<args>[\s\S]*?)\)\]")]
+    [GeneratedRegex(@"\[(?:property\s*:\s*)?Setting\((?<args>[\s\S]*?)\)\]")]
     private static partial Regex SettingPattern();
+
+    [GeneratedRegex(
+        @"(?<attrs>(?:^[ \t]*\[[^\]]*\][ \t]*\r?\n)+)[ \t]*(?<type>[\w<>,\[\]\?\. ]+?)[ \t]+(?<name>\w+)[ \t]*=[^,\r\n]*[,)]",
+        RegexOptions.Multiline)]
+    private static partial Regex ParameterPattern();
 
     [GeneratedRegex("Comment\\s*=\\s*\"(?<value>(?:\\\\.|[^\"\\\\])*)\"")]
     private static partial Regex CommentPattern();
