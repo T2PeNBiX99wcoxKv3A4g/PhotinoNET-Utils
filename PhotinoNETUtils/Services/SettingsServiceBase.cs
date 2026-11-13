@@ -2,6 +2,7 @@ using JetBrains.Annotations;
 using PhotinoNetUtils.Hosting;
 using PhotinoNetUtils.Messaging;
 using PhotinoNetUtils.Settings;
+using Serilog;
 
 namespace PhotinoNetUtils.Services;
 
@@ -22,6 +23,7 @@ public abstract class SettingsServiceBase<TSelf, T, TPayload> : IDisposable
     where TPayload : class
 {
     private static TSelf? _instance;
+    protected readonly ILogger Log = Serilog.Log.ForContext<T>();
 
     private readonly Action<string, object?> _notify;
     private readonly ISettingsStore<T> _store;
