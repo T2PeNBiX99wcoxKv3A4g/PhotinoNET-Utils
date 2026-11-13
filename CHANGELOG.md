@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.20.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.19.0..v0.20.0) - 2026-11-13
+
+### ⛰️  Features
+
+- *(settings)* Allow silent saves and comment list tables - ([db015d8](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/db015d8b1c4e093faa095e41500a87c548d74def))
+- Give the settings service an Instance - ([a5548b4](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/a5548b48cf9ccb68720fa29b50e0d5c92d58bde2))
+
+### 🐛 Bug Fixes
+
+- *(settings)* Write the comment above a table a dictionary or nested model produces - ([6fa6258](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/6fa62586ca18ba201e7e536d6a27b45cbe52edd2))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([9e6ae57](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/9e6ae57b244b2e852332ceb3f0428e8b84c128da))
+
+### Build
+
+- Publish both code generator binaries again - ([07bd4fc](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/07bd4fc3787718b961a490bcff323fb3497d801f))
+- Publish the code generator per host - ([fb7cc12](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/fb7cc1293433f0739089febbba01986e91f1d473))
+- Cross-publish the code generator for Linux - ([0c98ca4](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/0c98ca4c5cb8c8ca5ea8851e8026bcde84deed02))
+
+
 ## [0.19.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.18.0..v0.19.0) - 2026-11-12
 
 ### ⛰️  Features
