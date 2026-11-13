@@ -10,15 +10,19 @@ namespace PhotinoNetUtils.Services;
 ///     messages, so an app only supplies the payload, its validation and its side effects.
 /// </summary>
 /// <remarks>
-///     <typeparamref name="T" /> is the model read from the store; <typeparamref name="TPayload" /> is
-///     the shape the interface reads. Register the payload in the app's serializer context, because
-///     the bridge serializes it through that context.
+///     <typeparamref name="TSelf" /> is the concrete service, which lets the base expose
+///     <see cref="Instance" />; <typeparamref name="T" /> is the model read from the store;
+///     <typeparamref name="TPayload" /> is the shape the interface reads. Register the payload in the
+///     app's serializer context, because the bridge serializes it through that context.
 /// </remarks>
 [PublicAPI]
-public abstract class SettingsServiceBase<T, TPayload> : IDisposable
+public abstract class SettingsServiceBase<TSelf, T, TPayload> : IDisposable
+    where TSelf : SettingsServiceBase<TSelf, T, TPayload>, new()
     where T : class
     where TPayload : class
 {
+    private static TSelf? _instance;
+
     private readonly Action<string, object?> _notify;
     private readonly ISettingsStore<T> _store;
 
@@ -29,11 +33,18 @@ public abstract class SettingsServiceBase<T, TPayload> : IDisposable
     /// </param>
     protected SettingsServiceBase(ISettingsStore<T> store, Action<string, object?>? notify = null)
     {
+        if (Interlocked.Exchange(ref _instance, (TSelf)this) is not null)
+            throw new InvalidOperationException(
+                $"{typeof(TSelf).Name} is a settings singleton; use {typeof(TSelf).Name}.Instance.");
+
         _store = store;
         _notify = notify ?? WebViewEvents.Notify;
         Current = store.Current;
         NativeBridge.MessageReceived += HandleMessageAsync;
     }
+
+    /// <summary>The process-wide service, created on first use.</summary>
+    public static TSelf Instance { get; } = new();
 
     /// <summary>The settings file this service reads and writes.</summary>
     public string FilePath => _store.FilePath;

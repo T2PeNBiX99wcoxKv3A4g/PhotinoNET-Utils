@@ -14,7 +14,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `Interop`                 | `ITrayIcon` / `TrayIconFactory` with Win32 and libayatana-appindicator implementations, plus the Win32 P/Invoke set                                                                                                                                                                                                                            |
 | `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build), window chrome (drag, resize, maximize, frameless title bar on both platforms) and `SystemLauncher` for handing a URL or folder to the system |
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                                                                                                                                                            |
-| `Services/SettingsStore` | `ISettingsStore<T>`, JSON/TOML stores and `SettingsServiceBase<T,TPayload>`: attribute comments, defaults, atomic writes and a one-time legacy move                                                                                                                                                                         |
+| `Services/SettingsStore` | `ISettingsStore<T>`, JSON/TOML stores and `SettingsServiceBase<TSelf,TPayload>`: attribute comments, defaults, atomic writes and a one-time legacy move                                                                                                                                                                          |
 | `Settings` / `Messaging`  | `[SettingsModel]` / `[Setting]` metadata and the `[NativeMessage]` dispatcher generator                                                                                                                                                                                                                                                       |
 | `CodeGen`                 | Small CLI that turns a `[SettingsModel]` file into a TypeScript interface and JSON schema                                                                                                                                                                                                                                                      |
 | `Services/StartupService` | Answers `app.startup` / `app.setStartup` and keeps the platform autostart entry in step                                                                                                                                                                                                                                                         |
@@ -411,15 +411,15 @@ var settings = await store.LoadAsync();
 await store.SaveAsync(settings);
 ```
 
-`SettingsServiceBase<T, TPayload>` answers `settings.get` / `settings.save` and raises `Changed`;
-the app only supplies the payload, its validation and its side effects:
+`SettingsServiceBase<TSelf, T, TPayload>` answers `settings.get` / `settings.save`, raises `Changed`
+and owns the process-wide `Instance`; the app only supplies the payload, its validation and its side
+effects:
 
 ```csharp
-internal sealed class SettingsService : SettingsServiceBase<MySettings, SettingsPayload>
+internal sealed class SettingsService
+    : SettingsServiceBase<SettingsService, MySettings, SettingsPayload>
 {
-    public static readonly SettingsService Instance = new();
-
-    private SettingsService() : base(store) { }
+    public SettingsService() : base(store) { }
 
     protected override SettingsPayload Payload() => ...;
     protected override MySettings Normalize(MySettings settings) => settings with { ... };
@@ -429,6 +429,10 @@ internal sealed class SettingsService : SettingsServiceBase<MySettings, Settings
 
 await SettingsService.Instance.LoadAsync();
 ```
+
+`Instance` is created on first use, like `Singleton<T>`. The constructor has to be public for the
+`new()` constraint, so the base also rejects a second instance: `new SettingsService()` throws and
+points at `Instance`.
 
 A missing or unreadable file returns the defaults; writes go through a temporary file and a move, so
 a crash midway cannot truncate the file. `legacyPath` is read once when the target does not exist
