@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.23.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.22.0..v0.23.0) - 2026-11-13
+
+### ⛰️  Features
+
+- Add a theme hook to the bridge - ([f1aac67](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/f1aac67b42c4d9d38cb1c4af79957ea18bef8d56))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([55c683d](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/55c683dfeae6d2384f588a84c545a82bed156171))
+
+
 ## [0.22.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.21.0..v0.22.0) - 2026-11-13
 
 ### ⛰️  Features
