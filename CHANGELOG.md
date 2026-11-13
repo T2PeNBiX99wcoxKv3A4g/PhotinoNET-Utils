@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.22.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.21.0..v0.22.0) - 2026-11-13
+
+### ⛰️  Features
+
+- Let apps augment the localization keys - ([5b1a97b](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/5b1a97b9a9c283338bd34a4d71937f37dda95a01))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([b2a0d06](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/b2a0d06c31ed421f4d64c5a2a57a1eabef4572f2))
+
+
 ## [0.21.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.20.2..v0.21.0) - 2026-11-13
 
 ### ⛰️  Features
