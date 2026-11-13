@@ -99,12 +99,19 @@ if (-not (Test-Path $generator)) { throw "Generator not found: $generator" }
 $generatorHash = (Get-FileHash $generator -Algorithm SHA256).Hash
 
 $codeGenProject = Join-Path $root 'PhotinoNETUtils.CodeGen\PhotinoNETUtils.CodeGen.csproj'
-$codeGenOut = Join-Path $root 'PhotinoNETUtils.CodeGen\bin\Release\net11.0\win-x64\publish'
-Write-Host 'Building the native TypeScript settings generator...' -ForegroundColor Cyan
-dotnet publish $codeGenProject -c Release -r win-x64 -o $codeGenOut --nologo
-if ($LASTEXITCODE -ne 0) { throw 'code generator publish failed' }
-$codeGenExe = Join-Path $codeGenOut 'PhotinoNETUtils.CodeGen.exe'
-if (-not (Test-Path $codeGenExe)) { throw "Code generator not found: $codeGenExe" }
+$codeGenRids = @('win-x64', 'linux-x64')
+Write-Host 'Building the TypeScript settings generator (win-x64, linux-x64)...' -ForegroundColor Cyan
+$codeGenBinaries = @{}
+
+foreach ($rid in $codeGenRids) {
+    $output = Join-Path $root "PhotinoNETUtils.CodeGen\bin\Release\$rid\publish"
+    dotnet publish $codeGenProject -c Release -r $rid -o $output --nologo
+    if ($LASTEXITCODE -ne 0) { throw "code generator publish failed ($rid)" }
+
+    $binary = Join-Path $output $(if ($rid -like 'win-*') { 'PhotinoNETUtils.CodeGen.exe' } else { 'PhotinoNETUtils.CodeGen' })
+    if (-not (Test-Path $binary)) { throw "Code generator not found: $binary" }
+    $codeGenBinaries[$rid] = $binary
+}
 
 $tgzName = "photino-net-utils-bridge-$npmVersion.tgz"
 $tgz = Join-Path $ui $tgzName
@@ -145,8 +152,11 @@ foreach ($target in $targets) {
 
     $targetCodeGen = Join-Path $libDirectory 'CodeGen'
     if (Test-Path $targetCodeGen) { Remove-Item -Recurse -Force $targetCodeGen }
-    New-Item -ItemType Directory -Path $targetCodeGen | Out-Null
-    Copy-Item $codeGenExe $targetCodeGen -Force
+    foreach ($rid in $codeGenRids) {
+        $ridDirectory = Join-Path $targetCodeGen $rid
+        New-Item -ItemType Directory -Path $ridDirectory -Force | Out-Null
+        Copy-Item $codeGenBinaries[$rid] $ridDirectory -Force
+    }
 
     Get-ChildItem $libDirectory -Filter 'photino-net-utils-bridge-*.tgz' -File |
         Where-Object Name -ne $tgzName |

@@ -543,11 +543,13 @@ They then generate `LocalizationKeys` in the project's root namespace, so a call
 ### TypeScript settings types
 
 A Roslyn source generator can only add C#, so the TypeScript side is a small CLI. It is published as
-native AOT, so an app gets one executable and no `.dll`, `.deps.json` or `.runtimeconfig.json`:
+one framework-dependent single-file executable per platform, so a Windows machine can cross-publish
+the Linux one; native AOT cannot cross-compile. The file only runs on a build machine, which always
+has the runtime:
 
 ```bash
 dotnet publish PhotinoNETUtils.CodeGen -c Release -r win-x64 -o out
-out/PhotinoNETUtils.CodeGen \
+out/PhotinoNETUtils.CodeGen.exe \
   --model ../AntiBot/AntiBot/Models/AppSettings.cs \
   --out ../AntiBot/AntiBot/UserInterface/src/api/settings.generated.ts \
   --schema ../AntiBot/AntiBot/UserInterface/src/api/settings.schema.json \
@@ -557,12 +559,12 @@ out/PhotinoNETUtils.CodeGen \
 
 It reads `[Setting]` properties and writes a `{Model}Generated` interface plus a JSON schema with the
 comments and numeric limits; with `--i18n` it also writes the `LocalizationKey` union of every
-translated key. `build-and-copy` publishes it to `Libs/CodeGen` as that single file; an app can run
-it from an MSBuild target:
+translated key. `build-and-copy` publishes `win-x64` and `linux-x64` and copies both to
+`Libs/CodeGen/<rid>/`; an app can run the one that matches its host from an MSBuild target:
 
 ```xml
 <PropertyGroup>
-    <SettingsCodeGenPath>$(MSBuildProjectDirectory)\Libs\CodeGen\PhotinoNETUtils.CodeGen</SettingsCodeGenPath>
+    <SettingsCodeGenPath>$(MSBuildProjectDirectory)\Libs\CodeGen\$(NETCoreSdkRuntimeIdentifier)\PhotinoNETUtils.CodeGen</SettingsCodeGenPath>
     <SettingsCodeGenPath Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(SettingsCodeGenPath).exe</SettingsCodeGenPath>
 </PropertyGroup>
 
