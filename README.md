@@ -411,6 +411,9 @@ var settings = await store.LoadAsync();
 await store.SaveAsync(settings);
 ```
 
+`[Setting("text")]` is shorthand for `[Setting(Comment = "text")]`. The generator and the TypeScript
+CLI both accept either spelling, and neither cares how the attribute is laid out.
+
 `SettingsServiceBase<TSelf, T, TPayload>` answers `settings.get` / `settings.save`, raises `Changed`
 and owns the process-wide `Instance`; the app only supplies the payload, its validation and its side
 effects:
@@ -563,9 +566,14 @@ out/PhotinoNETUtils.CodeGen.exe \
 
 It reads `[Setting]` properties and writes a `{Model}Generated` interface plus a JSON schema with the
 comments and numeric limits; with `--i18n` it also writes the `LocalizationKey` union of every
-translated key. `build-and-copy` publishes `win-x64` and `linux-x64` and copies both to
-`Libs/CodeGen/<rid>/`, so a fresh checkout has the executable for either build machine. An app runs
-the one that matches its host from an MSBuild target:
+translated key. The reader is a scanner rather than a set of patterns, so an attribute is found
+however it is written — one line or many, the namespace spelled out, `[Setting("text")]` instead of
+`[Setting(Comment = "text")]`, `[property: ...]` on a record parameter, or a string that contains
+`]`. A value it cannot evaluate, such as a `const` reference, is reported as a warning and the
+member name is used for the key; only two settings sharing one key stops the build. `build-and-copy`
+publishes `win-x64` and `linux-x64` and copies both to `Libs/CodeGen/<rid>/`, so a fresh checkout
+has the executable for either build machine. An app runs the one that matches its host from an
+MSBuild target:
 
 ```xml
 <PropertyGroup>

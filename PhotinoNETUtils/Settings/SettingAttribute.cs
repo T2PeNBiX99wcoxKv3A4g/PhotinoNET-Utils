@@ -18,6 +18,13 @@ public sealed class SettingsModelAttribute : Attribute;
 [PublicAPI]
 public sealed class SettingAttribute : Attribute
 {
+    public SettingAttribute()
+    {
+    }
+
+    /// <summary>Shorthand for <c>[Setting(Comment = "...")]</c>.</summary>
+    public SettingAttribute(string comment) => Comment = comment;
+
     /// <summary>The comment written above the property. The writer adds the <c>#</c>.</summary>
     public string? Comment { get; init; }
 

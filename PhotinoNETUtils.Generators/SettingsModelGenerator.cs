@@ -75,7 +75,7 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
             if (attribute is null)
                 continue;
 
-            var comment = NamedString(attribute, "Comment");
+            var comment = NamedString(attribute, "Comment") ?? PositionalString(attribute);
             var min = NamedDouble(attribute, "Min");
             var max = NamedDouble(attribute, "Max");
 
@@ -186,7 +186,7 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
         declarations.AppendLine("            return model with");
         declarations.AppendLine("            {");
         declarations.AppendLine(string.Join(",\n", assignable.Select(entry =>
-            $"                {entry.PropertyName} = global::System.Math.Clamp(model.{entry.PropertyName}, " +
+            $"                {Identifier(entry.PropertyName)} = global::System.Math.Clamp(model.{Identifier(entry.PropertyName)}, " +
             $"{Number(entry.Type, entry.Min ?? double.NegativeInfinity)}, " +
             $"{Number(entry.Type, entry.Max ?? double.PositiveInfinity)})")));
         declarations.AppendLine("            };");
@@ -224,8 +224,21 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
     private static string CamelCase(string name) =>
         char.ToLowerInvariant(name[0]) + name.Substring(1);
 
+    /// <summary>
+    ///     Escapes a member name that is a keyword, so a property named <c>@class</c> produces
+    ///     <c>model.@class</c> instead of code that does not compile.
+    /// </summary>
+    private static string Identifier(string name) =>
+        SyntaxFacts.GetKeywordKind(name) != SyntaxKind.None ? "@" + name : name;
+
     private static string? NamedString(AttributeData attribute, string name) =>
         attribute.NamedArguments.FirstOrDefault(item => item.Key == name).Value.Value as string;
+
+    /// <summary>The comment given without a name, as in <c>[Setting("text")]</c>.</summary>
+    private static string? PositionalString(AttributeData attribute) =>
+        attribute.ConstructorArguments.Length > 0 && attribute.ConstructorArguments[0].Value is string value
+            ? value
+            : null;
 
     private static int NamedInt(AttributeData attribute, string name) =>
         attribute.NamedArguments.FirstOrDefault(item => item.Key == name).Value.Value is int value ? value : 0;

@@ -10,6 +10,25 @@ namespace PhotinoNetUtils.CodeGen;
 /// </summary>
 internal static partial class Program
 {
+    private static readonly Dictionary<string, string> ClrNames = new(StringComparer.Ordinal)
+    {
+        ["Boolean"] = "bool",
+        ["Byte"] = "byte",
+        ["SByte"] = "sbyte",
+        ["Int16"] = "short",
+        ["UInt16"] = "ushort",
+        ["Int32"] = "int",
+        ["UInt32"] = "uint",
+        ["Int64"] = "long",
+        ["UInt64"] = "ulong",
+        ["Single"] = "float",
+        ["Double"] = "double",
+        ["Decimal"] = "decimal",
+        ["Char"] = "char",
+        ["String"] = "string",
+        ["Object"] = "object"
+    };
+
     private static int Main(string[] args)
     {
         var options = Parse(args);
@@ -25,14 +44,30 @@ internal static partial class Program
             }
 
             var text = File.ReadAllText(modelPath);
-            var modelName = ModelName(text) ?? Path.GetFileNameWithoutExtension(modelPath);
-            var properties = Properties(text);
+            var settings = SettingsSource.Read(text);
+
+            foreach (var warning in settings.Warnings)
+                Console.Error.WriteLine($"warning: {warning}");
+
+            // Two settings with one key would give the interface one property for two backend
+            // values, which is always a mistake in the model.
+            if (settings.Duplicates.Count > 0)
+            {
+                foreach (var duplicate in settings.Duplicates)
+                    Console.Error.WriteLine($"Duplicate setting key {duplicate}; rename one of them.");
+
+                return 1;
+            }
+
+            var properties = settings.Properties;
 
             if (properties.Count == 0)
             {
                 Console.Error.WriteLine($"No [Setting] properties found in {modelPath}");
                 return 1;
             }
+
+            var modelName = settings.ModelName ?? Path.GetFileNameWithoutExtension(modelPath);
 
             WriteFile(outputPath, TypeScript(modelName, properties));
             Console.WriteLine($"{outputPath}: {properties.Count} setting(s)");
@@ -136,49 +171,6 @@ internal static partial class Program
         }
 
         return new(model, output, schema, i18n, i18nOutput);
-    }
-
-    private static string? ModelName(string text) =>
-        ModelPattern().Match(text)
-            .Groups["name"].Value is { Length: > 0 } name
-            ? name
-            : null;
-
-    private static List<SettingProperty> Properties(string text)
-    {
-        var properties = new List<SettingProperty>();
-
-        Add(properties, PropertyPattern(), text);
-        // A positional record declares its settings as constructor parameters, which have no
-        // `{ get; }`; the attribute above the parameter (usually `[property: Setting(...)]`) is
-        // the only marker.
-        Add(properties, ParameterPattern(), text);
-
-        return properties;
-    }
-
-    /// <summary>Reads the <c>[Setting]</c> block above each declaration one pattern matched.</summary>
-    private static void Add(List<SettingProperty> properties, Regex pattern, string text)
-    {
-        foreach (Match match in pattern.Matches(text))
-        {
-            var setting = SettingPattern().Match(match.Groups["attrs"].Value);
-            if (!setting.Success)
-                continue;
-
-            var args = setting.Groups["args"].Value;
-            var key = AttributeString(args, "Key") ?? CamelCase(match.Groups["name"].Value);
-
-            if (properties.Any(property => property.Key == key))
-                continue;
-
-            properties.Add(new(
-                key,
-                match.Groups["type"].Value.Trim(),
-                AttributeString(args, "Comment"),
-                AttributeNumber(args, "Min"),
-                AttributeNumber(args, "Max")));
-        }
     }
 
     private static string TypeScript(string modelName, List<SettingProperty> properties)
@@ -389,6 +381,8 @@ internal static partial class Program
 
     private static string MapType(string type)
     {
+        type = Clr(type);
+
         switch (type)
         {
             case "string":
@@ -448,6 +442,8 @@ internal static partial class Program
 
     private static Dictionary<string, object?> JsonTypeCore(string type)
     {
+        type = Clr(type);
+
         switch (type)
         {
             case "string":
@@ -545,6 +541,27 @@ internal static partial class Program
         };
     }
 
+    /// <summary>
+    ///     Removes a namespace and turns a CLR name into its keyword, so <c>System.Int32</c> and
+    ///     <c>global::System.Collections.Generic.List&lt;string&gt;</c> map like <c>int</c> and
+    ///     <c>List&lt;string&gt;</c>.
+    /// </summary>
+    private static string Clr(string type)
+    {
+        var value = type.Replace("global::", "").Trim();
+        var generic = value.IndexOf('<');
+        var head = generic < 0 ? value : value[..generic];
+        var dot = head.LastIndexOf('.');
+
+        if (dot >= 0)
+            value = value[(dot + 1)..];
+
+        var open = value.IndexOf('<');
+        var name = open < 0 ? value : value[..open];
+
+        return ClrNames.TryGetValue(name, out var alias) ? alias + value[name.Length..] : value;
+    }
+
     private static List<string> SplitTopLevel(string value)
     {
         var parts = new List<string>();
@@ -570,60 +587,6 @@ internal static partial class Program
         return parts;
     }
 
-    private static string? AttributeString(string args, string name)
-    {
-        var match = name switch
-        {
-            "Comment" => CommentPattern().Match(args),
-            "Key" => KeyPattern().Match(args),
-            _ => null
-        };
-
-        return match is { Success: true } ? Regex.Unescape(match.Groups["value"].Value) : null;
-    }
-
-    private static double? AttributeNumber(string args, string name)
-    {
-        var match = name switch
-        {
-            "Min" => MinPattern().Match(args),
-            "Max" => MaxPattern().Match(args),
-            _ => null
-        };
-
-        return match is { Success: true }
-            ? double.Parse(match.Groups["value"].Value, CultureInfo.InvariantCulture)
-            : null;
-    }
-
-    [GeneratedRegex(@"\[SettingsModel\][\s\S]*?\b(?:record|class|struct)\s+(?<name>\w+)")]
-    private static partial Regex ModelPattern();
-
-    [GeneratedRegex(
-        @"(?<attrs>(?:^[ \t]*\[[^\]]*\][ \t]*\r?\n)+)[ \t]*public\s+(?!static\b)(?<type>[^\r\n{]+?)\s+(?<name>\w+)\s*\{\s*get;",
-        RegexOptions.Multiline)]
-    private static partial Regex PropertyPattern();
-
-    [GeneratedRegex(@"\[(?:property\s*:\s*)?Setting\((?<args>[\s\S]*?)\)\]")]
-    private static partial Regex SettingPattern();
-
-    [GeneratedRegex(
-        @"(?<attrs>(?:^[ \t]*\[[^\]]*\][ \t]*\r?\n)+)[ \t]*(?<type>[\w<>,\[\]\?\. ]+?)[ \t]+(?<name>\w+)[ \t]*=[^,\r\n]*[,)]",
-        RegexOptions.Multiline)]
-    private static partial Regex ParameterPattern();
-
-    [GeneratedRegex("Comment\\s*=\\s*\"(?<value>(?:\\\\.|[^\"\\\\])*)\"")]
-    private static partial Regex CommentPattern();
-
-    [GeneratedRegex("Key\\s*=\\s*\"(?<value>(?:\\\\.|[^\"\\\\])*)\"")]
-    private static partial Regex KeyPattern();
-
-    [GeneratedRegex(@"Min\s*=\s*(?<value>-?\d+(?:\.\d+)?)")]
-    private static partial Regex MinPattern();
-
-    [GeneratedRegex(@"Max\s*=\s*(?<value>-?\d+(?:\.\d+)?)")]
-    private static partial Regex MaxPattern();
-
     [GeneratedRegex(@"^(?<outer>[\w.]+)\s*<\s*(?<inner>[\s\S]+)\s*>$")]
     private static partial Regex GenericPattern();
 
@@ -632,9 +595,6 @@ internal static partial class Program
 
     [GeneratedRegex("^[ \t]*\"(?<key>(?:\\\\.|[^\"\\\\])*)\"[ \t]*:", RegexOptions.Multiline)]
     private static partial Regex KeyLinePattern();
-
-    private static string CamelCase(string name) =>
-        char.ToLowerInvariant(name[0]) + name[1..];
 
     private static void WriteFile(string path, string content)
     {
@@ -651,6 +611,4 @@ internal static partial class Program
         string? Schema,
         string? I18n,
         string? I18nOutput);
-
-    private sealed record SettingProperty(string Key, string Type, string? Comment, double? Min, double? Max);
 }
