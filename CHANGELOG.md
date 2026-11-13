@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.27.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.26.1..v0.27.0) - 2026-11-13
+
+### ⛰️  Features
+
+- Pass arguments through the login entry and forward empty launches - ([54d9580](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/54d9580d70409dff6cda721beb52c16f7595ca99))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([6ba0b8f](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/6ba0b8f198e010cffdfb3726e1c03127485aafa0))
+
+
 ## [0.26.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.26.0..v0.26.1) - 2026-11-13
 
 ### 🐛 Bug Fixes
