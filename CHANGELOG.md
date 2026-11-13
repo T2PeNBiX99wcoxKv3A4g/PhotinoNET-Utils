@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.24.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.23.0..v0.24.0) - 2026-11-13
+
+### ⛰️  Features
+
+- *(codegen)* Read settings from the compiled assembly - ([721ac8b](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/721ac8b23230bbb6bd924758390fc5daf69dcf30))
+- *(codegen)* Resolve constants and verify the settings reader - ([45ff9f2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/45ff9f24ca87f8ffb2e5f9db4953799a64956732))
+- *(codegen)* Read [Setting] attributes however they are written - ([4423c08](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/4423c0832441c8236fe0ae057246291ba40cabe7))
+- *(localization)* Require path-shaped keys - ([0d2a8c7](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/0d2a8c74e79baa80664b3ae34da5345c7806b159))
+
+### 🐛 Bug Fixes
+
+- *(codegen)* Keep nullable reference types - ([3c68401](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/3c68401fffd88ea54b97919463e795733c2b00f8))
+
+### 🚜 Refactor
+
+- *(codegen)* Read the settings model only from the assembly - ([d45f843](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/d45f843c76768ad36993d61faca986d3e5cb3cd3))
+- Use collection expressions in generators - ([1c4f4d0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/1c4f4d0e9d65f3d73a6024ee4131a20b2727e310))
+
+### 📚 Documentation
+
+- Show the assembly-based settings targets - ([e11e3ba](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/e11e3baacf5ec6554bc243f97f2118d682ee0a33))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([2d35c8f](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/2d35c8f7b49263793fa671a56decd4e8f0a8342c))
+
+
 ## [0.23.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.22.0..v0.23.0) - 2026-11-13
 
 ### ⛰️  Features
