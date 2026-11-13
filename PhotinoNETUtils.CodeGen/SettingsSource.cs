@@ -15,16 +15,18 @@ namespace PhotinoNetUtils.CodeGen;
 /// </remarks>
 internal static class SettingsSource
 {
-    private static readonly HashSet<string> Modifiers = new(StringComparer.Ordinal)
-    {
+    private static readonly HashSet<string> Modifiers =
+    [
+        with(StringComparer.Ordinal),
         "public", "private", "protected", "internal", "static", "readonly", "required", "new",
         "virtual", "override", "abstract", "sealed", "unsafe", "extern", "partial", "const", "file"
-    };
+    ];
 
-    private static readonly HashSet<string> Targets = new(StringComparer.Ordinal)
-    {
+    private static readonly HashSet<string> Targets =
+    [
+        with(StringComparer.Ordinal),
         "assembly", "event", "field", "method", "module", "param", "property", "return", "type"
-    };
+    ];
 
     public static SettingsFile Read(string text)
     {

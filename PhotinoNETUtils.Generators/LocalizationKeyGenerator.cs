@@ -90,7 +90,7 @@ internal static class LocalizationKeys
         path.EndsWith(".jsonc", StringComparison.OrdinalIgnoreCase);
 
     public static IEnumerable<string> Read(string? text) =>
-        text is null ? Enumerable.Empty<string>() : FromText(text);
+        text is null ? [] : FromText(text);
 
     public static IEnumerable<string> FromText(string text) =>
         Entries(text).Select(entry => entry.Key);

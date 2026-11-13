@@ -96,7 +96,7 @@ public sealed class SettingsModelGenerator : IIncrementalGenerator
             diagnostics.Add(Diagnostic.Create(DuplicateKey, symbol.Locations.FirstOrDefault(), symbol.Name,
                 duplicate.Key));
 
-        return new(symbol, entries.OrderBy(entry => entry.Order).ToArray(), diagnostics);
+        return new(symbol, [.. entries.OrderBy(entry => entry.Order)], diagnostics);
     }
 
     private static void Emit(SourceProductionContext context, ModelInfo model)

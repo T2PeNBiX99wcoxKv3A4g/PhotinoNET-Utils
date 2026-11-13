@@ -76,5 +76,5 @@ public sealed class SettingsPayloadAnalyzer : DiagnosticAnalyzer
     }
 
     private static string Normalize(string name) =>
-        new(name.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+        new([.. name.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant)]);
 }

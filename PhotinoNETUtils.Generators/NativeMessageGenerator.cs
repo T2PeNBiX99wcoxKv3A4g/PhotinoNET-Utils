@@ -150,7 +150,7 @@ public sealed class NativeMessageGenerator : IIncrementalGenerator
                 continue;
             }
 
-            var source = BuildSource(type, group.ToArray());
+            var source = BuildSource(type, [.. group]);
             context.AddSource($"{type.ToDisplayString().Replace('.', '_')}.NativeMessages.g.cs",
                 SourceText.From(source, Encoding.UTF8));
         }
