@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.25.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.24.0..v0.25.0) - 2026-11-13
+
+### ⛰️  Features
+
+- *(localization)* Report keys that fall back - ([1d28822](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/1d2882253896a73d046bd2a63437a0ecbe9f6e91))
+- *(localization)* Reject invalid keys at startup - ([f5679ce](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/f5679cebe1b7ffe0e4969a1f159d45a3cc828198))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([8d9cb69](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/8d9cb693ef75cc0de92a6d8de307ab07be2b9b19))
+
+
 ## [0.24.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.23.0..v0.24.0) - 2026-11-13
 
 ### ⛰️  Features
