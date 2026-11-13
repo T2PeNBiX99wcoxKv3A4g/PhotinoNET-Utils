@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.20.2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.20.1..v0.20.2) - 2026-11-13
+
+### 🚜 Refactor
+
+- Use collection expression in SingletonRegistry - ([83eb786](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/83eb7867541b481e10205b9d19a4bf073a267350))
+
+### ⚡ Performance
+
+- Reduce shutdown delay in UpdateService - ([1c6516f](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/1c6516f8fdd2d4e1719a44614e313bce0f95d919))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([7e45a30](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/7e45a30262919159835d54e444341de7f59875de))
+
+
 ## [0.20.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.20.0..v0.20.1) - 2026-11-13
 
 ### 🚜 Refactor
