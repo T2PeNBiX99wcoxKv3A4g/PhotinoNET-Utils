@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using PhotinoNetUtils.Extensions;
 using PhotinoNetUtils.Messaging;
@@ -28,15 +29,20 @@ public sealed record LocalePayload(string Locale, Dictionary<string, string> Str
 ///         anything asks for a string.
 ///     </para>
 ///     <para>
-///         Keys are case-insensitive: <c>Localization.Get("Tray.Open")</c> returns the text of
+///         Keys are case-insensitive: <c>Localization.Get("TRAY.OPEN")</c> returns the text of
 ///         <c>"tray.open"</c>. That also means one file must not declare the same key twice with a
 ///         different spelling; the build reports that as <c>PNU2102</c> and keeps the first entry at
 ///         run time. Fix a duplicate by renaming or removing the key in the <c>.jsonc</c> file, never
 ///         by removing the build check.
 ///     </para>
+///     <para>
+///         A key is a lowercase path such as <c>ui.section.open_key</c>. A file that breaks that shape
+///         stops <see cref="Initialize" />, so an app that built with the analyzer disabled still
+///         cannot ship a sentence as a key.
+///     </para>
 /// </remarks>
 [PublicAPI]
-public static class Localization
+public static partial class Localization
 {
     public const string DefaultLocale = "en";
 
@@ -111,6 +117,11 @@ public static class Localization
         _defaultLocale = string.IsNullOrWhiteSpace(defaultLocale) ? DefaultLocale : defaultLocale;
         AvailableLocales = DiscoverLocales();
 
+        // Validate every shipped file now, so a key that skipped the analyzer stops the app at
+        // startup instead of quietly showing the key itself.
+        foreach (var locale in AvailableLocales)
+            _ = ReadFile(locale);
+
         if (_listening)
             return;
 
@@ -171,23 +182,45 @@ public static class Localization
         if (stream is null)
             return new(KeyComparer);
 
-        var loaded = Try.Run(() => JsonSerializer.Deserialize(stream, NativeJson.TypeInfo<Dictionary<string, string>>())
-                                   ?? new Dictionary<string, string>())
-            .GetOrElse(ex =>
+        var table = new Dictionary<string, string>(KeyComparer);
+
+        try
+        {
+            using var document = JsonDocument.Parse(stream, new JsonDocumentOptions
             {
-                Log.Warning(ex, "Failed to read the translation file for {Locale}", locale);
-                return new();
+                CommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
             });
 
-        // Re-key with the shared comparer so lookups ignore case. A file with two spellings of one
-        // key is a build error (PNU2102); keeping the first entry here only prevents a crash in a
-        // build that skipped the analyzer.
-        var table = new Dictionary<string, string>(KeyComparer);
-        foreach (var pair in loaded)
-            table.TryAdd(pair.Key, pair.Value);
+            foreach (var property in document.RootElement.EnumerateObject())
+            {
+                // The analyzer and the TypeScript generator already refuse this file; checking here
+                // too means a build that disabled them still cannot show a sentence as a key.
+                if (!KeyShape().IsMatch(property.Name))
+                    throw new InvalidOperationException(
+                        $"Invalid localization key '{property.Name}' in {locale}.jsonc; use lowercase " +
+                        "letters, digits, '_' and '.', for example ui.section.open_key.");
+
+                // Re-key with the shared comparer so lookups ignore case. A file with two spellings
+                // of one key is a build error (PNU2102); keeping the first entry only prevents a
+                // crash in a build that skipped the analyzer.
+                table.TryAdd(property.Name, property.Value.ValueKind == JsonValueKind.String
+                    ? property.Value.GetString() ?? ""
+                    : property.Value.GetRawText());
+            }
+        }
+        catch (JsonException ex)
+        {
+            Log.Warning(ex, "Failed to read the translation file for {Locale}", locale);
+            return new(KeyComparer);
+        }
 
         return table;
     }
+
+    /// <summary>The only accepted key shape; PNU2103 and the TypeScript generator share it.</summary>
+    [GeneratedRegex(@"^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*$")]
+    private static partial Regex KeyShape();
 
     private static IEnumerable<string> FallbackChain(string locale)
     {
