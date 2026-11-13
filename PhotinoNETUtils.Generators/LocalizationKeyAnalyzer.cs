@@ -47,7 +47,21 @@ public sealed class LocalizationKeyAnalyzer : DiagnosticAnalyzer
         true,
         customTags: WellKnownDiagnosticTags.CompilationEnd);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [UnknownKey, DuplicateKey];
+    // A key is a path, not text: lowercase letters, digits, '_' and '.', as in ui.section.open_key.
+    // Sentences were allowed once and every call site became a copy of the sentence; an error here
+    // keeps the file a key list instead of a second translation.
+    private static readonly DiagnosticDescriptor InvalidKey = new(
+        "PNU2103",
+        "Localization key does not follow the format",
+        "'{0}' is not a valid localization key; use lowercase letters, digits, '_' and '.', " +
+        "for example ui.section.open_key",
+        "PhotinoNetUtils.Localization",
+        DiagnosticSeverity.Error,
+        true,
+        customTags: WellKnownDiagnosticTags.CompilationEnd);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        [UnknownKey, DuplicateKey, InvalidKey];
 
     public override void Initialize(AnalysisContext context)
     {
@@ -82,7 +96,28 @@ public sealed class LocalizationKeyAnalyzer : DiagnosticAnalyzer
 
         foreach (var file in context.Options.AdditionalFiles.Where(file =>
                      LocalizationKeys.IsTranslationFile(file.Path)))
+        {
             ReportDuplicates(context, file);
+            ReportInvalid(context, file);
+        }
+    }
+
+    /// <summary>PNU2103: every key is a lowercase path such as <c>ui.section.open_key</c>.</summary>
+    private static void ReportInvalid(CompilationAnalysisContext context, AdditionalText file)
+    {
+        var text = file.GetText(context.CancellationToken);
+        if (text is null)
+            return;
+
+        foreach (var (key, span) in LocalizationKeys.Entries(text.ToString()))
+        {
+            if (LocalizationKeys.IsValid(key))
+                continue;
+
+            var lineSpan = text.Lines.GetLinePositionSpan(span);
+            context.ReportDiagnostic(Diagnostic.Create(InvalidKey,
+                Location.Create(file.Path, span, lineSpan), key));
+        }
     }
 
     private static void ReportDuplicates(CompilationAnalysisContext context, AdditionalText file)

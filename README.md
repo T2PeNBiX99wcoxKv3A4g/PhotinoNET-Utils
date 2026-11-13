@@ -628,6 +628,19 @@ Keys are case-insensitive everywhere: `Localization.Get("TRAY.OPEN")`, the gener
 in different spellings; `PNU2102` fails the build, and the loader keeps the first entry. Fix that by
 renaming or removing the key in the `.jsonc` file, not by disabling the check.
 
+A key is a path, not a sentence: lowercase letters, digits and `_`, joined by `.`, as in
+`ui.section.open_key`. A text that reads like a translation (`"Account created today"`) is an error
+(`PNU2103`), because every call site would become a copy of the sentence and a reword would touch
+the code. The C# side turns the path into nested classes and the `_` into a capital:
+
+```csharp
+Localization.Get("ui.section.open_key");     // the runtime string
+LocalizationKeys.Ui.Section.OpenKey          // the same key, checked by the compiler
+```
+
+`ui.section.open_key` becomes `LocalizationKeys.Ui.Section.OpenKey`, so a segment groups its keys
+instead of repeating a prefix in every name. The front end is untouched: it keeps the literal key.
+
 ### Front-end bridge
 
 ```ts

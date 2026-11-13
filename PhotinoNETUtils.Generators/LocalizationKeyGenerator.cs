@@ -34,10 +34,13 @@ public sealed class LocalizationKeyGenerator : IIncrementalGenerator
     {
         // Keys are case-insensitive, so "tray.open" and "Tray.Open" are the same key. PNU2102
         // rejects that in the .jsonc file; here the first spelling simply wins, so the generated
-        // constants stay valid while the error is being fixed.
+        // constants stay valid while the error is being fixed. A key that does not follow the
+        // format is reported by PNU2103 and would not produce a usable identifier, so it is left
+        // out here.
         var keys = files
             .SelectMany(file => file)
             .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(LocalizationKeys.IsValid)
             .OrderBy(key => key, StringComparer.OrdinalIgnoreCase)
             .ThenBy(key => key, StringComparer.Ordinal)
             .ToArray();
@@ -62,10 +65,7 @@ public sealed class LocalizationKeyGenerator : IIncrementalGenerator
             $"{indent}/// <summary>Every key shipped in the embedded translation files; keys are case-insensitive.</summary>");
         builder.AppendLine($"{indent}internal static class LocalizationKeys");
         builder.AppendLine($"{indent}{{");
-
-        foreach (var (name, key) in LocalizationKeys.Identify(keys))
-            builder.AppendLine($"{indent}    public const string {name} = {Literal(key)};");
-
+        EmitScope(builder, LocalizationKeys.Tree(keys), indent + "    ");
         builder.AppendLine($"{indent}}}");
 
         if (rootNamespace.Length > 0)
@@ -73,6 +73,45 @@ public sealed class LocalizationKeyGenerator : IIncrementalGenerator
 
         context.AddSource("LocalizationKeys.g.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
     }
+
+    /// <summary>
+    ///     Writes one level of the key tree: a nested class per dot segment, a constant per leaf.
+    ///     <c>ui.somepath.open_key</c> becomes <c>Ui.Somepath.OpenKey</c>.
+    /// </summary>
+    private static void EmitScope(StringBuilder builder, LocalizationKeys.Node node, string indent)
+    {
+        var used = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var pair in node.Segments.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+        {
+            var name = Identifier(Unique(LocalizationKeys.Pascal(pair.Key), used));
+            builder.AppendLine($"{indent}internal static class {name}");
+            builder.AppendLine($"{indent}{{");
+            EmitScope(builder, pair.Value, indent + "    ");
+            builder.AppendLine($"{indent}}}");
+        }
+
+        foreach (var pair in node.Leaves.OrderBy(pair => pair.Value, StringComparer.Ordinal))
+        {
+            var name = Identifier(Unique(LocalizationKeys.Pascal(pair.Key), used));
+            builder.AppendLine($"{indent}public const string {name} = {Literal(pair.Value)};");
+        }
+    }
+
+    private static string Unique(string name, HashSet<string> used)
+    {
+        var candidate = name;
+        var suffix = 2;
+
+        while (!used.Add(candidate))
+            candidate = name + suffix++;
+
+        return candidate;
+    }
+
+    /// <summary>A member name cannot be a keyword, or the generated file would not compile.</summary>
+    private static string Identifier(string name) =>
+        SyntaxFacts.GetKeywordKind(name) != SyntaxKind.None ? "@" + name : name;
 
     private static string Literal(string value) =>
         SymbolDisplay.FormatLiteral(value, true);
@@ -108,41 +147,59 @@ internal static class LocalizationKeys
         }
     }
 
-    /// <summary>Turns keys into unique PascalCase constants.</summary>
-    public static IEnumerable<(string Name, string Key)> Identify(IEnumerable<string> keys)
+    /// <summary>
+    ///     The only accepted shape: lowercase letters, digits and <c>_</c>, joined by dots, as in
+    ///     <c>ui.section.open_key</c>. A free-form sentence is an error (PNU2103).
+    /// </summary>
+    private static readonly Regex Shape = new(
+        @"^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*$",
+        RegexOptions.Compiled);
+
+    public static bool IsValid(string key) => Shape.IsMatch(key);
+
+    /// <summary>A level of the key tree: dot segments become nested classes, the last one a constant.</summary>
+    public sealed class Node
     {
-        var used = new HashSet<string>(StringComparer.Ordinal);
+        public Dictionary<string, Node> Segments { get; } = new(StringComparer.Ordinal);
+        public Dictionary<string, string> Leaves { get; } = new(StringComparer.Ordinal);
+    }
+
+    public static Node Tree(IEnumerable<string> keys)
+    {
+        var root = new Node();
 
         foreach (var key in keys)
         {
-            var name = Identifier(key);
-            var candidate = name;
-            var suffix = 2;
+            var segments = key.Split('.');
+            var node = root;
 
-            while (!used.Add(candidate))
-                candidate = name + suffix++;
+            for (var i = 0; i < segments.Length - 1; i++)
+            {
+                if (!node.Segments.TryGetValue(segments[i], out var child))
+                    node.Segments[segments[i]] = child = new Node();
 
-            yield return (candidate, key);
+                node = child;
+            }
+
+            node.Leaves[segments[segments.Length - 1]] = key;
         }
+
+        return root;
     }
 
-    private static string Identifier(string key)
+    /// <summary><c>open_key</c> becomes <c>OpenKey</c>; <c>ui</c> becomes <c>Ui</c>.</summary>
+    public static string Pascal(string segment)
     {
-        var builder = new StringBuilder();
-        var upper = true;
+        var builder = new StringBuilder(segment.Length);
 
-        foreach (var character in key)
-            if (char.IsLetterOrDigit(character))
-            {
-                builder.Append(upper ? char.ToUpperInvariant(character) : character);
-                upper = false;
-            }
-            else
-                upper = true;
+        foreach (var part in segment.Split(new[] { '_' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            builder.Append(char.ToUpperInvariant(part[0]));
 
-        if (builder.Length == 0)
-            return "Key";
+            if (part.Length > 1)
+                builder.Append(part.Substring(1));
+        }
 
-        return char.IsDigit(builder[0]) ? "_" + builder : builder.ToString();
+        return builder.Length == 0 ? "Key" : builder.ToString();
     }
 }

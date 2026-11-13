@@ -87,6 +87,19 @@ internal static partial class Program
                 return 1;
             }
 
+            // A key is a path, not text. The same rule lives in PNU2103 for the C# build, so the
+            // UI build cannot accept a file the app would reject.
+            var invalid = KeyLines(text).Where(item => !ShapePattern().IsMatch(item.Key)).ToArray();
+
+            if (invalid.Length > 0)
+            {
+                foreach (var (key, line) in invalid)
+                    Console.Error.WriteLine($"Invalid localization key '{key}' on line {line}; use lowercase " +
+                                            "letters, digits, '_' and '.', for example ui.section.open_key.");
+
+                return 1;
+            }
+
             WriteFile(keysPath, KeysTypeScript(Path.GetFileName(i18nPath), keys));
             Console.WriteLine($"{keysPath}: {keys.Count} key(s)");
         }
@@ -334,18 +347,17 @@ internal static partial class Program
 
     private static List<string> Keys(string text) =>
     [
-        .. KeyLinePattern().Matches(text)
-            .Select(match => Regex.Unescape(match.Groups["key"].Value))
+        .. KeyLines(text)
+            .Select(item => item.Key)
             .Where(key => key.Length > 0)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(key => key, StringComparer.OrdinalIgnoreCase)
             .ThenBy(key => key, StringComparer.Ordinal)
     ];
 
-    /// <summary>Returns a description of the first key declared twice, ignoring case, or null.</summary>
-    private static string? DuplicateKey(string text)
+    /// <summary>Every key line with its 1-based line number.</summary>
+    private static IEnumerable<(string Key, int Line)> KeyLines(string text)
     {
-        var seen = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var line = 1;
         var previous = 0;
 
@@ -357,7 +369,17 @@ internal static partial class Program
 
             previous = match.Index;
 
-            var key = Regex.Unescape(match.Groups["key"].Value);
+            yield return (Regex.Unescape(match.Groups["key"].Value), line);
+        }
+    }
+
+    /// <summary>Returns a description of the first key declared twice, ignoring case, or null.</summary>
+    private static string? DuplicateKey(string text)
+    {
+        var seen = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var (key, line) in KeyLines(text))
+        {
             if (key.Length == 0)
                 continue;
 
@@ -614,6 +636,9 @@ internal static partial class Program
 
     [GeneratedRegex("^[ \t]*\"(?<key>(?:\\\\.|[^\"\\\\])*)\"[ \t]*:", RegexOptions.Multiline)]
     private static partial Regex KeyLinePattern();
+
+    [GeneratedRegex(@"^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*$")]
+    private static partial Regex ShapePattern();
 
     private static void WriteFile(string path, string content)
     {
