@@ -42,6 +42,36 @@ public static partial class PathGlob
                    || basePath.StartsWith(WithSeparator(target), comparison));
     }
 
+    /// <summary>
+    ///     Whether a change made <em>inside</em> a folder touches the rule. The rule's own folder is
+    ///     always covered, and a rule with a <c>**</c> covers every folder below its base. A rule
+    ///     such as <c>%USERPROFILE%\*</c> only names the entries of the profile itself, so writing
+    ///     into one of those entries (a child folder) is not a protected change.
+    /// </summary>
+    public static bool CoversContents(string directory, string pattern)
+    {
+        var target = Normalize(directory);
+        if (target.Length == 0)
+            return false;
+
+        var (glob, basePath) = ParseRule(pattern);
+        if (glob.Length == 0 || basePath.Length == 0)
+            return false;
+
+        var comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+
+        if (basePath.Equals(target, comparison))
+            return true;
+
+        // Only the "*" inside a segment is non-recursive; a "**" segment reaches the whole subtree.
+        var recursive = glob.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries)
+            .Any(segment => segment == "**");
+
+        return recursive && target.StartsWith(WithSeparator(basePath), comparison);
+    }
+
     /// <summary>Expands environment variables and "~", then makes the path absolute and canonical.</summary>
     public static string Normalize(string path)
     {
