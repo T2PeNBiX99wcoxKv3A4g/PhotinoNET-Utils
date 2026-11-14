@@ -39,17 +39,23 @@ public static class StartMenuShortcut
         Try.Run(() =>
         {
             var link = ShortcutPath(windowTitle);
+            var exists = File.Exists(link);
 
-            var current = File.Exists(link) ? WindowsShortcut.ReadTarget(link) : null;
+            var current = exists ? WindowsShortcut.ReadTarget(link) : null;
+            var appUserModelId = exists ? WindowsShortcut.ReadAppUserModelId(link) : null;
 
-            if (current is not null && current.Equals(executablePath, StringComparison.OrdinalIgnoreCase))
+            // The AppUserModelID is checked as well as the target: a shortcut written by an older
+            // build could still point at the right executable and carry no id, which leaves the
+            // toast API unable to attribute a notification to the app.
+            if (current is not null && current.Equals(executablePath, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(appUserModelId, windowTitle, StringComparison.Ordinal))
                 return;
 
-            Log.Information("Repointing the Start Menu shortcut from {Old} to {New}",
-                current ?? "(missing)", executablePath);
+            Log.Information("Repointing the Start Menu shortcut from {Old} ({OldId}) to {New} ({NewId})",
+                current ?? "(missing)", appUserModelId ?? "(no AppUserModelID)", executablePath, windowTitle);
 
             WindowsShortcut.Create(link, executablePath, "", Path.GetDirectoryName(executablePath) ?? "",
-                windowTitle);
+                windowTitle, windowTitle);
         }).OnFailure(ex => Log.Warning(ex, "Failed to refresh the Start Menu shortcut for {Title}", windowTitle));
     }
 
