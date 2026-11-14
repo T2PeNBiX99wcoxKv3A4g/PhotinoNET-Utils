@@ -73,7 +73,7 @@ public static class NotificationService
         }
 
         foreach (var notification in queued)
-            Send(window, notification.Title, notification.Message);
+            Send(window, notification.Title, notification.Message, notification.Action);
     }
 
     /// <summary>Stops delivering; notifications raised after this, or still waiting, are dropped.</summary>
@@ -87,10 +87,20 @@ public static class NotificationService
     }
 
     /// <summary>
+    ///     Raised when a shown notification is clicked. The argument is the action it was created
+    ///     with, so an app can open the page it belongs to. Windows only: Photino's own notification
+    ///     call reports no click, and this service falls back to it when the Windows API is not
+    ///     available.
+    /// </summary>
+    public static event Action<string>? Activated;
+
+    /// <summary>
     ///     Shows a notification, unless the same <paramref name="key" /> was shown within
     ///     <see cref="Debounce" />. Before <see cref="Attach" /> the newest message per key waits.
+    ///     <paramref name="action" /> is handed back through <see cref="Activated" /> when the toast
+    ///     is clicked.
     /// </summary>
-    public static void Notify(string key, string title, string message)
+    public static void Notify(string key, string title, string message, string? action = null)
     {
         var now = Environment.TickCount64;
         PhotinoWindow? target = null;
@@ -109,23 +119,45 @@ public static class NotificationService
                 target = window;
             else
             {
-                Pending[key] = new(title, message);
+                Pending[key] = new(title, message, action);
                 TrimPending();
                 queued = true;
             }
         }
 
         if (!queued)
-            Send(target!, title, message);
+            Send(target!, title, message, action);
     }
 
     /// <summary>Shows a notification keyed by its own title and message, so repeats are still debounced.</summary>
-    public static void Notify(string title, string message) =>
-        Notify($"{title}\u0000{message}", title, message);
+    public static void Notify(string title, string message, string? action = null) =>
+        Notify($"{title}\u0000{message}", title, message, action);
 
-    private static void Send(PhotinoWindow window, string title, string message) =>
+    private static void Send(PhotinoWindow window, string title, string message, string? action)
+    {
+        if (OperatingSystem.IsWindows() &&
+            WindowsToast.TryShow(RegistrationId(window), title, message, action, Clicked))
+            return;
+
         Try.Run(() => window.SendNotification(title, message))
             .OnFailure(ex => Log.Warning(ex, "Could not show a notification"));
+    }
+
+    /// <summary>The app id Windows attributes a toast to; Photino uses the title unless told otherwise.</summary>
+    private static string RegistrationId(PhotinoWindow window) =>
+        window.NotificationRegistrationId is { Length: > 0 } id ? id : window.Title;
+
+    private static void Clicked(string action)
+    {
+        try
+        {
+            Activated?.Invoke(action);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "A notification click handler failed");
+        }
+    }
 
     /// <summary>Drops keys that are older than the debounce window once the table grows large.</summary>
     private static void Prune(long now)
@@ -145,5 +177,5 @@ public static class NotificationService
             Pending.Remove(Pending.Keys.First());
     }
 
-    private readonly record struct PendingNotification(string Title, string Message);
+    private readonly record struct PendingNotification(string Title, string Message, string? Action);
 }

@@ -17,6 +17,27 @@
         <PackageTags>photino;desktop;kestrel;tray;serilog</PackageTags>
     </PropertyGroup>
 
+    <!-- The Windows SDK projection is only needed to create toasts that report a click; a build on
+         another OS leaves it out and falls back to Photino's own notification call. -->
+    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+        <DefineConstants>$(DefineConstants);WINDOWS_DESKTOP</DefineConstants>
+        <!-- The Windows projection is only referenced by this build, and every call is behind
+             OperatingSystem.IsWindows(); there is no windows TFM for the analyzer to check. -->
+        <NoWarn>$(NoWarn);CA1416</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+        <PackageDownload Include="Microsoft.Windows.SDK.NET.Ref" Version="[10.0.28000.87]" />
+        <Reference Include="Microsoft.Windows.SDK.NET">
+            <HintPath>$(NuGetPackageRoot)microsoft.windows.sdk.net.ref\10.0.28000.87\lib\net9.0\Microsoft.Windows.SDK.NET.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="WinRT.Runtime">
+            <HintPath>$(NuGetPackageRoot)microsoft.windows.sdk.net.ref\10.0.28000.87\lib\net9.0\WinRT.Runtime.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\PhotinoNETUtils.Generators\PhotinoNETUtils.Generators.csproj"
                           OutputItemType="Analyzer"

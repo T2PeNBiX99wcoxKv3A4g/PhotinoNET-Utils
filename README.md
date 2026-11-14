@@ -22,7 +22,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `AppIcon`                 | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources                                                                                                                                                                                                                                                                   |
 | `AppPaths`                | Per-user settings, local data and log folders, created on demand                                                                                                                                                                                                                                                                               |
 | `Localization`            | Embedded `<prefix><locale>.jsonc` UI strings, merged over the language and the default locale, answered over the bridge as `i18n.get`                                                                                                                                                                                                          |
-| `Notifications`           | OS notifications through Photino's native layer, queued until the window exists, with per-key debounce                                                                                                                                                                                                                                         |
+| `Notifications`           | OS notifications through Photino's native layer, queued until the window exists, with per-key debounce; on Windows the toast is created through the Windows SDK so its click is reported                                                                                                                                                        |
 | `Utils`                   | `Result<T>`, `Try`, `[Singleton]` and `SingletonRegistry` (`Singleton<T>` is obsolete)                                                                                                                                                                                                                                                         |
 | `Extensions`              | Result/exception/string/object helpers                                                                                                                                                                                                                                                                                                         |
 | `UserInterface`           | `@photino-net-utils/bridge`: the shared `window.external` TypeScript bridge plus the React localization (`LocalizationProvider`, `useTranslation`, `useLocale`) matching `PhotinoNetUtils.Localization`                                                                                                                                        |
@@ -240,15 +240,23 @@ window.SetNotificationRegistrationId("MyApp");
 // Once the native window exists (for example in its WindowCreated handler):
 NotificationService.Attach(window);
 
-// From any thread, at any time:
-NotificationService.Notify("auth.expired", "Session expired", "Sign in again.");
+// From any thread, at any time; the last argument is what a click hands back:
+NotificationService.Notify("auth.expired", "Session expired", "Sign in again.", "account");
+
+// Windows only: the toast reports its click.
+NotificationService.Activated += page => WindowManager.Instance.ShowMainWindow(page);
 ```
 
 A notification raised before `Attach` waits and is delivered as soon as the window exists, so a
 background service can announce a startup failure. Repeats of the same key are suppressed for
 15 seconds; change `NotificationService.Debounce` to taste. Call `NotificationService.Detach()` when
-the app exits. On Windows the native layer registers the AppUserModelID while creating the window, so
-the toast is attributed to the app; on Linux it uses libnotify.
+the app exits.
+
+On Windows the service creates the toast with the Windows SDK itself, so the click comes back through
+`Activated`; the AppUserModelID is the one Photino registered for the window (its title, unless
+`NotificationRegistrationId` overrides it). When that API is unavailable the service falls back to
+Photino's own notification call, which shows the toast but reports no click. On Linux it uses
+libnotify through Photino, which has no click callback either.
 
 ### Build metadata and autostart
 
