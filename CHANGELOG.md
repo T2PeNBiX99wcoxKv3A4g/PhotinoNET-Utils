@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.29.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.28.3..v0.29.0) - 2026-11-14
+
+### ⛰️  Features
+
+- *(globs)* Tell a rule's own folder from the contents of a child - ([794c23b](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/794c23b05b9c9a92d6d48238a6a48fea76bda374))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([fa6accb](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/fa6accbe8289afc402af3ac9cea7f928583e7d5b))
+
+
 ## [0.28.3](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.28.2..v0.28.3) - 2026-11-14
 
 ### 🐛 Bug Fixes
