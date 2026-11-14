@@ -146,10 +146,19 @@ public static class NotificationService
     {
         var appId = _appId ?? "";
 
-        if (OperatingSystem.IsWindows())
-            WindowsToast.TryShow(appId, title, message, options, Clicked);
-        else if (OperatingSystem.IsLinux())
-            LinuxToast.Show(appId, title, message, options, Clicked);
+        try
+        {
+            if (OperatingSystem.IsWindows())
+                WindowsToast.TryShow(appId, title, message, options, Clicked);
+            else if (OperatingSystem.IsLinux())
+                LinuxToast.Show(appId, title, message, options, Clicked);
+        }
+        catch (Exception ex)
+        {
+            // The Windows projection is an app dependency; without it the toast types cannot load.
+            // A missing notification must never take the caller down.
+            Log.Warning(ex, "Could not show a notification; is the Windows SDK projection next to the app?");
+        }
     }
 
     private static void Clicked(string action)

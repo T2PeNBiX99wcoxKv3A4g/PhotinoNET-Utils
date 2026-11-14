@@ -267,6 +267,26 @@ action the notification was created with. The AppUserModelID is the one Photino 
 window (its title, unless `NotificationRegistrationId` overrides it); `Attach` only reads it, the
 rest of the notification path no longer goes through Photino.
 
+An app that references this library as a DLL also has to ship the Windows projection, because the
+toast types live in it:
+
+```xml
+<ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <PackageDownload Include="Microsoft.Windows.SDK.NET.Ref" Version="[10.0.28000.87]" />
+    <Reference Include="Microsoft.Windows.SDK.NET">
+        <HintPath>$(NuGetPackageRoot)microsoft.windows.sdk.net.ref\10.0.28000.87\lib\net9.0\Microsoft.Windows.SDK.NET.dll</HintPath>
+        <Private>true</Private>
+    </Reference>
+    <Reference Include="WinRT.Runtime">
+        <HintPath>$(NuGetPackageRoot)microsoft.windows.sdk.net.ref\10.0.28000.87\lib\net9.0\WinRT.Runtime.dll</HintPath>
+        <Private>true</Private>
+    </Reference>
+</ItemGroup>
+```
+
+An app that targets a `net*-windows` framework already gets those assemblies from the TFM. Without
+them the service logs a warning and shows no notification instead of throwing.
+
 ### Build metadata and autostart
 
 ```csharp
