@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.28.2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.28.1..v0.28.2) - 2026-11-14
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump CodeAnalysis packages to 5.12.0 - ([01ce48e](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/01ce48ec300aac8479458fdee7c94138366e53aa))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([caaf30d](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/caaf30d81d6abdd3e1f636881f41941eb35cf7da))
+
+
 ## [0.28.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.28.0..v0.28.1) - 2026-11-14
 
 ### 🐛 Bug Fixes
