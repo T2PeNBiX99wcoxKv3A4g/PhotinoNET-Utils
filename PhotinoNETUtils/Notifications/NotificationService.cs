@@ -59,19 +59,26 @@ public static class NotificationService
     ///     Takes the id Windows attributes notifications to from <paramref name="window" /> and sends
     ///     whatever waited for it. Call this once the native window exists.
     /// </summary>
-    public static void Attach(PhotinoWindow window)
+    public static void Attach(PhotinoWindow window) =>
+        Attach(window.NotificationRegistrationId is { Length: > 0 } id ? id : window.Title);
+
+    /// <summary>
+    ///     Starts delivering with an explicit app id and sends whatever waited for it. The
+    ///     <see cref="PhotinoWindow" /> overload reads the id from the window instead.
+    /// </summary>
+    public static void Attach(string appId)
     {
         PendingNotification[] queued;
 
         lock (Gate)
         {
-            _appId = window.NotificationRegistrationId is { Length: > 0 } id ? id : window.Title;
+            _appId = appId;
             queued = [.. Pending.Values];
             Pending.Clear();
         }
 
         foreach (var notification in queued)
-            Send(notification.Title, notification.Message, notification.Action);
+            Send(notification.Title, notification.Message, notification.Options);
     }
 
     /// <summary>Stops delivering; notifications raised after this, or still waiting, are dropped.</summary>
@@ -93,10 +100,14 @@ public static class NotificationService
     /// <summary>
     ///     Shows a notification, unless the same <paramref name="key" /> was shown within
     ///     <see cref="Debounce" />. Before <see cref="Attach" /> the newest message per key waits.
-    ///     <paramref name="action" /> is handed back through <see cref="Activated" /> when the toast
-    ///     is clicked.
+    ///     <paramref name="action" /> is handed back through <see cref="Activated" /> when it is
+    ///     clicked; use the overload with <see cref="NotificationOptions" /> for the richer form.
     /// </summary>
-    public static void Notify(string key, string title, string message, string? action = null)
+    public static void Notify(string key, string title, string message, string? action = null) =>
+        Notify(key, title, message, action is null ? null : new NotificationOptions { Action = action });
+
+    /// <summary>Shows a notification with the optional image, attribution and button.</summary>
+    public static void Notify(string key, string title, string message, NotificationOptions? options)
     {
         var now = Environment.TickCount64;
         var ready = false;
@@ -112,7 +123,7 @@ public static class NotificationService
 
             if (_appId is null)
             {
-                Pending[key] = new(title, message, action);
+                Pending[key] = new(title, message, options);
                 TrimPending();
             }
             else
@@ -120,21 +131,25 @@ public static class NotificationService
         }
 
         if (ready)
-            Send(title, message, action);
+            Send(title, message, options);
     }
 
     /// <summary>Shows a notification keyed by its own title and message, so repeats are still debounced.</summary>
     public static void Notify(string title, string message, string? action = null) =>
         Notify($"{title}\u0000{message}", title, message, action);
 
-    private static void Send(string title, string message, string? action)
+    /// <summary>Shows a notification keyed by its own title and message, with the richer options.</summary>
+    public static void Notify(string title, string message, NotificationOptions? options) =>
+        Notify($"{title}\u0000{message}", title, message, options);
+
+    private static void Send(string title, string message, NotificationOptions? options)
     {
         var appId = _appId ?? "";
 
         if (OperatingSystem.IsWindows())
-            WindowsToast.TryShow(appId, title, message, action, Clicked);
+            WindowsToast.TryShow(appId, title, message, options, Clicked);
         else if (OperatingSystem.IsLinux())
-            LinuxToast.Show(appId, title, message, action, Clicked);
+            LinuxToast.Show(appId, title, message, options, Clicked);
     }
 
     private static void Clicked(string action)
@@ -167,5 +182,5 @@ public static class NotificationService
             Pending.Remove(Pending.Keys.First());
     }
 
-    private readonly record struct PendingNotification(string Title, string Message, string? Action);
+    private readonly record struct PendingNotification(string Title, string Message, NotificationOptions? Options);
 }

@@ -243,7 +243,16 @@ NotificationService.Attach(window);
 // From any thread, at any time; the last argument is what a click hands back:
 NotificationService.Notify("auth.expired", "Session expired", "Sign in again.", "account");
 
-// Windows only: the toast reports its click.
+// Or with the pieces the platform supports on top of a title and a message:
+NotificationService.Notify("auth.expired", "Session expired", "Sign in again.", new NotificationOptions
+{
+    Action = "account",
+    Attribution = "AntiBot",
+    ImagePath = @"C:\path\to\icon.png",
+    ButtonText = "Open account"
+});
+
+// The click comes back with the action:
 NotificationService.Activated += page => WindowManager.Instance.ShowMainWindow(page);
 ```
 

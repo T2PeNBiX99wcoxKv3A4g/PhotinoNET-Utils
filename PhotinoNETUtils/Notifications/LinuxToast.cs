@@ -13,7 +13,7 @@ namespace PhotinoNetUtils.Notifications;
 /// </remarks>
 internal static class LinuxToast
 {
-    public static void Show(string appName, string title, string message, string? action,
+    public static void Show(string appName, string title, string message, NotificationOptions? options,
         Action<string> activated)
     {
         try
@@ -26,8 +26,15 @@ internal static class LinuxToast
 
             start.ArgumentList.Add("--app-name");
             start.ArgumentList.Add(string.IsNullOrWhiteSpace(appName) ? "Photino" : appName);
+
+            if (options?.ImagePath is { Length: > 0 } image)
+            {
+                start.ArgumentList.Add("--icon");
+                start.ArgumentList.Add(image);
+            }
+
             start.ArgumentList.Add("--action");
-            start.ArgumentList.Add("default=Open");
+            start.ArgumentList.Add($"default={options?.ButtonText ?? "Open"}");
             start.ArgumentList.Add("--wait");
             start.ArgumentList.Add(title);
             start.ArgumentList.Add(message);
@@ -36,7 +43,7 @@ internal static class LinuxToast
             if (process is null)
                 return;
 
-            var clicked = action ?? "";
+            var clicked = options?.Action ?? "";
 
             _ = Task.Run(async () =>
             {
