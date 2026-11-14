@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.28.3](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.28.2..v0.28.3) - 2026-11-14
+
+### 🐛 Bug Fixes
+
+- *(platform)* Keep the AppUserModelID on a refreshed shortcut - ([ee67367](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/ee673679408e16b7b364484c10cb7b85ee1ef689))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([78833af](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/78833af333c8101eab2acd07ba28051a52729aae))
+
+
 ## [0.28.2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.28.1..v0.28.2) - 2026-11-14
 
 ### ⚙️ Miscellaneous Tasks
