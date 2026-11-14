@@ -1,14 +1,12 @@
 using JetBrains.Annotations;
 using Photino.NET;
-using PhotinoNetUtils.Extensions;
-using PhotinoNetUtils.Utils;
 using Serilog;
 
 namespace PhotinoNetUtils.Notifications;
 
 /// <summary>
-///     Shows the operating system's own notification for a Photino application: a toast on Windows,
-///     libnotify on Linux.
+///     Shows the operating system's own notification: a Windows toast or <c>notify-send</c> on Linux,
+///     created by this library rather than Photino so a click can be reported back.
 /// </summary>
 /// <remarks>
 ///     <para>
@@ -40,7 +38,7 @@ public static class NotificationService
     private static readonly Dictionary<string, PendingNotification> Pending = new(StringComparer.Ordinal);
 
     private static TimeSpan _debounce = TimeSpan.FromSeconds(15);
-    private static PhotinoWindow? _window;
+    private static string? _appId;
 
     /// <summary>How long the same key is ignored after it was shown. Defaults to 15 seconds.</summary>
     public static TimeSpan Debounce
@@ -58,8 +56,8 @@ public static class NotificationService
     }
 
     /// <summary>
-    ///     Starts delivering notifications through <paramref name="window" /> and sends whatever
-    ///     waited for it. Call this once the native window exists.
+    ///     Takes the id Windows attributes notifications to from <paramref name="window" /> and sends
+    ///     whatever waited for it. Call this once the native window exists.
     /// </summary>
     public static void Attach(PhotinoWindow window)
     {
@@ -67,13 +65,13 @@ public static class NotificationService
 
         lock (Gate)
         {
-            _window = window;
+            _appId = window.NotificationRegistrationId is { Length: > 0 } id ? id : window.Title;
             queued = [.. Pending.Values];
             Pending.Clear();
         }
 
         foreach (var notification in queued)
-            Send(window, notification.Title, notification.Message, notification.Action);
+            Send(notification.Title, notification.Message, notification.Action);
     }
 
     /// <summary>Stops delivering; notifications raised after this, or still waiting, are dropped.</summary>
@@ -81,16 +79,14 @@ public static class NotificationService
     {
         lock (Gate)
         {
-            _window = null;
+            _appId = null;
             Pending.Clear();
         }
     }
 
     /// <summary>
     ///     Raised when a shown notification is clicked. The argument is the action it was created
-    ///     with, so an app can open the page it belongs to. Windows only: Photino's own notification
-    ///     call reports no click, and this service falls back to it when the Windows API is not
-    ///     available.
+    ///     with, so an app can open the page it belongs to.
     /// </summary>
     public static event Action<string>? Activated;
 
@@ -103,8 +99,7 @@ public static class NotificationService
     public static void Notify(string key, string title, string message, string? action = null)
     {
         var now = Environment.TickCount64;
-        PhotinoWindow? target = null;
-        var queued = false;
+        var ready = false;
 
         lock (Gate)
         {
@@ -115,37 +110,32 @@ public static class NotificationService
             Last[key] = now;
             Prune(now);
 
-            if (_window is { } window)
-                target = window;
-            else
+            if (_appId is null)
             {
                 Pending[key] = new(title, message, action);
                 TrimPending();
-                queued = true;
             }
+            else
+                ready = true;
         }
 
-        if (!queued)
-            Send(target!, title, message, action);
+        if (ready)
+            Send(title, message, action);
     }
 
     /// <summary>Shows a notification keyed by its own title and message, so repeats are still debounced.</summary>
     public static void Notify(string title, string message, string? action = null) =>
         Notify($"{title}\u0000{message}", title, message, action);
 
-    private static void Send(PhotinoWindow window, string title, string message, string? action)
+    private static void Send(string title, string message, string? action)
     {
-        if (OperatingSystem.IsWindows() &&
-            WindowsToast.TryShow(RegistrationId(window), title, message, action, Clicked))
-            return;
+        var appId = _appId ?? "";
 
-        Try.Run(() => window.SendNotification(title, message))
-            .OnFailure(ex => Log.Warning(ex, "Could not show a notification"));
+        if (OperatingSystem.IsWindows())
+            WindowsToast.TryShow(appId, title, message, action, Clicked);
+        else if (OperatingSystem.IsLinux())
+            LinuxToast.Show(appId, title, message, action, Clicked);
     }
-
-    /// <summary>The app id Windows attributes a toast to; Photino uses the title unless told otherwise.</summary>
-    private static string RegistrationId(PhotinoWindow window) =>
-        window.NotificationRegistrationId is { Length: > 0 } id ? id : window.Title;
 
     private static void Clicked(string action)
     {

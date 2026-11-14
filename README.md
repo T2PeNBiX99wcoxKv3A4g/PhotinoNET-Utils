@@ -22,7 +22,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `AppIcon`                 | Extracts the platform icon (`icon.ico` / `icon.png`) from embedded resources                                                                                                                                                                                                                                                                   |
 | `AppPaths`                | Per-user settings, local data and log folders, created on demand                                                                                                                                                                                                                                                                               |
 | `Localization`            | Embedded `<prefix><locale>.jsonc` UI strings, merged over the language and the default locale, answered over the bridge as `i18n.get`                                                                                                                                                                                                          |
-| `Notifications`           | OS notifications through Photino's native layer, queued until the window exists, with per-key debounce; on Windows the toast is created through the Windows SDK so its click is reported                                                                                                                                                        |
+| `Notifications`           | OS notifications implemented directly: a Windows SDK toast on Windows, `notify-send` on Linux; both report the click and queue until the window exists, with per-key debounce                                                                                                             |
 | `Utils`                   | `Result<T>`, `Try`, `[Singleton]` and `SingletonRegistry` (`Singleton<T>` is obsolete)                                                                                                                                                                                                                                                         |
 | `Extensions`              | Result/exception/string/object helpers                                                                                                                                                                                                                                                                                                         |
 | `UserInterface`           | `@photino-net-utils/bridge`: the shared `window.external` TypeScript bridge plus the React localization (`LocalizationProvider`, `useTranslation`, `useLocale`) matching `PhotinoNetUtils.Localization`                                                                                                                                        |
@@ -252,11 +252,11 @@ background service can announce a startup failure. Repeats of the same key are s
 15 seconds; change `NotificationService.Debounce` to taste. Call `NotificationService.Detach()` when
 the app exits.
 
-On Windows the service creates the toast with the Windows SDK itself, so the click comes back through
-`Activated`; the AppUserModelID is the one Photino registered for the window (its title, unless
-`NotificationRegistrationId` overrides it). When that API is unavailable the service falls back to
-Photino's own notification call, which shows the toast but reports no click. On Linux it uses
-libnotify through Photino, which has no click callback either.
+On Windows the service creates the toast with the Windows SDK itself; on Linux it runs
+`notify-send --wait` with a default action. Both report the click through `Activated`, carrying the
+action the notification was created with. The AppUserModelID is the one Photino registered for the
+window (its title, unless `NotificationRegistrationId` overrides it); `Attach` only reads it, the
+rest of the notification path no longer goes through Photino.
 
 ### Build metadata and autostart
 
