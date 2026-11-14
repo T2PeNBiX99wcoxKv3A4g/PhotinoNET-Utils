@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.28.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.27.0..v0.28.0) - 2026-11-14
+
+### ⛰️  Features
+
+- *(notifications)* Optional image, attribution and action button - ([a0871c6](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/a0871c624f3137dceb9fcfc1893a1ddfaa45717f))
+- *(notifications)* Report toast clicks on Windows - ([705fc57](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/705fc570cd5ade0924bcd97b6cd32c57bee4d593))
+
+### 🚜 Refactor
+
+- *(notifications)* Drop the Photino sender - ([c3f846a](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/c3f846a7ad9d0ebdac8466bc7cbcc6e6bf9ae72e))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([16642b4](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/16642b448c59012492468a76c20a35e9365b16ab))
+
+
 ## [0.27.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.26.1..v0.27.0) - 2026-11-13
 
 ### ⛰️  Features
