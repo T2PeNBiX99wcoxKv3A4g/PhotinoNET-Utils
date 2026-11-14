@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.28.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.28.0..v0.28.1) - 2026-11-14
+
+### 🐛 Bug Fixes
+
+- *(notifications)* Survive a missing Windows projection - ([1b5f43a](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/1b5f43a74fb656d72cdc361c9c52bae4a00ba24c))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([a7f8a29](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/a7f8a2929f68587dae7698a3b8591d4f4797393f))
+
+
 ## [0.28.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.27.0..v0.28.0) - 2026-11-14
 
 ### ⛰️  Features
