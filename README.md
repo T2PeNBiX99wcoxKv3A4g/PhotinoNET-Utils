@@ -288,11 +288,12 @@ An app that targets a `net*-windows` framework already gets those assemblies fro
 them the service logs a warning and shows no notification instead of throwing.
 
 That reference only exists on a Windows build, so the code that uses those types has to be compiled
-only there too. The library defines a constant for exactly that, on the same condition as the
-reference:
+only there too. The condition follows the runtime identifier, not the host: a Windows machine that
+cross-publishes the Linux build must not compile the Windows code, and a Linux machine that publishes
+`-r win-x64` must. The library defines a constant that way, on the same condition as the reference:
 
 ```xml
-<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+<PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or ('$(RuntimeIdentifier)' == '' And '$(NETCoreSdkPortableRuntimeIdentifier)' == 'win-x64')">
     <DefineConstants>$(DefineConstants);WINDOWS_DESKTOP</DefineConstants>
 </PropertyGroup>
 ```
@@ -308,7 +309,7 @@ using Windows.UI.Notifications;
 An app that adds a Windows-only API of its own (the share sheet, for example) does the same with its
 own constant, and answers something harmless in the `#else` branch so the message still compiles.
 Without that guard the Linux build stops at compile time with `CS0234` or `CS0246` even though the
-code would never run there: the projection is not referenced on a host that is not Windows.
+code would never run there: the projection is not referenced for a non-Windows runtime identifier.
 
 Two related details when a Windows API is involved:
 
