@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.29.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.29.0..v0.29.1) - 2026-11-15
+
+### 📚 Documentation
+
+- Explain the Windows-only build constant - ([aefcbdd](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/aefcbdda917a5d36ca27d686d9c4d727ccee2f16))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([e4b842a](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/e4b842a4dde791bbc9e3c54e32dd073a4e260b95))
+
+### Build
+
+- Treat every Windows runtime identifier as Windows - ([bcb5b7a](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/bcb5b7a5ff650db27730223ef350329198f024fb))
+- Follow the runtime identifier for the Windows projection - ([6ecc4b8](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/6ecc4b8a7b81b2471d857169710643fc91338166))
+
+
 ## [0.29.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.28.3..v0.29.0) - 2026-11-14
 
 ### ⛰️  Features
