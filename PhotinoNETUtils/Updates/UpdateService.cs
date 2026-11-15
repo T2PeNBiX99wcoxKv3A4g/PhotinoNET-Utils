@@ -35,7 +35,8 @@ public sealed record UpdateOptions
         Action? Shutdown = null,
         Action<string, object?>? Notify = null,
         string Branch = "master",
-        string ChangelogPath = "CHANGELOG.md")
+        string ChangelogPath = "CHANGELOG.md",
+        string TagPattern = "v{version}")
     {
         this.Owner = Owner;
         this.Repository = Repository;
@@ -52,6 +53,7 @@ public sealed record UpdateOptions
         this.Notify = Notify;
         this.Branch = Branch;
         this.ChangelogPath = ChangelogPath;
+        this.TagPattern = TagPattern;
     }
 
     public string Owner { get; init; }
@@ -70,6 +72,14 @@ public sealed record UpdateOptions
     public Action<string, object?>? Notify { get; init; }
     public string Branch { get; init; }
     public string ChangelogPath { get; init; }
+
+    /// <summary>
+    ///     The release tag a version maps to, <c>{version}</c> standing for the version itself. The
+    ///     download is fetched from this tag and not from <c>releases/latest</c>: a build that has
+    ///     been running for a while still knows the version it saw, and the latest release may have
+    ///     moved past it, which leaves the asset missing.
+    /// </summary>
+    public string TagPattern { get; init; }
 }
 
 /// <summary>Body for <c>update.status</c> and <c>update.check</c>.</summary>
@@ -226,7 +236,9 @@ public sealed class UpdateService : IDisposable
             if (_downloading)
                 return Ack(context, "update.download.result", false, "A download is already running.");
 
-        var check = _cached ?? await ResolveAsync(true);
+        // Ask again instead of trusting the cached answer: it can be hours old, and the version
+        // it names must still be the one whose assets are about to be fetched.
+        var check = await ResolveAsync(true) ?? _cached;
         if (check is not { Available: true })
             return Ack(context, "update.download.result", false, "No update is available.");
 
@@ -260,8 +272,10 @@ public sealed class UpdateService : IDisposable
 
             var versionText = version.TrimStart('v', 'V');
             var fileName = _options.AssetPattern.Replace("{version}", versionText);
+            // The tag, not "latest": the newest release does not carry the assets of an older one.
+            var tag = _options.TagPattern.Replace("{version}", versionText);
             var url =
-                $"https://github.com/{_options.Owner}/{_options.Repository}/releases/latest/download/{Uri.EscapeDataString(fileName)}";
+                $"https://github.com/{_options.Owner}/{_options.Repository}/releases/download/{Uri.EscapeDataString(tag)}/{Uri.EscapeDataString(fileName)}";
 
             ClearDownloadDirectory();
 
