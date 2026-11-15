@@ -287,6 +287,41 @@ toast types live in it:
 An app that targets a `net*-windows` framework already gets those assemblies from the TFM. Without
 them the service logs a warning and shows no notification instead of throwing.
 
+That reference only exists on a Windows build, so the code that uses those types has to be compiled
+only there too. The library defines a constant for exactly that, on the same condition as the
+reference:
+
+```xml
+<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <DefineConstants>$(DefineConstants);WINDOWS_DESKTOP</DefineConstants>
+</PropertyGroup>
+```
+
+and wraps every file and every call site that needs the Windows namespace:
+
+```csharp
+#if WINDOWS_DESKTOP
+using Windows.UI.Notifications;
+#endif
+```
+
+An app that adds a Windows-only API of its own (the share sheet, for example) does the same with its
+own constant, and answers something harmless in the `#else` branch so the message still compiles.
+Without that guard the Linux build stops at compile time with `CS0234` or `CS0246` even though the
+code would never run there: the projection is not referenced on a host that is not Windows.
+
+Two related details when a Windows API is involved:
+
+- Some APIs hand back a COM interface that is then used through a `[ComImport]` declaration, for
+  example the data transfer manager behind the share sheet. The trimmed single-file build turns
+  built-in COM off, and the runtime then throws "Built-in COM has been disabled via a feature
+  switch"; the project has to opt back in with
+  `<BuiltInComInteropSupport>true</BuiltInComInteropSupport>`.
+- A plain `net*` target framework has no platform version for the analyzer to check, so calls that
+  are already behind `OperatingSystem.IsWindows()` are reported as `CA1416`. The library suppresses
+  that warning for its Windows-only build rather than annotating every call.
+
+
 ### Build metadata and autostart
 
 ```csharp
