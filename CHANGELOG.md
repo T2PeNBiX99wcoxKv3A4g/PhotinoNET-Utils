@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.29.2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.29.1..v0.29.2) - 2026-11-15
+
+### 🐛 Bug Fixes
+
+- *(updates)* Download the asset from its own release tag - ([5e355fd](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/5e355fdf904c1228e1a542cf824bf918a753752a))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([51b8700](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/51b8700556bda6008572725ddb98781ab5c7501d))
+
+
 ## [0.29.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.29.0..v0.29.1) - 2026-11-15
 
 ### 📚 Documentation
