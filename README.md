@@ -288,12 +288,13 @@ An app that targets a `net*-windows` framework already gets those assemblies fro
 them the service logs a warning and shows no notification instead of throwing.
 
 That reference only exists on a Windows build, so the code that uses those types has to be compiled
-only there too. The condition follows the runtime identifier, not the host: a Windows machine that
-cross-publishes the Linux build must not compile the Windows code, and a Linux machine that publishes
-`-r win-x64` must. The library defines a constant that way, on the same condition as the reference:
+only there too. The condition follows the runtime identifier, not the host, and accepts any Windows
+architecture: a Windows machine that cross-publishes the Linux build must not compile the Windows
+code, a Linux machine that publishes `-r win-x64` must, and `-r win-arm64` must as well. The library
+defines a constant that way, on the same condition as the reference:
 
 ```xml
-<PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or ('$(RuntimeIdentifier)' == '' And '$(NETCoreSdkPortableRuntimeIdentifier)' == 'win-x64')">
+<PropertyGroup Condition="$([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('win')) Or ('$(RuntimeIdentifier)' == '' And $([System.String]::Copy('$(NETCoreSdkPortableRuntimeIdentifier)').StartsWith('win')))">
     <DefineConstants>$(DefineConstants);WINDOWS_DESKTOP</DefineConstants>
 </PropertyGroup>
 ```
