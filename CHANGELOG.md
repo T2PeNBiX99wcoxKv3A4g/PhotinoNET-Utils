@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.30.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.30.0..v0.30.1) - 2026-11-16
+
+### 🐛 Bug Fixes
+
+- *(package)* Declare the licence the tarball now carries - ([3ee14c2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/3ee14c2c1a2c38acee35b85db929bf524bc5beed))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([6495f1b](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/6495f1b764455b35f469ee973590df50ff49de16))
+
+
 ## [0.30.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.29.2..v0.30.0) - 2026-11-16
 
 ### ⛰️  Features
