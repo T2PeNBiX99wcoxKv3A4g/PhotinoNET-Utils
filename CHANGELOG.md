@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.30.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.29.2..v0.30.0) - 2026-11-16
+
+### ⛰️  Features
+
+- *(build)* Share the front-end build scripts - ([28bcb15](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/28bcb151dc85e3537f8d2515a361b02930e32556))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([1dea7db](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/1dea7db41f355cd75ed97aa1780d71d1cb54ac67))
+
+
 ## [0.29.2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.29.1..v0.29.2) - 2026-11-15
 
 ### 🐛 Bug Fixes
