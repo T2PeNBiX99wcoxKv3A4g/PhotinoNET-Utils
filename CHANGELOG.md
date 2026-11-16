@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.33.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.32.1..v0.33.0) - 2026-11-16
+
+### ⛰️  Features
+
+- *(site)* Say what Windows 10 still needs - ([5735917](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/5735917aa49a1d19bb4a36e3a65c36ab8612b110))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([fe72f40](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/fe72f401c4793de6da1c5fd43ca83ad86b3a2693))
+
+
 ## [0.32.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.32.0..v0.32.1) - 2026-11-16
 
 ### 🐛 Bug Fixes
