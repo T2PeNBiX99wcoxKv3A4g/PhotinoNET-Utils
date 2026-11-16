@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.32.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.31.0..v0.32.0) - 2026-11-16
+
+### ⛰️  Features
+
+- *(site)* Generate the page the way the docs already are - ([64d5d95](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/64d5d95997ca4558dff777451b5d279c5fee89b8))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([81e2d52](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/81e2d52d440e0eb6a33c1d559476cd6d2a54896e))
+
+
 ## [0.31.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.30.1..v0.31.0) - 2026-11-16
 
 ### ⛰️  Features
