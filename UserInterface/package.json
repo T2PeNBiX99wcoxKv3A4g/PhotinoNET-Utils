@@ -2,6 +2,7 @@
   "name": "@photino-net-utils/bridge",
   "version": "0.30.0",
   "description": "Photino.NET window.external bridge shared by the desktop front-ends",
+  "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
