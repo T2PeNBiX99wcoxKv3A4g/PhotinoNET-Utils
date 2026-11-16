@@ -116,6 +116,11 @@ foreach ($rid in $codeGenRids) {
 $tgzName = "photino-net-utils-bridge-$npmVersion.tgz"
 $tgz = Join-Path $ui $tgzName
 
+$site = Join-Path $root 'Site'
+$siteVersion = (Get-Content (Join-Path $site 'package.json') -Raw | ConvertFrom-Json).version
+$siteTgzName = "photino-net-utils-site-$siteVersion.tgz"
+$siteTgz = Join-Path $site $siteTgzName
+
 if (-not $SkipNpm) {
     if (-not (Test-Path (Join-Path $ui 'node_modules'))) {
         Write-Host 'Installing the npm package dependencies...' -ForegroundColor Cyan
@@ -128,9 +133,15 @@ if (-not $SkipNpm) {
     Push-Location $ui
     try { npm run pack } finally { Pop-Location }
     if ($LASTEXITCODE -ne 0) { throw 'npm run pack failed' }
+
+    Write-Host "Packing $siteTgzName..." -ForegroundColor Cyan
+    Push-Location $site
+    try { npm run pack } finally { Pop-Location }
+    if ($LASTEXITCODE -ne 0) { throw 'npm run pack failed for the site package' }
 }
 
 if (-not (Test-Path $tgz)) { throw "npm tarball not found: $tgz" }
+if (-not (Test-Path $siteTgz)) { throw "npm tarball not found: $siteTgz" }
 
 foreach ($target in $targets) {
     if (-not (Test-Path $target.Path)) {
@@ -167,6 +178,11 @@ foreach ($target in $targets) {
         Remove-Item -Force
     Copy-Item $tgz (Join-Path $libDirectory $tgzName) -Force
 
+    Get-ChildItem $libDirectory -Filter 'photino-net-utils-site-*.tgz' -File |
+        Where-Object Name -ne $siteTgzName |
+        Remove-Item -Force
+    Copy-Item $siteTgz (Join-Path $libDirectory $siteTgzName) -Force
+
     $appUi = Join-Path $target.Path $target.Ui
     $appManifest = Join-Path $appUi 'package.json'
 
@@ -182,6 +198,26 @@ foreach ($target in $targets) {
             Push-Location $appUi
             try { npm install --no-audit --no-fund } finally { Pop-Location }
             if ($LASTEXITCODE -ne 0) { throw "npm install failed in $appUi" }
+        }
+    }
+
+    # A project that has a site takes its pages from the shared package, so only its own data travels
+    # with it.
+    $appSite = Join-Path $target.Path 'Site'
+    $appSiteManifest = Join-Path $appSite 'package.json'
+
+    if (Test-Path $appSiteManifest) {
+        & node $setDependency $appSiteManifest $libDirectory $siteTgzName '@photino-net-utils/site'
+        if ($LASTEXITCODE -ne 0) { throw "Could not update $appSiteManifest" }
+
+        if (-not $SkipTargetInstall) {
+            $installedSite = Join-Path $appSite 'node_modules\@photino-net-utils\site'
+            if (Test-Path $installedSite) { Remove-Item -Recurse -Force $installedSite }
+
+            Write-Host "Installing the shared site in $appSite..." -ForegroundColor Cyan
+            Push-Location $appSite
+            try { npm install --no-audit --no-fund } finally { Pop-Location }
+            if ($LASTEXITCODE -ne 0) { throw "npm install failed in $appSite" }
         }
     }
 
