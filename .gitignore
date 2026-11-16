@@ -29,6 +29,7 @@ nul
 
 # Copied from the repository root by `npm pack`, so the tarball carries the licence
 UserInterface/LICENSE
+Site/LICENSE
 
 opencode.json
 .opencode/

@@ -1,0 +1,31 @@
+{
+  "name": "@photino-net-utils/site",
+  "version": "1.0.0",
+  "description": "The landing page and documentation site shared by the desktop front-ends",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./scripts/generate-docs.mjs": "./scripts/generate-docs.mjs",
+    "./scripts/generate-og.mjs": "./scripts/generate-og.mjs"
+  },
+  "files": [
+    "src",
+    "scripts",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "prepack": "node -e \"require('fs').copyFileSync('../LICENSE','LICENSE')\"",
+    "pack": "npm pack"
+  },
+  "peerDependencies": {
+    "lucide-react": ">=0.400",
+    "react": ">=18",
+    "react-dom": ">=18",
+    "react-markdown": ">=9",
+    "remark-gfm": ">=4",
+    "simple-icons": ">=13",
+    "styled-components": ">=6"
+  }
+}

@@ -1,0 +1,116 @@
+import type {ComponentType} from "react";
+
+/** One entry of the generated documentation, in one language. */
+export interface DocEntry {
+    slug: string;
+    title: string;
+    group: string;
+    body: string;
+}
+
+/** The documentation, by language; a missing language falls back to English. */
+export type Docs = Record<string, DocEntry[]>;
+
+/** A page the docs generator emits, and the group its sidebar entry sits under. */
+export interface DocPageConfig {
+    slug: string;
+    group: string;
+}
+
+/** The colours a site paints with; the app's own tokens are the source of these values. */
+export interface SiteTheme {
+    accent: string;
+    accentStrong: string;
+    background: string;
+    card: string;
+    topBar: string;
+    textPrimary: string;
+    textSecondary: string;
+    textMuted: string;
+    body: string;
+    border: string;
+    borderHover: string;
+}
+
+/** A dusk of glyphs the pages draw, in the order the copy lists its entries. */
+export interface SiteIcons {
+    features?: ComponentType<{ size?: number }>[];
+    platforms?: { path: string }[];
+}
+
+/** Everything a page needs that is not text: where the project lives and how it looks. */
+export interface SiteConfig {
+    /** The product name, as the header and the page titles write it. */
+    name: string;
+    /** The one-line description the page shares and the metadata repeats. */
+    tagline: string;
+    /** The icon shown next to the name, as a URL or a path relative to the site root. */
+    icon: string;
+    repository: string;
+    /** Defaults to `<repository>/releases/latest`. */
+    releases?: string;
+    /** The GitHub API endpoint the version badge reads; the default follows the repository. */
+    latestRelease?: string;
+    theme: SiteTheme;
+    docs: DocPageConfig[];
+    icons?: SiteIcons;
+    /** Extra header entries beyond home, docs and GitHub, such as a scripts page. */
+    extraNav?: { key: string; href: string; glyph?: "code" }[];
+}
+
+/** The text of one language, as `src/i18n/<language>.json` holds it. */
+export interface SiteCopy {
+    nav: { home: string; docs: string; [key: string]: string };
+    version: string;
+    footer: string;
+    home: {
+        tagline: string;
+        noteTitle: string;
+        noteText: string;
+        download: string;
+        documentation: string;
+        whatTitle: string;
+        whatText: string;
+        featuresTitle: string;
+        features: { name: string; text: string }[];
+        howTitle: string;
+        how: string[];
+        installTitle: string;
+        installBefore: string;
+        readme: string;
+        installAfter: string;
+        platforms: { name: string; note: string }[];
+    };
+    docs: { [group: string]: string };
+    scripts?: {
+        title: string;
+        subtitle: string;
+        install: string;
+        copy: string;
+        copied: string;
+    };
+}
+
+/** The language list the header offers. */
+export interface SiteLanguage {
+    id: string;
+    label: string;
+}
+
+/** One installable script a project offers, as the scripts page lists it. */
+export interface ScriptEntry {
+    name: string;
+    description: string;
+    source: string;
+    install: string;
+}
+
+/** What a project hands the shared site: its data, its text and its docs. */
+export interface SiteOptions {
+    config: SiteConfig;
+    languages: SiteLanguage[];
+    defaultLanguage: string;
+    copy: Record<string, SiteCopy>;
+    docs: Docs;
+    scripts?: ScriptEntry[];
+}
