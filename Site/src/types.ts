@@ -90,9 +90,11 @@ export interface SiteCopy {
         howTitle?: string;
         how?: string[];
         installTitle?: string;
-        installBefore?: string;
+        /** What Windows 10 needs, with {link} where the installer link goes. */
+        installWindows?: string;
+        /** What a Linux machine needs, in the same sentence. */
+        installLinux?: string;
         readme?: string;
-        installAfter?: string;
         platforms?: { name: string; note: string }[];
         /** A project with screenshots uses these instead of the "how" steps. */
         installScript?: string;
@@ -104,8 +106,6 @@ export interface SiteCopy {
         popupAlt?: string;
         noteTitle?: string;
         noteText?: string;
-        /** A sentence with {link} where the WebView2 installer link goes. */
-        webView2Note?: string;
     };
     docs: { [group: string]: string };
     scripts?: {

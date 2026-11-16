@@ -300,19 +300,42 @@ const PopupShot = styled.figure`
     }
 `;
 
-/** The one thing a Windows 10 machine may still be missing, kept beside the install steps. */
-const Requirement = styled.p`
-    margin: -6px 0 18px;
-    padding: 10px 14px;
+/** The install steps sit in one panel, so the whole of them reads as a single answer. */
+const InstallPanel = styled.section`
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 56px;
+    padding: 20px 22px 22px;
     border: 1px solid var(--border-color);
-    border-left: 3px solid var(--accent);
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--accent) 6%, transparent);
+    border-radius: 16px;
+    background: var(--bg-card);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+`;
+
+const InstallHead = styled.h2`
+    margin: 0;
+    font-size: 1.3rem;
+    letter-spacing: -0.01em;
+`;
+
+const InstallText = styled.p`
+    margin: 0;
     color: var(--text-secondary);
-    font-size: 0.84rem;
+    font-size: 0.88rem;
+    line-height: 1.6;
 
     a {
         color: var(--accent);
+    }
+`;
+
+const ReadmeLine = styled.p`
+    margin: 0;
+    font-size: 0.8rem;
+
+    a {
+        color: var(--text-secondary);
     }
 `;
 
@@ -336,6 +359,17 @@ const Disclaimer = styled.aside`
     }
 `;
 
+/**
+ * The system this browser runs on. Windows and Linux get the paragraph that applies to them; a
+ * browser that names neither gets both, because the visitor may be reading for another machine.
+ */
+function detectPlatform(): "windows" | "linux" | "other" {
+    const text = `${navigator.platform} ${navigator.userAgent}`.toLowerCase();
+    if (text.includes("win")) return "windows";
+    if (text.includes("linux") || text.includes("x11")) return "linux";
+    return "other";
+}
+
 /** The order the copy lists its features in; a project overrides it with its own glyphs. */
 const defaultFeatureIcons: LucideIcon[] = [Users, ShieldAlert, ShieldCheck, Zap, UserCog, UserPlus, FileText, Lock];
 
@@ -348,6 +382,7 @@ export const HomePage: React.FC = () => {
 
     const featureIcons = site.icons?.features ?? defaultFeatureIcons;
     const gallery = site.screenshots?.gallery ?? [];
+    const platform = detectPlatform();
     const platformIcons = site.icons?.platforms ?? [windowsLogo];
 
     return (
@@ -454,20 +489,23 @@ export const HomePage: React.FC = () => {
             )}
 
             {home.installTitle && (
-                <Section>
-                    <Heading>{home.installTitle}</Heading>
-                    <Lead>
-                        {home.installBefore}
-                        <a href={site.repository}>{home.readme}</a>
-                        {home.installAfter}
-                    </Lead>
-                    {home.webView2Note && site.webView2Url && (
-                        <Requirement>
-                            {fill(home.webView2Note, "{link}", (
-                                <a href={site.webView2Url} rel="noreferrer" target="_blank">Microsoft Edge WebView2</a>
-                            ))}
-                        </Requirement>
+                <InstallPanel>
+                    <InstallHead>{home.installTitle}</InstallHead>
+
+                    {home.installWindows && (platform === "windows" || platform === "other") && (
+                        <InstallText>
+                            {site.webView2Url
+                                ? fill(home.installWindows, "{link}", (
+                                    <a href={site.webView2Url} rel="noreferrer" target="_blank">Microsoft Edge WebView2</a>
+                                ))
+                                : home.installWindows.replace("{link}", "Microsoft Edge WebView2")}
+                        </InstallText>
                     )}
+
+                    {home.installLinux && (platform === "linux" || platform === "other") && (
+                        <InstallText>{home.installLinux}</InstallText>
+                    )}
+
                     <PlatformGrid>
                         {(home.platforms ?? []).map(({name, note}, index) => {
                             const icon = platformIcons[index] ?? windowsLogo;
@@ -485,7 +523,13 @@ export const HomePage: React.FC = () => {
                             );
                         })}
                     </PlatformGrid>
-                </Section>
+
+                    {home.readme && (
+                        <ReadmeLine>
+                            <a href={site.repository}>{home.readme}</a>
+                        </ReadmeLine>
+                    )}
+                </InstallPanel>
             )}
 
             {home.noteTitle && (
