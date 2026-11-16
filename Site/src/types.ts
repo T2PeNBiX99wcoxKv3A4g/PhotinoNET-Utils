@@ -65,6 +65,8 @@ export interface SiteConfig {
     scriptInstall?: string;
     /** A project that names an inspiration shows it in the footer. */
     creditsUrl?: string;
+    /** Where the WebView2 runtime can be installed; the home page links to it when set. */
+    webView2Url?: string;
     /** Extra header entries beyond home, docs and GitHub, such as a scripts page. */
     extraNav?: { key: string; href: string; glyph?: "code" }[];
 }
@@ -102,6 +104,8 @@ export interface SiteCopy {
         popupAlt?: string;
         noteTitle?: string;
         noteText?: string;
+        /** A sentence with {link} where the WebView2 installer link goes. */
+        webView2Note?: string;
     };
     docs: { [group: string]: string };
     scripts?: {

@@ -3,7 +3,7 @@ import styled, {keyframes} from "styled-components";
 import {BookOpen, Download, FileCode2, FileText, Lock, ShieldAlert, ShieldCheck, UserCog, UserPlus, Users, Zap, type LucideIcon} from "lucide-react";
 import {siGithub} from "simple-icons";
 import {useCopy, useSite} from "../context";
-import {docsHref} from "../text";
+import {docsHref, fill} from "../text";
 
 const fadeIn = keyframes`
     from {
@@ -300,6 +300,22 @@ const PopupShot = styled.figure`
     }
 `;
 
+/** The one thing a Windows 10 machine may still be missing, kept beside the install steps. */
+const Requirement = styled.p`
+    margin: -6px 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+    color: var(--text-secondary);
+    font-size: 0.84rem;
+
+    a {
+        color: var(--accent);
+    }
+`;
+
 /** The detection limits sit at the bottom, away from the sales pitch. */
 const Disclaimer = styled.aside`
     padding: 18px 20px;
@@ -445,6 +461,13 @@ export const HomePage: React.FC = () => {
                         <a href={site.repository}>{home.readme}</a>
                         {home.installAfter}
                     </Lead>
+                    {home.webView2Note && site.webView2Url && (
+                        <Requirement>
+                            {fill(home.webView2Note, "{link}", (
+                                <a href={site.webView2Url} rel="noreferrer" target="_blank">Microsoft Edge WebView2</a>
+                            ))}
+                        </Requirement>
+                    )}
                     <PlatformGrid>
                         {(home.platforms ?? []).map(({name, note}, index) => {
                             const icon = platformIcons[index] ?? windowsLogo;
