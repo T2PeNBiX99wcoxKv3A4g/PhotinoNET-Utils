@@ -27,6 +27,9 @@ nul
 **/package-lock.json
 **/node_modules/
 
+# Copied from the repository root by `npm pack`, so the tarball carries the licence
+UserInterface/LICENSE
+
 opencode.json
 .opencode/
 AGENTS.md

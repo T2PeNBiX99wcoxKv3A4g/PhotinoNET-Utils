@@ -13,10 +13,13 @@
   },
   "files": [
     "dist",
+    "scripts",
+    "LICENSE",
     "README.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "prepack": "node -e \"require('fs').copyFileSync('../LICENSE','LICENSE')\"",
     "pack": "npm run build && npm pack",
     "upgrade": "node -e \"require('fs').rmSync('package-lock.json',{force:true})\" && npx npm-check-updates -u"
   },
