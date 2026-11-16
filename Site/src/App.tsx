@@ -165,6 +165,10 @@ const Footer = styled.footer`
     color: var(--text-muted);
     font-size: 0.78rem;
     text-align: center;
+
+    p {
+        margin: 6px 0 0;
+    }
 `;
 
 /** `#/docs` and `#%2Fdocs` both mean the same page; a stray encoding must not break the route. */
@@ -284,7 +288,16 @@ const Site: React.FC = () => {
                         : <HomePage/>}
             </Content>
 
-            <Footer>{copy.footer}</Footer>
+            <Footer>
+                {copy.footer}
+                {site.creditsUrl && copy.creditsBefore && (
+                    <p>
+                        {copy.creditsBefore}
+                        <a href={site.creditsUrl} rel="noreferrer" target="_blank">{copy.creditsLink}</a>
+                        {copy.creditsAfter}
+                    </p>
+                )}
+            </Footer>
         </Shell>
     );
 };

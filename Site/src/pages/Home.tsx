@@ -1,6 +1,6 @@
 import React from "react";
 import styled, {keyframes} from "styled-components";
-import {BookOpen, Download, FileText, Lock, ShieldAlert, ShieldCheck, UserCog, UserPlus, Users, Zap, type LucideIcon} from "lucide-react";
+import {BookOpen, Download, FileCode2, FileText, Lock, ShieldAlert, ShieldCheck, UserCog, UserPlus, Users, Zap, type LucideIcon} from "lucide-react";
 import {siGithub} from "simple-icons";
 import {useCopy, useSite} from "../context";
 import {docsHref} from "../text";
@@ -246,6 +246,53 @@ const PlatformNote = styled.span`
     font-size: 0.8rem;
 `;
 
+/** The main window, full width under the hero. */
+const Shot = styled.figure`
+    margin: 40px 0 0;
+
+    img {
+        width: 100%;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    figcaption {
+        margin-top: 10px;
+        color: var(--text-muted);
+        font-size: 0.78rem;
+    }
+`;
+
+/** A second picture beside its explanation on wide screens. */
+const Popup = styled.section`
+    display: grid;
+    gap: 28px;
+    align-items: center;
+
+    @media (min-width: 880px) {
+        grid-template-columns: 560px minmax(0, 1fr);
+    }
+`;
+
+const PopupShot = styled.figure`
+    margin: 0;
+    max-width: 560px;
+
+    img {
+        width: 100%;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    figcaption {
+        margin-top: 10px;
+        color: var(--text-muted);
+        font-size: 0.78rem;
+    }
+`;
+
 /** The detection limits sit at the bottom, away from the sales pitch. */
 const Disclaimer = styled.aside`
     padding: 18px 20px;
@@ -296,6 +343,12 @@ export const HomePage: React.FC = () => {
                             {home.documentation}
                         </Button>
                     )}
+                    {site.scriptInstall && home.installScript && (
+                        <Button href={site.scriptInstall}>
+                            <FileCode2 size={17}/>
+                            {home.installScript}
+                        </Button>
+                    )}
                     <Button href={site.repository}>
                         <BrandIcon viewBox="0 0 24 24" aria-hidden="true">
                             <path d={siGithub.path}/>
@@ -305,69 +358,101 @@ export const HomePage: React.FC = () => {
                 </Actions>
             </Hero>
 
+            {site.screenshots?.main && (
+                <Shot>
+                    <img alt={home.mainWindowAlt ?? ""} src={site.screenshots.main}/>
+                    {home.mainWindow && <figcaption>{home.mainWindow}</figcaption>}
+                </Shot>
+            )}
+
             <Section>
                 <Heading>{home.whatTitle}</Heading>
                 <Lead>{home.whatText}</Lead>
             </Section>
 
-            <Section>
-                <Heading>{home.featuresTitle}</Heading>
-                <Grid>
-                    {home.features.map(({name, text}, index) => {
-                        const Glyph = featureIcons[index] ?? ShieldCheck;
+            {home.popupTitle && (
+                <Section>
+                    <Popup>
+                        {site.screenshots?.popup && (
+                            <PopupShot>
+                                <img alt={home.popupAlt ?? ""} src={site.screenshots.popup}/>
+                                {home.popupCaption && <figcaption>{home.popupCaption}</figcaption>}
+                            </PopupShot>
+                        )}
+                        <div>
+                            <Heading>{home.popupTitle}</Heading>
+                            <Lead>{home.popupText}</Lead>
+                        </div>
+                    </Popup>
+                </Section>
+            )}
 
-                        return (
-                            <Feature key={name}>
-                                <FeatureIcon>
-                                    <Glyph size={18}/>
-                                </FeatureIcon>
-                                <FeatureName>{name}</FeatureName>
-                                <FeatureText>{text}</FeatureText>
-                            </Feature>
-                        );
-                    })}
-                </Grid>
-            </Section>
+            {home.featuresTitle && home.features && (
+                <Section>
+                    <Heading>{home.featuresTitle}</Heading>
+                    <Grid>
+                        {home.features.map(({name, text}, index) => {
+                            const Glyph = featureIcons[index] ?? ShieldCheck;
 
-            <Section>
-                <Heading>{home.howTitle}</Heading>
-                <Steps>
-                    {home.how.map((step) => <Step key={step}>{step}</Step>)}
-                </Steps>
-            </Section>
+                            return (
+                                <Feature key={name}>
+                                    <FeatureIcon>
+                                        <Glyph size={18}/>
+                                    </FeatureIcon>
+                                    <FeatureName>{name}</FeatureName>
+                                    <FeatureText>{text}</FeatureText>
+                                </Feature>
+                            );
+                        })}
+                    </Grid>
+                </Section>
+            )}
 
-            <Section>
-                <Heading>{home.installTitle}</Heading>
-                <Lead>
-                    {home.installBefore}
-                    <a href={site.repository}>{home.readme}</a>
-                    {home.installAfter}
-                </Lead>
-                <PlatformGrid>
-                    {home.platforms.map(({name, note}, index) => {
-                        const icon = platformIcons[index] ?? windowsLogo;
+            {home.howTitle && home.how && (
+                <Section>
+                    <Heading>{home.howTitle}</Heading>
+                    <Steps>
+                        {home.how.map((step) => <Step key={step}>{step}</Step>)}
+                    </Steps>
+                </Section>
+            )}
 
-                        return (
-                            <Platform href={site.releases ?? `${site.repository}/releases/latest`} key={name}>
-                                <PlatformName>
-                                    <BrandIcon viewBox="0 0 24 24" aria-hidden="true">
-                                        <path d={icon.path}/>
-                                    </BrandIcon>
-                                    {name}
-                                </PlatformName>
-                                <PlatformNote>{note}</PlatformNote>
-                            </Platform>
-                        );
-                    })}
-                </PlatformGrid>
-            </Section>
+            {home.installTitle && (
+                <Section>
+                    <Heading>{home.installTitle}</Heading>
+                    <Lead>
+                        {home.installBefore}
+                        <a href={site.repository}>{home.readme}</a>
+                        {home.installAfter}
+                    </Lead>
+                    <PlatformGrid>
+                        {(home.platforms ?? []).map(({name, note}, index) => {
+                            const icon = platformIcons[index] ?? windowsLogo;
 
-            <Section>
-                <Disclaimer>
-                    <h2>{home.noteTitle}</h2>
-                    <p>{home.noteText}</p>
-                </Disclaimer>
-            </Section>
+                            return (
+                                <Platform href={site.releases ?? `${site.repository}/releases/latest`} key={name}>
+                                    <PlatformName>
+                                        <BrandIcon viewBox="0 0 24 24" aria-hidden="true">
+                                            <path d={icon.path}/>
+                                        </BrandIcon>
+                                        {name}
+                                    </PlatformName>
+                                    <PlatformNote>{note}</PlatformNote>
+                                </Platform>
+                            );
+                        })}
+                    </PlatformGrid>
+                </Section>
+            )}
+
+            {home.noteTitle && (
+                <Section>
+                    <Disclaimer>
+                        <h2>{home.noteTitle}</h2>
+                        <p>{home.noteText}</p>
+                    </Disclaimer>
+                </Section>
+            )}
         </>
     );
 };

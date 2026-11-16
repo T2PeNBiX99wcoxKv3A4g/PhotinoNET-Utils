@@ -54,6 +54,12 @@ export interface SiteConfig {
     theme: SiteTheme;
     docs: DocPageConfig[];
     icons?: SiteIcons;
+    /** Pictures the home page shows, as URLs or paths under the site root. */
+    screenshots?: {main?: string; popup?: string};
+    /** The install link of a script a project offers, shown beside Download. */
+    scriptInstall?: string;
+    /** A project that names an inspiration shows it in the footer. */
+    creditsUrl?: string;
     /** Extra header entries beyond home, docs and GitHub, such as a scripts page. */
     extraNav?: { key: string; href: string; glyph?: "code" }[];
 }
@@ -63,23 +69,34 @@ export interface SiteCopy {
     nav: { home: string; docs: string; [key: string]: string };
     version: string;
     footer: string;
+    creditsBefore?: string;
+    creditsLink?: string;
+    creditsAfter?: string;
     home: {
         tagline: string;
-        noteTitle: string;
-        noteText: string;
         download: string;
         documentation: string;
         whatTitle: string;
         whatText: string;
-        featuresTitle: string;
-        features: { name: string; text: string }[];
-        howTitle: string;
-        how: string[];
-        installTitle: string;
-        installBefore: string;
-        readme: string;
-        installAfter: string;
-        platforms: { name: string; note: string }[];
+        featuresTitle?: string;
+        features?: { name: string; text: string }[];
+        howTitle?: string;
+        how?: string[];
+        installTitle?: string;
+        installBefore?: string;
+        readme?: string;
+        installAfter?: string;
+        platforms?: { name: string; note: string }[];
+        /** A project with screenshots uses these instead of the "how" steps. */
+        installScript?: string;
+        mainWindow?: string;
+        mainWindowAlt?: string;
+        popupTitle?: string;
+        popupText?: string;
+        popupCaption?: string;
+        popupAlt?: string;
+        noteTitle?: string;
+        noteText?: string;
     };
     docs: { [group: string]: string };
     scripts?: {
