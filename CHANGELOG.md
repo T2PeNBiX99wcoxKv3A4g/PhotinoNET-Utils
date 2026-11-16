@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.32.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.32.0..v0.32.1) - 2026-11-16
+
+### 🐛 Bug Fixes
+
+- *(site)* Let the header wrap on a phone, and take a gallery - ([48def44](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/48def4428581ed04ee234e9920357f74236432e4))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([4e309c4](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/4e309c4e9babc461fdab1bbb97705a062d2bd68d))
+
+
 ## [0.32.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.31.0..v0.32.0) - 2026-11-16
 
 ### ⛰️  Features
