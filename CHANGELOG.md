@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.34.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.33.0..v0.34.0) - 2026-11-16
+
+### ⛰️  Features
+
+- *(site)* Put the install steps in one panel, for the system in front of it - ([cbc1956](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/cbc1956a7f3ae1cada1995fd8b1853bb9b3429c4))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([aa0fc6a](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/aa0fc6ae4401b70473bb4eb279b5b72327924bff))
+
+
 ## [0.33.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.32.1..v0.33.0) - 2026-11-16
 
 ### ⛰️  Features
