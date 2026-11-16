@@ -264,6 +264,13 @@ const Shot = styled.figure`
     }
 `;
 
+/** Further pictures, one under the other on a phone and side by side above it. */
+const Gallery = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+`;
+
 /** A second picture beside its explanation on wide screens. */
 const Popup = styled.section`
     display: grid;
@@ -324,6 +331,7 @@ export const HomePage: React.FC = () => {
     const home = useCopy().home;
 
     const featureIcons = site.icons?.features ?? defaultFeatureIcons;
+    const gallery = site.screenshots?.gallery ?? [];
     const platformIcons = site.icons?.platforms ?? [windowsLogo];
 
     return (
@@ -369,6 +377,18 @@ export const HomePage: React.FC = () => {
                 <Heading>{home.whatTitle}</Heading>
                 <Lead>{home.whatText}</Lead>
             </Section>
+
+            {gallery.length > 0 && (
+                <Section>
+                    <Gallery>
+                        {gallery.map((shot) => (
+                            <Shot key={shot.src}>
+                                <img alt={shot.alt ?? ""} loading="lazy" src={shot.src}/>
+                            </Shot>
+                        ))}
+                    </Gallery>
+                </Section>
+            )}
 
             {home.popupTitle && (
                 <Section>

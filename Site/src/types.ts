@@ -55,7 +55,12 @@ export interface SiteConfig {
     docs: DocPageConfig[];
     icons?: SiteIcons;
     /** Pictures the home page shows, as URLs or paths under the site root. */
-    screenshots?: {main?: string; popup?: string};
+    screenshots?: {
+        main?: string;
+        popup?: string;
+        /** Further pictures, shown as a grid after the introduction. */
+        gallery?: {src: string; alt?: string}[];
+    };
     /** The install link of a script a project offers, shown beside Download. */
     scriptInstall?: string;
     /** A project that names an inspiration shows it in the footer. */

@@ -32,13 +32,21 @@ const TopBar = styled.header`
     top: 0;
     z-index: 10;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 24px;
+    gap: 10px 24px;
     padding: 14px 24px;
     border-bottom: 1px solid var(--border-color);
     background: var(--bg-topbar);
     backdrop-filter: blur(16px);
     animation: ${fadeIn} 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* A phone has no room for one row of links; they wrap under the name instead of widening the
+       page, which is what made the whole site scroll sideways. */
+    @media (max-width: 760px) {
+        gap: 8px 12px;
+        padding: 12px 16px;
+    }
 `;
 
 const Brand = styled.a`
@@ -89,9 +97,15 @@ const VersionBadge = styled.a`
 
 const Nav = styled.nav`
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 4px;
     margin-left: auto;
+
+    @media (max-width: 760px) {
+        width: 100%;
+        margin-left: 0;
+    }
 `;
 
 const NavLink = styled.a<{ $active?: boolean }>`
@@ -158,6 +172,10 @@ const Content = styled.main`
     margin: 0 auto;
     padding: 40px 24px 64px;
     animation: ${fadeIn} 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+
+    @media (max-width: 760px) {
+        padding: 24px 16px 48px;
+    }
 `;
 
 const Footer = styled.footer`
