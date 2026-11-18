@@ -6,9 +6,9 @@ using Serilog;
 namespace PhotinoNetUtils.Platform;
 
 /// <summary>
-///     A global key combination that calls back while the app runs. It polls the keyboard instead of
+///     Global key combinations that call back while the app runs. It polls the keyboard instead of
 ///     registering a hotkey, so it also works when another process owns the foreground window. The
-///     callback decides what the combination does, which keeps the helper free of any window logic.
+///     callback decides what the combinations do, which keeps the helper free of any window logic.
 /// </summary>
 [PublicAPI]
 public static partial class GlobalHotkey
@@ -39,29 +39,56 @@ public static partial class GlobalHotkey
     };
 
     private static CancellationTokenSource? _stop;
-    private static bool _wasDown;
 
-    /// <summary>Starts polling <paramref name="combination" /> and calls <paramref name="onPressed" /> when it is pressed.</summary>
-    public static void Apply(string? combination, Action onPressed)
+    /// <summary>
+    ///     Starts polling <paramref name="combinations" />, several of them separated by "|", and calls
+    ///     <paramref name="onPressed" /> whenever one of them is pressed. An empty value stops the
+    ///     polling, so the same call turns the shortcut off again.
+    /// </summary>
+    public static void Apply(string? combinations, Action onPressed) =>
+        Apply(Split(combinations), onPressed);
+
+    /// <summary>Starts polling every combination; each one calls <paramref name="onPressed" /> on its own.</summary>
+    public static void Apply(IEnumerable<string> combinations, Action onPressed)
     {
         Stop();
 
-        if (string.IsNullOrWhiteSpace(combination))
+        var lines = combinations
+            .SelectMany(Split)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (lines.Length == 0)
             return;
 
         if (OperatingSystem.IsLinux())
         {
-            StartLinux(combination, onPressed);
+            StartLinux(lines, onPressed);
             return;
         }
 
         if (!OperatingSystem.IsWindows())
             return;
 
-        var parts = combination.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var keys = lines.Select(WindowsKeys).OfType<int[]>().ToArray();
+        if (keys.Length == 0)
+            return;
+
+        _stop = new();
+        StartPolling(keys, _stop.Token, onPressed);
+    }
+
+    /// <summary>The "|" separated forms of one stored value, with the empty ones dropped.</summary>
+    private static IEnumerable<string> Split(string? value) =>
+        (value ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    /// <summary>The virtual key codes of one combination, or null when a part is not a key this helper knows.</summary>
+    [SupportedOSPlatform("windows")]
+    private static int[]? WindowsKeys(string combination)
+    {
         var keys = new List<int>();
 
-        foreach (var part in parts)
+        foreach (var part in combination.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             if (part.Length == 1 && char.IsLetterOrDigit(part[0]))
                 keys.Add(char.ToUpperInvariant(part[0]));
             else if (part.StartsWith('f') && int.TryParse(part[1..], out var function) && function is >= 1 and <= 24)
@@ -69,39 +96,38 @@ public static partial class GlobalHotkey
             else if (Keys.TryGetValue(part, out var code))
                 keys.Add(code);
             else
-                return;
+                return null;
 
-        if (keys.Count == 0)
-            return;
-
-        _wasDown = false;
-        _stop = new();
-        var token = _stop.Token;
-
-        StartPolling(keys, token, onPressed);
+        return keys.Count == 0 ? null : [.. keys];
     }
 
     [SupportedOSPlatform("windows")]
-    private static void StartPolling(List<int> keys, CancellationToken token, Action onPressed) =>
-        _ = Task.Run(() => Poll(keys, token, onPressed), token);
+    private static void StartPolling(int[][] combinations, CancellationToken token, Action onPressed) =>
+        _ = Task.Run(() => Poll(combinations, token, onPressed), token);
 
     /// <summary>The polling loop; <c>GetAsyncKeyState</c> is a Win32 call, so it is Windows only.</summary>
     [SupportedOSPlatform("windows")]
-    private static void Poll(List<int> keys, CancellationToken token, Action onPressed)
+    private static void Poll(int[][] combinations, CancellationToken token, Action onPressed)
     {
+        // Every combination keeps its own state, so holding one does not swallow another.
+        var wasDown = new bool[combinations.Length];
+
         while (!token.IsCancellationRequested)
         {
             try
             {
-                var down = keys.All(key => (GetAsyncKeyState(key) & 0x8000) != 0);
-
-                if (down && !_wasDown)
+                for (var index = 0; index < combinations.Length; index++)
                 {
-                    _wasDown = true;
-                    onPressed();
+                    var down = combinations[index].All(key => (GetAsyncKeyState(key) & 0x8000) != 0);
+
+                    if (down && !wasDown[index])
+                    {
+                        wasDown[index] = true;
+                        onPressed();
+                    }
+                    else if (!down)
+                        wasDown[index] = false;
                 }
-                else if (!down)
-                    _wasDown = false;
             }
             catch (Exception ex)
             {
@@ -112,7 +138,7 @@ public static partial class GlobalHotkey
         }
     }
 
-    /// <summary>Stops the current combination, if one is running.</summary>
+    /// <summary>Stops every running combination.</summary>
     public static void Stop()
     {
         _stop?.Cancel();
@@ -126,23 +152,12 @@ public static partial class GlobalHotkey
     ///     XWayland has the focus, so the combination may stay inert there; nothing fails.
     /// </summary>
     [SupportedOSPlatform("linux")]
-    private static void StartLinux(string combination, Action onPressed)
+    private static void StartLinux(IEnumerable<string> combinations, Action onPressed)
     {
-        var names = new List<string>();
-
-        foreach (var part in combination.Split('+',
-                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-        {
-            if (LinuxKeyName(part) is not { } name)
-                return;
-
-            names.Add(name);
-        }
-
-        if (names.Count == 0)
+        var names = combinations.Select(LinuxNames).OfType<string[]>().ToArray();
+        if (names.Length == 0)
             return;
 
-        _wasDown = false;
         _stop = new();
         var token = _stop.Token;
 
@@ -157,29 +172,33 @@ public static partial class GlobalHotkey
                 if (display == IntPtr.Zero)
                     return;
 
-                var codes = names
-                    .Select(name => XKeysymToKeycode(display, XStringToKeysym(name)))
-                    .Where(code => code != 0)
+                var keys = names
+                    .Select(parts => parts.Select(name => XKeysymToKeycode(display, XStringToKeysym(name))).ToArray())
+                    .Where(codes => codes.All(code => code != 0))
                     .ToArray();
 
-                if (codes.Length != names.Count)
+                if (keys.Length == 0)
                     return;
 
+                var wasDown = new bool[keys.Length];
                 var state = new byte[32];
 
                 while (!token.IsCancellationRequested)
                 {
                     XQueryKeymap(display, state);
 
-                    var down = codes.All(code => (state[code >> 3] & 1 << (code & 7)) != 0);
-
-                    if (down && !_wasDown)
+                    for (var index = 0; index < keys.Length; index++)
                     {
-                        _wasDown = true;
-                        onPressed();
+                        var down = keys[index].All(code => (state[code >> 3] & 1 << (code & 7)) != 0);
+
+                        if (down && !wasDown[index])
+                        {
+                            wasDown[index] = true;
+                            onPressed();
+                        }
+                        else if (!down)
+                            wasDown[index] = false;
                     }
-                    else if (!down)
-                        _wasDown = false;
 
                     Thread.Sleep(80);
                 }
@@ -194,6 +213,23 @@ public static partial class GlobalHotkey
                     XCloseDisplay(display);
             }
         }, token);
+    }
+
+    /// <summary>The X11 keysym names of one combination, or null when a part has none.</summary>
+    [SupportedOSPlatform("linux")]
+    private static string[]? LinuxNames(string combination)
+    {
+        var names = new List<string>();
+
+        foreach (var part in combination.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (LinuxKeyName(part) is not { } name)
+                return null;
+
+            names.Add(name);
+        }
+
+        return names.Count == 0 ? null : [.. names];
     }
 
     /// <summary>The X11 keysym name for one part of the combination.</summary>
