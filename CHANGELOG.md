@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.35.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.34.0..v0.35.0) - 2026-11-18
+
+### ⛰️  Features
+
+- *(hotkey)* Poll several global combinations at once - ([153e9ba](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/153e9ba1727ba2e91f8e8a089c78b871a2ca0983))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([57df4f9](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/57df4f92dc0c27f80a463bd4cf9bfef514a9106c))
+
+
 ## [0.34.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.33.0..v0.34.0) - 2026-11-16
 
 ### ⛰️  Features
