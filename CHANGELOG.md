@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.36.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.35.0..v0.36.0) - 2026-11-19
+
+### ⛰️  Features
+
+- *(attributions)* Let an app take the notices as JSON - ([50e5976](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/50e597639426b6c57a977ec9ba8e5c6148b770d3))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([316a4b6](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/316a4b662f443bafa2830ad5fc604f1ab0dc4b0a))
+
+
 ## [0.35.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.34.0..v0.35.0) - 2026-11-18
 
 ### ⛰️  Features
