@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.40.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.39.1..v0.40.0) - 2026-11-20
+
+### ⛰️  Features
+
+- *(site)* Show a sourced docs page from its live file - ([3eafc18](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/3eafc18a149ab9b9e72505121e422d2c69ff76ed))
+- *(site)* Build a docs page from a named source file - ([7599051](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/7599051e99280ab4942fdbbe151f4b59a10176a8))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([1fffe74](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/1fffe74e1b40593e2a4451eeb32cef74a84e8729))
+
+
 ## [0.39.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.39.0..v0.39.1) - 2026-11-20
 
 ### 🐛 Bug Fixes
