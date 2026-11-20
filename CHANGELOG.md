@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.37.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.36.0..v0.37.0) - 2026-11-20
+
+### ⛰️  Features
+
+- *(hosting)* Give the local server a data plane - ([916ae05](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/916ae059fdb34b2503e1f5c75a78fa8e4ff2d354))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([2c7f56c](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/2c7f56c4a13deb4064ff8d713780a04cd01f40a3))
+
+
 ## [0.36.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.35.0..v0.36.0) - 2026-11-19
 
 ### ⛰️  Features
