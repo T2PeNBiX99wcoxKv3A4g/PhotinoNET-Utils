@@ -7,10 +7,12 @@
 // A page may name a `source` instead of keeping a copy of the file under `docs`, which is how a
 // changelog already written at the root of the repository becomes a page without being copied:
 //
-//   docs: [{slug: "Changelog", group: "history", source: "../CHANGELOG.md"}]
+//   docs: [{slug: "Changelog", group: "history", source: "../CHANGELOG.md", remote: "master/CHANGELOG.md"}]
 //
 // A translation still wins over that source, and the body is stored once when every language reuses
-// it, so a long changelog does not travel four times.
+// it, so a long changelog does not travel four times. `remote` is the address the page reads the
+// latest file from at runtime, so a site built before the file changed still shows the newest text;
+// the generated body is what a failed request leaves on screen.
 //
 // Run from the site directory: `node node_modules/@photino-net-utils/site/scripts/generate-docs.mjs`.
 
@@ -67,6 +69,21 @@ async function bodyOf(page, language) {
     return {file, body: files.get(file)};
 }
 
+/**
+ * The address the page reads at runtime: a path inside the repository becomes the raw file, a full
+ * URL is taken as it is, and a page without one keeps only the generated body.
+ */
+function remoteUrl(page) {
+    if (!page.remote) return undefined;
+    if (/^https?:\/\//i.test(page.remote)) return page.remote;
+
+    const raw = site.repository
+        .replace("https://github.com/", "https://raw.githubusercontent.com/")
+        .replace(/\/$/, "");
+
+    return `${raw}/${page.remote.replace(/^\//, "")}`;
+}
+
 const docs = {};
 
 for (const language of languages) {
@@ -75,11 +92,16 @@ for (const language of languages) {
     for (const page of pages) {
         const {file, body} = await bodyOf(page, language);
 
+        // A translation is what its readers came for, so a page taken from the source file is the
+        // only one that goes looking for a newer copy.
+        const source = page.source ? path.resolve(siteRoot, page.source) : "";
+
         entries.push({
             slug: page.slug,
             group: page.group,
             title: titleOf(body, page.slug.replace(/-/g, " ")),
             body,
+            remote: file === source ? remoteUrl(page) : undefined,
             file,
         });
     }
@@ -108,7 +130,8 @@ const body = Object.entries(docs)
         const items = entries
             .map((entry) => `        {\n            slug: ${literal(entry.slug)},\n            group: ${literal(entry.group)},\n` +
                 `            title: ${literal(entry.title)},\n` +
-                `            body: ${isShared(entry) ? `shared[${literal(entry.slug)}]` : literal(entry.body)},\n        },`)
+                `            body: ${isShared(entry) ? `shared[${literal(entry.slug)}]` : literal(entry.body)},\n` +
+                (entry.remote ? `            remote: ${literal(entry.remote)},\n` : "") + `        },`)
             .join("\n");
 
         return `    ${literal(language)}: [\n${items}\n    ],`;
@@ -135,6 +158,7 @@ export interface GeneratedDoc {
     group: string;
     title: string;
     body: string;
+    remote?: string;
 }
 
 ${sharedDeclaration}export const docs: Record<string, GeneratedDoc[]> = {

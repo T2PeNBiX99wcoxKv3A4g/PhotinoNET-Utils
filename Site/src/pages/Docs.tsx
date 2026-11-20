@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import styled, {keyframes} from "styled-components";
@@ -196,6 +196,35 @@ interface DocsPageProps {
     page: string;
 }
 
+/**
+ * The page as it is now: the file the page names, read from GitHub, rather than the copy the build
+ * stored. That copy is on screen from the first paint and stays there when the request fails, so a
+ * site built a release ago still shows the newest changelog when it can reach it.
+ */
+function useLiveBody(remote: string | undefined, stored: string) {
+    const [body, setBody] = useState(stored);
+
+    useEffect(() => {
+        setBody(stored);
+        if (!remote) return;
+
+        const controller = new AbortController();
+
+        fetch(remote, {cache: "no-store", signal: controller.signal})
+            .then(async (response) => (response.ok ? (await response.text()).trim() : ""))
+            .then((live) => {
+                if (live) setBody(live);
+            })
+            .catch(() => {
+                // Offline, rate limited or refused: the copy the build stored remains.
+            });
+
+        return () => controller.abort();
+    }, [remote, stored]);
+
+    return body;
+}
+
 export const DocsPage: React.FC<DocsPageProps> = ({page}) => {
     const site = useSite();
     const docs = useDocs();
@@ -206,6 +235,7 @@ export const DocsPage: React.FC<DocsPageProps> = ({page}) => {
     const pages = docs[language] ?? docs.en;
     const current = pages.find((doc) => doc.slug === page) ?? pages[0];
     const groups = [...new Set(site.docs.map((entry) => entry.group))];
+    const body = useLiveBody(current?.remote, current?.body ?? "");
 
     if (!current) return null;
 
@@ -232,7 +262,7 @@ export const DocsPage: React.FC<DocsPageProps> = ({page}) => {
 
             <Article>
                 <Body>
-                    <Markdown remarkPlugins={[remarkGfm]}>{current.body}</Markdown>
+                    <Markdown remarkPlugins={[remarkGfm]}>{body}</Markdown>
                 </Body>
             </Article>
         </Layout>

@@ -73,13 +73,18 @@ changelog written by the release workflow becomes a page without being duplicate
 ```js
 docs: [
     {slug: "Getting-Started", group: "setup"},
-    {slug: "Changelog", group: "history", source: "../CHANGELOG.md"},
+    {slug: "Changelog", group: "history", source: "../CHANGELOG.md", remote: "master/CHANGELOG.md"},
 ],
 ```
 
 `source` is relative to the site directory, and a translation at `docs/<language>/Changelog.md` still
 wins over it. The body is stored once even when every language shows it. The group needs a label in
 `copy.docs` (`"history": "History"`).
+
+`remote` is what the page shows first: a path inside the repository (or a full URL) that the browser
+reads when the page opens, so a site built a release ago still shows the newest file. The generated
+body is painted at once and stays if the request fails, which also keeps a translation from being
+replaced by the untranslated source.
 
 ## Scripts
 

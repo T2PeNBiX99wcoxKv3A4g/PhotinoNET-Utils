@@ -6,6 +6,8 @@ export interface DocEntry {
     title: string;
     group: string;
     body: string;
+    /** Where the page's latest text can be read at runtime, when the page names one. */
+    remote?: string;
 }
 
 /** The documentation, by language; a missing language falls back to English. */
@@ -20,6 +22,13 @@ export interface DocPageConfig {
      * `../CHANGELOG.md`. A translation at `docs/<language>/<slug>.md` still wins over it.
      */
     source?: string;
+    /**
+     * Where the page is read from at runtime, so a site built before the file changed still shows
+     * the newest text. A path inside the repository (`master/CHANGELOG.md`) or a full URL; the page
+     * falls back to the generated body when the request fails. Only used while the page is not
+     * translated, since a translation is what its readers should see.
+     */
+    remote?: string;
 }
 
 /** The colours a site paints with; the app's own tokens are the source of these values. */
