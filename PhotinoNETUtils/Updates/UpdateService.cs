@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net;
 using JetBrains.Annotations;
 using PhotinoNetUtils.Extensions;
 using PhotinoNetUtils.Messaging;
@@ -115,9 +116,18 @@ public sealed record UpdateChangelogPayload(string Text);
 public sealed class UpdateService : IDisposable
 {
     private const string WindowsOnlyError = "Updates are only supported on Windows.";
+
+    /// <summary>
+    ///     How often a download looks again for an installer that is still being uploaded. The
+    ///     workflow publishes the new version before it builds the files, so a download can arrive
+    ///     in the minutes when the release exists but its assets do not.
+    /// </summary>
+    private const int AssetAttempts = 3;
+
     private static readonly TimeSpan CacheLifetime = TimeSpan.FromHours(6);
     private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan ChangelogTimeout = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan AssetRetryDelay = TimeSpan.FromSeconds(10);
     private static readonly ILogger Logger = Log.ForContext<UpdateService>();
 
     private readonly SemaphoreSlim _checkGate = new(1, 1);
@@ -187,7 +197,7 @@ public sealed class UpdateService : IDisposable
             if (!force && _cached is { } cached && DateTime.UtcNow - _cachedAt < CacheLifetime)
                 return cached;
 
-            var published = await Try.Run(ReadPublishedVersionAsync);
+            var published = await Try.Run(() => ReadPublishedVersionAsync(force));
 
             if (published.Exception is { } exception)
             {
@@ -198,11 +208,19 @@ public sealed class UpdateService : IDisposable
             if (published.Value is not { Length: > 0 } latest)
                 return null;
 
-            var check = new UpdateCheckPayload(_options.CurrentVersion, latest,
-                IsNewer(latest, _options.CurrentVersion));
+            var newer = IsNewer(latest, _options.CurrentVersion);
+            var available = newer && await IsAssetPublishedAsync(latest);
+            var check = new UpdateCheckPayload(_options.CurrentVersion, latest, available);
 
-            _cached = check;
-            _cachedAt = DateTime.UtcNow;
+            // A version whose installers are still being built is not an update yet. Keeping that
+            // answer out of the cache is what lets the next check find the files as soon as they
+            // are there, instead of hiding the release for the rest of the cache lifetime.
+            if (available || !newer)
+            {
+                _cached = check;
+                _cachedAt = DateTime.UtcNow;
+            }
+
             _options.Notify?.Invoke("update.checked", check);
             return check;
         }
@@ -212,10 +230,16 @@ public sealed class UpdateService : IDisposable
         }
     }
 
-    private async Task<string> ReadPublishedVersionAsync()
+    private async Task<string> ReadPublishedVersionAsync(bool fresh)
     {
         using var timeout = new CancellationTokenSource(CheckTimeout);
         var url = $"https://raw.githubusercontent.com/{_options.Owner}/{_options.Repository}/{_options.Branch}/.version";
+
+        // The raw host serves a branch file from its cache for five minutes, which is exactly the
+        // window in which a new release has to show up. A check the user asked for reads past it.
+        if (fresh)
+            url += $"?checked={DateTime.UtcNow.Ticks}";
+
         using var response = await _client.GetAsync(url, timeout.Token);
         response.EnsureSuccessStatusCode();
 
@@ -224,6 +248,44 @@ public sealed class UpdateService : IDisposable
             .FirstOrDefault() ?? "";
 
         return line.TrimStart('v', 'V');
+    }
+
+    /// <summary>Where the installer of one version is downloaded from, by its release tag.</summary>
+    private string AssetUrl(string version)
+    {
+        var versionText = version.TrimStart('v', 'V');
+        var fileName = _options.AssetPattern.Replace("{version}", versionText);
+        // The tag, not "latest": the newest release does not carry the assets of an older one.
+        var tag = _options.TagPattern.Replace("{version}", versionText);
+
+        return
+            $"https://github.com/{_options.Owner}/{_options.Repository}/releases/download/{Uri.EscapeDataString(tag)}/{Uri.EscapeDataString(fileName)}";
+    }
+
+    /// <summary>
+    ///     Whether the installer of a version can be fetched yet. The new version is published in
+    ///     the version file before the workflow builds the installers, so for a few minutes a newer
+    ///     version has nothing to download; offering it during that time is what made the update
+    ///     fail with a 404.
+    /// </summary>
+    private async Task<bool> IsAssetPublishedAsync(string version)
+    {
+        using var timeout = new CancellationTokenSource(CheckTimeout);
+
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Head, AssetUrl(version));
+            using var response = await _client.SendAsync(request, timeout.Token);
+
+            // Anything but a plain "not there" is a network or server answer the download itself
+            // reports better than this check can.
+            return response.StatusCode is not HttpStatusCode.NotFound;
+        }
+        catch (Exception ex)
+        {
+            Logger.Debug(ex, "Could not look for the installer of {Version}", version);
+            return true;
+        }
     }
 
     /// <summary>Starts the download in the background; progress arrives as events.</summary>
@@ -272,17 +334,13 @@ public sealed class UpdateService : IDisposable
 
             var versionText = version.TrimStart('v', 'V');
             var fileName = _options.AssetPattern.Replace("{version}", versionText);
-            // The tag, not "latest": the newest release does not carry the assets of an older one.
-            var tag = _options.TagPattern.Replace("{version}", versionText);
-            var url =
-                $"https://github.com/{_options.Owner}/{_options.Repository}/releases/download/{Uri.EscapeDataString(tag)}/{Uri.EscapeDataString(fileName)}";
 
             ClearDownloadDirectory();
 
             var path = Path.Combine(DownloadDirectory, fileName);
             part = path + ".part";
 
-            using var response = await _client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token);
+            using var response = await GetAssetAsync(AssetUrl(version), token);
             response.EnsureSuccessStatusCode();
 
             var total = response.Content.Headers.ContentLength ?? 0;
@@ -346,6 +404,28 @@ public sealed class UpdateService : IDisposable
                 _download?.Dispose();
                 _download = null;
             }
+        }
+    }
+
+    /// <summary>
+    ///     Fetches the installer, looking again for a file that the release does not carry yet: the
+    ///     workflow uploads the assets a few minutes after it publishes the version.
+    /// </summary>
+    private async Task<HttpResponseMessage> GetAssetAsync(string url, CancellationToken token)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            var response = await _client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token);
+            if (response.IsSuccessStatusCode)
+                return response;
+
+            if (response.StatusCode is not (HttpStatusCode.NotFound or HttpStatusCode.Forbidden)
+                || attempt == AssetAttempts)
+                return response;
+
+            response.Dispose();
+            Notify("update.progress", new UpdateProgressPayload("changelog", 0, 0, 0));
+            await Task.Delay(AssetRetryDelay, token);
         }
     }
 
