@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.39.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.38.0..v0.39.0) - 2026-11-20
+
+### ⛰️  Features
+
+- *(listing)* Carry absolute names for lists that span folders - ([6b8cd15](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/6b8cd15a7633d754bb390d072dd6d3ec33eda21f))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([3810d75](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/3810d75a51ea8f64f65741de321510ce44b10543))
+
+
 ## [0.38.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.37.0..v0.38.0) - 2026-11-20
 
 ### ⛰️  Features
