@@ -32,6 +32,12 @@ public static class ListingFormat
     public const ushort Version = 1;
     public const string ContentType = "application/x-yafm-listing";
 
+    /// <summary>
+    ///     Set in the header when the names are complete paths: a list that spans folders (a gallery)
+    ///     has no single base path to put in front of them.
+    /// </summary>
+    public const ushort AbsoluteNamesFlag = 1;
+
     private const int HeaderSize = 32;
     private const ushort None = ushort.MaxValue;
 
@@ -41,7 +47,7 @@ public static class ListingFormat
     private const byte EncryptedFlag = 8;
     private const byte LinkValidFlag = 16;
 
-    public static byte[] Encode(IReadOnlyList<ListingEntry> entries, string basePath)
+    public static byte[] Encode(IReadOnlyList<ListingEntry> entries, string basePath, bool absoluteNames = false)
     {
         var count = entries.Count;
         var pool = new List<byte>(count * 24);
@@ -104,7 +110,7 @@ public static class ListingFormat
 
         "YLST"u8.CopyTo(span);
         BinaryPrimitives.WriteUInt16LittleEndian(span[4..], Version);
-        BinaryPrimitives.WriteUInt16LittleEndian(span[6..], 0);
+        BinaryPrimitives.WriteUInt16LittleEndian(span[6..], absoluteNames ? AbsoluteNamesFlag : (ushort)0);
         BinaryPrimitives.WriteUInt32LittleEndian(span[8..], (uint)count);
         BinaryPrimitives.WriteUInt32LittleEndian(span[12..], (uint)pool.Count);
         BinaryPrimitives.WriteUInt32LittleEndian(span[16..], (uint)pathBytes);
@@ -203,6 +209,8 @@ public static class ListingFormat
             return "not a listing block";
 
         var version = BinaryPrimitives.ReadUInt16LittleEndian(block[4..]);
+
+        var headerFlags = BinaryPrimitives.ReadUInt16LittleEndian(block[6..]);
         var count = (int)BinaryPrimitives.ReadUInt32LittleEndian(block[8..]);
         var poolBytes = (int)BinaryPrimitives.ReadUInt32LittleEndian(block[12..]);
         var pathBytes = (int)BinaryPrimitives.ReadUInt32LittleEndian(block[16..]);
@@ -248,7 +256,7 @@ public static class ListingFormat
 
         var text = new StringBuilder();
         text.AppendLine(CultureInfo.InvariantCulture,
-            $"listing v{version} · page {count}{(total > 0 ? $" of {total}" : "")}" +
+            $"listing v{version}{((headerFlags & AbsoluteNamesFlag) != 0 ? " (absolute names)" : "")} · page {count}{(total > 0 ? $" of {total}" : "")}" +
             $" · pool {poolBytes} bytes · block {block.Length} bytes");
         text.AppendLine($"path: {basePath}");
 
