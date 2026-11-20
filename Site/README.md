@@ -67,6 +67,20 @@ export const site = {
 };
 ```
 
+A page can also read a file the project already keeps instead of a copy under `docs`. That is how a
+changelog written by the release workflow becomes a page without being duplicated:
+
+```js
+docs: [
+    {slug: "Getting-Started", group: "setup"},
+    {slug: "Changelog", group: "history", source: "../CHANGELOG.md"},
+],
+```
+
+`source` is relative to the site directory, and a translation at `docs/<language>/Changelog.md` still
+wins over it. The body is stored once even when every language shows it. The group needs a label in
+`copy.docs` (`"history": "History"`).
+
 ## Scripts
 
 The project's `package.json` names them, so a site only repeats three lines:

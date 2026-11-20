@@ -15,6 +15,11 @@ export type Docs = Record<string, DocEntry[]>;
 export interface DocPageConfig {
     slug: string;
     group: string;
+    /**
+     * A markdown file to build the page from, relative to the site directory, such as
+     * `../CHANGELOG.md`. A translation at `docs/<language>/<slug>.md` still wins over it.
+     */
+    source?: string;
 }
 
 /** The colours a site paints with; the app's own tokens are the source of these values. */
