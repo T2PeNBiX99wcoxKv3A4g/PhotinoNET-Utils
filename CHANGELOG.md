@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.38.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.37.0..v0.38.0) - 2026-11-20
+
+### ⛰️  Features
+
+- *(listing)* Paged columnar listings in the shared library - ([738f6ae](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/738f6ae9fa16806b19583e5d9b1019782652d667))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([eaba3f5](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/eaba3f5fb966b9f42b16e15ed1518460e08f8ce9))
+
+
 ## [0.37.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.36.0..v0.37.0) - 2026-11-20
 
 ### ⛰️  Features
