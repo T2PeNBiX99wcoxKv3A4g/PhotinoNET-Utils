@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace PhotinoNetUtils.Hosting;
+namespace PhotinoNetUtils.Hosting.Listing;
 
 /// <summary>
 ///     The <c>--listing-dump</c> command every app gets with the data plane: it asks the source for a

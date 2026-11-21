@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace PhotinoNetUtils.Hosting;
+namespace PhotinoNetUtils.Hosting.Listing;
 
 /// <summary>
 ///     The folder a page request is answered from. A listing is taken from the source once and kept

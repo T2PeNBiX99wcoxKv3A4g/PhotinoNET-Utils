@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text;
 using JetBrains.Annotations;
 
-namespace PhotinoNetUtils.Hosting;
+namespace PhotinoNetUtils.Hosting.Listing;
 
 /// <summary>
 ///     The block a folder listing travels in. One header, then fixed-width columns, then the string

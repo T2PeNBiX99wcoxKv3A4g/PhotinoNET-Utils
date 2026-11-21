@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace PhotinoNetUtils.Hosting;
+namespace PhotinoNetUtils.Hosting.Listing;
 
 /// <summary>
 ///     One row of a folder listing, as the data plane carries it. The app maps its own entry type to

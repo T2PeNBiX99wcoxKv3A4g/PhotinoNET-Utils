@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Serilog;
 
-namespace PhotinoNetUtils.Hosting;
+namespace PhotinoNetUtils.Hosting.Listing;
 
 /// <summary>
 ///     Serves one page of a folder listing as the binary block in <see cref="ListingFormat" />, and the
