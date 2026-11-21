@@ -247,13 +247,13 @@ NotificationService.Notify("auth.expired", "Session expired", "Sign in again.", 
 NotificationService.Notify("auth.expired", "Session expired", "Sign in again.", new NotificationOptions
 {
     Action = "account",
-    Attribution = "AntiBot",
+    Attribution = "MyApp",
     ImagePath = @"C:\path\to\icon.png",
     ButtonText = "Open account"
 });
 
 // The click comes back with the action:
-NotificationService.Activated += page => WindowManager.Instance.ShowMainWindow(page);
+NotificationService.Activated += action => Open(action);
 ```
 
 A notification raised before `Attach` waits and is delivered as soon as the window exists, so a
@@ -591,8 +591,8 @@ staying reflection-free.
 numeric setting outside its range:
 
 ```csharp
-[Setting(Comment = "Port VRChat listens on for OSC.", Min = 1, Max = 65535)]
-public int OscPort { get; init; } = 9000;
+[Setting(Comment = "Port the local service listens on.", Min = 1, Max = 65535)]
+public int ServicePort { get; init; } = 9000;
 ```
 
 ### Analyzers
@@ -634,11 +634,11 @@ has the runtime:
 ```bash
 dotnet publish PhotinoNETUtils.CodeGen -c Release -r win-x64 -o out
 out/PhotinoNETUtils.CodeGen.exe \
-  --assembly ../AntiBot/AntiBot/bin/Release/net11.0/AntiBot.dll \
-  --out ../AntiBot/AntiBot/UserInterface/src/api/settings.generated.ts \
-  --schema ../AntiBot/AntiBot/UserInterface/src/api/settings.schema.json \
-  --i18n ../AntiBot/AntiBot/Resources/i18n/en.jsonc \
-  --i18n-out ../AntiBot/AntiBot/UserInterface/src/api/i18n.generated.ts
+  --assembly ../MyApp/MyApp/bin/Release/net11.0/MyApp.dll \
+  --out ../MyApp/MyApp/UserInterface/src/api/settings.generated.ts \
+  --schema ../MyApp/MyApp/UserInterface/src/api/settings.schema.json \
+  --i18n ../MyApp/MyApp/Resources/i18n/en.jsonc \
+  --i18n-out ../MyApp/MyApp/UserInterface/src/api/i18n.generated.ts
 ```
 
 It reads the compiled model and writes a `{Model}Generated` interface plus a JSON schema with the

@@ -19,16 +19,21 @@ public static class TrayIconFactory
     /// <param name="iconPath">A real <c>.ico</c> (Windows) or <c>.png</c> (Linux) path.</param>
     /// <param name="onOpen">Primary click: show the main window.</param>
     /// <param name="menu">Context menu entries, in display order.</param>
+    /// <param name="fallbackIconName">
+    ///     Theme icon used when <paramref name="iconPath" /> is missing; a standard generic icon when
+    ///     omitted. Linux only.
+    /// </param>
     public static ITrayIcon Create(
         string appId,
         string tooltip,
         string? iconPath,
         Action onOpen,
-        IReadOnlyList<TrayMenuItem> menu) =>
+        IReadOnlyList<TrayMenuItem> menu,
+        string? fallbackIconName = null) =>
         OperatingSystem.IsWindows()
             ? new WindowsTrayIcon(tooltip, iconPath, onOpen, menu)
             : OperatingSystem.IsLinux() && LinuxDiagnostics.AppIndicatorLibrary is not null
-                ? new LinuxTrayIcon(appId, tooltip, iconPath, onOpen, menu)
+                ? new LinuxTrayIcon(appId, tooltip, iconPath, onOpen, menu, fallbackIconName)
                 : new NullTrayIcon();
 
     /// <summary>Creates the standard Open / Settings / Exit tray menu, optionally with a reload action.</summary>
@@ -43,7 +48,8 @@ public static class TrayIconFactory
         Action onSettings,
         Action onExit,
         Action? onReload = null,
-        string reloadLabel = "Reload interface")
+        string reloadLabel = "Reload interface",
+        string? fallbackIconName = null)
     {
         var menu = new List<TrayMenuItem>
         {
@@ -53,7 +59,7 @@ public static class TrayIconFactory
         menu.Add(new(settingsLabel, onSettings));
         menu.Add(new(exitLabel, onExit, true));
 
-        return Create(appId, tooltip, iconPath, onOpen, menu);
+        return Create(appId, tooltip, iconPath, onOpen, menu, fallbackIconName);
     }
 
     /// <summary>Starts a tray icon on GTK's UI thread once its display is ready.</summary>

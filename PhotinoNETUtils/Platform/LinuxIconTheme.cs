@@ -14,12 +14,13 @@ namespace PhotinoNetUtils.Platform;
 [SupportedOSPlatform("linux")]
 internal static class LinuxIconTheme
 {
-    private const string Fallback = "file-manager";
+    /// <summary>A standard hicolor name, so a missing app icon still resolves in every theme.</summary>
+    internal const string DefaultFallback = "application-x-executable";
 
-    public static string Resolve(string appId, string? iconPath)
+    public static string Resolve(string appId, string? iconPath, string? fallbackIconName = null)
     {
         if (string.IsNullOrWhiteSpace(iconPath))
-            return Fallback;
+            return string.IsNullOrWhiteSpace(fallbackIconName) ? DefaultFallback : fallbackIconName;
 
         if (!File.Exists(iconPath))
             return iconPath;

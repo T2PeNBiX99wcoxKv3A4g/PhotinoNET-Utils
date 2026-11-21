@@ -13,7 +13,7 @@ namespace PhotinoNetUtils.Hosting.Listing;
 /// <remarks>
 ///     Layout, little-endian:
 ///     <code>
-///     header   "YLST" u16 version u16 flags u32 count u32 poolBytes u32 pathBytes
+///     header   "PLST" u16 version u16 flags u32 count u32 poolBytes u32 pathBytes
 ///              u32 iconCount u32 extraCount u32 reserved                         (32 bytes)
 ///     columns  f64[count] size, modified, created
 ///              u32[count] nameOffset  u16[count] nameLength
@@ -30,16 +30,24 @@ namespace PhotinoNetUtils.Hosting.Listing;
 public static class ListingFormat
 {
     public const ushort Version = 1;
-    public const string ContentType = "application/x-yafm-listing";
+
+    /// <summary>The media type a binary page is served with.</summary>
+    public const string ContentType = "application/x-photino-listing";
+
+    /// <summary>The response header that carries the folder's total entry count.</summary>
+    public const string TotalHeader = "X-Listing-Total";
 
     /// <summary>
-    ///     Set in the header when the names are complete paths: a list that spans folders (a gallery)
-    ///     has no single base path to put in front of them.
+    ///     Set in the header when the names are complete paths: a list that spans folders has no
+    ///     single base path to put in front of them.
     /// </summary>
     public const ushort AbsoluteNamesFlag = 1;
 
     private const int HeaderSize = 32;
     private const ushort None = ushort.MaxValue;
+
+    /// <summary>The four bytes every block starts with; a reader can reject anything else at once.</summary>
+    private static ReadOnlySpan<byte> Magic => "PLST"u8;
 
     private const byte DirectoryFlag = 1;
     private const byte HiddenFlag = 2;
@@ -108,7 +116,7 @@ public static class ListingFormat
         var buffer = new byte[HeaderSize + 36 * count + iconTable.Count * 6 + extras.Count * 10 + pool.Count];
         var span = buffer.AsSpan();
 
-        "YLST"u8.CopyTo(span);
+        Magic.CopyTo(span);
         BinaryPrimitives.WriteUInt16LittleEndian(span[4..], Version);
         BinaryPrimitives.WriteUInt16LittleEndian(span[6..], absoluteNames ? AbsoluteNamesFlag : (ushort)0);
         BinaryPrimitives.WriteUInt32LittleEndian(span[8..], (uint)count);
@@ -205,7 +213,7 @@ public static class ListingFormat
     [PublicAPI]
     public static string Dump(ReadOnlySpan<byte> block, int total = 0)
     {
-        if (block.Length < HeaderSize || !block[..4].SequenceEqual("YLST"u8))
+        if (block.Length < HeaderSize || !block[..4].SequenceEqual(Magic))
             return "not a listing block";
 
         var version = BinaryPrimitives.ReadUInt16LittleEndian(block[4..]);

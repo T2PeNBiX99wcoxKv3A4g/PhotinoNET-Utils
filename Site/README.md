@@ -45,10 +45,10 @@ typed by the package.
 
 ```js
 export const site = {
-    name: "AntiBot",
-    tagline: "Keep bots out of your VRChat instance.",
+    name: "MyApp",
+    tagline: "A short description of your app.",
     icon: "https://raw.githubusercontent.com/.../icon.svg",
-    repository: "https://github.com/.../AntiBot",
+    repository: "https://github.com/.../MyApp",
     languages: ["en", "ja", "zh-CN", "zh-TW"],
     docs: [{slug: "Getting-Started", group: "setup"}],
     theme: {

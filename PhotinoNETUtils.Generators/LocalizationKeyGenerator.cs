@@ -10,8 +10,8 @@ namespace PhotinoNetUtils.Generators;
 /// <summary>
 ///     Turns the keys of the embedded <c>.jsonc</c> translation files (added as
 ///     <c>AdditionalFiles</c>) into constants, so a call site reads
-///     <c>Localization.Get(LocalizationKeys.ErrorOnlyVrchatLinks)</c> and a renamed key breaks the
-///     build instead of the interface.
+///     <c>Localization.Get(LocalizationKeys.TrayOpen)</c> and a renamed key breaks the build
+///     instead of the interface.
 /// </summary>
 [Generator(LanguageNames.CSharp)]
 public sealed class LocalizationKeyGenerator : IIncrementalGenerator

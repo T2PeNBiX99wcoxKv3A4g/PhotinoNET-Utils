@@ -313,7 +313,7 @@ public static partial class LinuxGtk
 
             Connect(_clipboard, "owner-change", ClipboardOwnerChanged, IntPtr.Zero);
             _clipboardConnected = true;
-            Log.Information("Watching the clipboard for copied URLs");
+            Log.Information("Watching the clipboard for text changes");
             return true;
         }).GetOrElse(ex =>
         {

@@ -15,9 +15,9 @@ namespace PhotinoNetUtils.Messaging;
 ///     live with the services that own each message type.
 /// </summary>
 /// <remarks>
-///     Every message is handled on a thread-pool thread, so a slow handler (listing a large folder,
-///     measuring a tree, asking the shell for an icon) can never freeze the window. The reply is
-///     posted with <see cref="PhotinoWindow.Invoke" />, the only part that has to run on the UI thread.
+///     Every message is handled on a thread-pool thread, so a slow handler can never freeze the
+///     window. The reply is posted with <see cref="PhotinoWindow.Invoke" />, the only part that has
+///     to run on the UI thread.
 /// </remarks>
 [PublicAPI]
 public static class NativeBridge

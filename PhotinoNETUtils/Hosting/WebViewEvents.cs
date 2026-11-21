@@ -20,9 +20,9 @@ namespace PhotinoNetUtils.Hosting;
 ///     </para>
 ///     <para>
 ///         <see cref="Attach" /> must be called once the native window exists and before the page is
-///         loaded (<c>WindowManager.CreateMainWindow</c> is the natural place). The window commands are
-///         the ones the shared bridge sends from <c>useWindowControls</c>, <c>useWindowDrag</c> and
-///         <c>ResizeHandles</c>; the app only needs to keep its own close-to-tray policy.
+///         loaded. The window commands are the ones the shared bridge sends from
+///         <c>useWindowControls</c>, <c>useWindowDrag</c> and <c>ResizeHandles</c>; the app only needs
+///         to keep its own close-to-tray policy.
 ///     </para>
 /// </remarks>
 [PublicAPI]

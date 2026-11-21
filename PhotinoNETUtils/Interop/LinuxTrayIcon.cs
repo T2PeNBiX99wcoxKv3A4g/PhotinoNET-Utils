@@ -25,7 +25,8 @@ internal sealed partial class LinuxTrayIcon(
     string tooltip,
     string? iconPath,
     Action onOpen,
-    IReadOnlyList<TrayMenuItem> menu)
+    IReadOnlyList<TrayMenuItem> menu,
+    string? fallbackIconName = null)
     : ITrayIcon
 {
     private const string IndicatorLibrary = "libayatana-appindicator3.so.1";
@@ -72,7 +73,7 @@ internal sealed partial class LinuxTrayIcon(
 
         return Try.Run(() =>
         {
-            var iconName = LinuxIconTheme.Resolve(appId, iconPath);
+            var iconName = LinuxIconTheme.Resolve(appId, iconPath, fallbackIconName);
             _indicator = app_indicator_new(appId, iconName, CategoryApplicationStatus);
             if (_indicator == IntPtr.Zero)
             {
