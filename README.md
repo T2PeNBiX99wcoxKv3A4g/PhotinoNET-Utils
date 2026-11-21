@@ -14,6 +14,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `Interop`                 | `ITrayIcon` / `TrayIconFactory` with Win32 and libayatana-appindicator implementations, plus the Win32 P/Invoke set                                                                                                                                                                                                                            |
 | `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build), window chrome (drag, resize, maximize, frameless title bar on both platforms) and `SystemLauncher` for handing a URL or folder to the system |
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                                                                                                                                                            |
+| `Data/SqliteDatabase`     | SQLite access with readers that never wait, one writer per database file, busy retry for another process and no separate lock file                                                                                                                                                                                                            |
 | `Services/SettingsStore`  | `ISettingsStore<T>`, JSON/TOML stores and `SettingsServiceBase<TSelf,TPayload>`: attribute comments, defaults, atomic writes and a one-time legacy move                                                                                                                                                                                        |
 | `Settings` / `Messaging`  | `[SettingsModel]` / `[Setting]` metadata and the `[NativeMessage]` dispatcher generator                                                                                                                                                                                                                                                        |
 | `CodeGen`                 | Small CLI that turns a `[SettingsModel]` file into a TypeScript interface and JSON schema                                                                                                                                                                                                                                                      |
@@ -521,6 +522,66 @@ stay in the app; register the model and the payload in the app's serializer cont
 writes the configured `header` and each `[Setting]` comment; comments typed into the file are replaced
 by the next save. The annotated properties are marked for trimming, so the comments also survive a
 trimmed release build.
+
+### SQLite
+
+`SqliteDatabase` wraps the two patterns a desktop app needs: many readers, one writer per file, and
+another process that may hold the same file.
+
+```csharp
+using PhotinoNetUtils.Data;
+
+var db = new SqliteDatabase(path, new SqliteDatabaseOptions
+{
+    Pooling = true,
+    Wal = true,
+    BusyTimeout = 5000
+});
+
+var read = await db.ReadAsync(async (connection, token) =>
+{
+    await using var command = connection.CreateCommand();
+    command.CommandText = "SELECT name FROM items";
+    await using var reader = await command.ExecuteReaderAsync(token);
+
+    var names = new List<string>();
+    while (await reader.ReadAsync(token))
+        names.Add(reader.GetString(0));
+    return names;
+});
+
+var write = await db.WriteAsync(async (connection, transaction, token) =>
+{
+    await using var command = connection.CreateCommand();
+    command.Transaction = transaction;
+    command.CommandText = "INSERT INTO items (name) VALUES ($name)";
+    command.Parameters.AddWithValue("$name", "example");
+    await command.ExecuteNonQueryAsync(token);
+});
+```
+
+Reads open their own connection and take no gate. Writes take a gate **per database file**, so two
+different files can be written at the same time while the same file never has two writers from this
+process. SQLite's own busy timeout and a short retry cover another process; no separate lock file is
+needed. `WriteAsync` may run its callback again after a busy result, so keep side effects outside the
+database out of it.
+
+`ExclusiveAsync` holds the same gate around work that opens its own connections, such as deleting a
+database and its `-wal` / `-shm` files. `OpenReadAsync` and `OpenWriteAsync` are for a flow that needs
+a long-lived connection; `OpenWriteAsync` does not take the gate by itself.
+
+For a database that travels with a folder, turn WAL and pooling off:
+
+```csharp
+var portable = new SqliteDatabase(folderIndexPath, new SqliteDatabaseOptions
+{
+    Pooling = false,
+    Wal = false
+});
+```
+
+That keeps the whole database in one file, rather than leaving recent writes in a `-wal` that a copy
+of the folder would miss.
 
 ### Source generators
 

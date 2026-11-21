@@ -58,6 +58,7 @@
 
     <ItemGroup>
         <PackageReference Include="JetBrains.Annotations" Version="2026.2.0"/>
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="11.0.0" />
         <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="11.0.0" />
         <PackageReference Include="Photino.NET" Version="4.0.16"/>
         <PackageReference Include="securifybv.ShellLink" Version="0.1.0"/>
