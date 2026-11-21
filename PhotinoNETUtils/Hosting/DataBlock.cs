@@ -73,8 +73,11 @@ public sealed class DataBlock(ushort kind)
     /// <summary>Builds one page, so the caller can keep the whole list in memory but send a slice.</summary>
     public byte[] Build(int from, int count)
     {
-        if (from < 0 || count < 0 || from > Count)
+        if (from < 0 || from > Count)
             throw new ArgumentOutOfRangeException(nameof(from));
+
+        if (count < 0)
+            throw new ArgumentOutOfRangeException(nameof(count));
 
         var end = count >= Count - from ? Count : from + count;
         var rows = end - from;
@@ -85,6 +88,10 @@ public sealed class DataBlock(ushort kind)
         if (_textRows.Any(row => row.Length != _textNames.Count))
             throw new InvalidOperationException(
                 $"A row has the wrong number of strings for {_textNames.Count} columns.");
+
+        if (_numberRows.Any(row => row.Length != _numberNames.Count))
+            throw new InvalidOperationException(
+                $"A row has the wrong number of numbers for {_numberNames.Count} columns.");
 
         var pool = new List<byte>(rows * 32);
         var offsets = new int[rows][];
