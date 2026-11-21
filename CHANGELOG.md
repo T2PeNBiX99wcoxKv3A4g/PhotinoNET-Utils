@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.42.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.41.0..v0.42.0) - 2026-11-21
+
+### ⛰️  Features
+
+- *(data)* Add a per-file SQLite writer with busy retry - ([052ca18](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/052ca18dfed3523c0618002cab446e1aaff807c5))
+
+### 🚜 Refactor
+
+- Make the listing transport and platform defaults app-neutral - ([d671fb1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/d671fb174e35f9c0143ac086dfa9874522f37677))
+- Move listing types into Listing namespace - ([3fe8d1f](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/3fe8d1fb5de26bf407444e9f83f9fc36bd2228a3))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([0c4b320](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/0c4b320200de38d1855ad76370decb5e812bd94f))
+
+
 ## [0.41.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.40.0..v0.41.0) - 2026-11-21
 
 ### ⛰️  Features
