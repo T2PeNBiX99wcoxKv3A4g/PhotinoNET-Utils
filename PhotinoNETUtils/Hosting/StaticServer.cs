@@ -33,6 +33,7 @@ public sealed class StaticServer : IDisposable
     public Uri Address { get; }
 
     /// <summary>The address without a trailing slash, ready for composing page URLs.</summary>
+    [PublicAPI]
     public string BaseUrl => Address.GetLeftPart(UriPartial.Authority);
 
     /// <summary>
