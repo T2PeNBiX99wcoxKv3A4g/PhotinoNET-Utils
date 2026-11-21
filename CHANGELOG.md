@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.44.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.44.0..v0.44.1) - 2026-11-21
+
+### 🐛 Bug Fixes
+
+- *(data)* Validate row widths before building a block - ([8bf8716](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/8bf87163f495d91a7cc599d70cbd99287530341c))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([1bcb498](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/1bcb49869a8bef911a01f5a5de056cd553fd3b32))
+
+
 ## [0.44.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.43.0..v0.44.0) - 2026-11-21
 
 ### ⛰️  Features
