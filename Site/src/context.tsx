@@ -16,10 +16,33 @@ interface SiteValue {
 
 const SiteContext = createContext<SiteValue | null>(null);
 
-/** The language picked last time, or the project's default when nothing (valid) is stored. */
+/** The language picked last time, or the browser's when nothing (valid) is stored. */
 function storedLanguage(options: SiteOptions): string {
     const value = window.localStorage.getItem(`${LANGUAGE_KEY}.${options.config.name}`);
-    return options.languages.some((entry) => entry.id === value) ? value! : options.defaultLanguage;
+    if (options.languages.some((entry) => entry.id === value)) return value!;
+
+    return browserLanguage(options) ?? options.defaultLanguage;
+}
+
+/**
+ * The first language the browser asks for that the site offers. A regional tag the site does not
+ * list ("ja-JP" when only "ja" is offered) falls back to the same base language.
+ */
+function browserLanguage(options: SiteOptions): string | null {
+    const tags = navigator.languages?.length ? navigator.languages : [navigator.language];
+
+    for (const tag of tags) {
+        if (!tag) continue;
+
+        const exact = options.languages.find((entry) => entry.id.toLowerCase() === tag.toLowerCase());
+        if (exact) return exact.id;
+
+        const base = tag.split("-")[0].toLowerCase();
+        const partial = options.languages.find((entry) => entry.id.toLowerCase().split("-")[0] === base);
+        if (partial) return partial.id;
+    }
+
+    return null;
 }
 
 /**

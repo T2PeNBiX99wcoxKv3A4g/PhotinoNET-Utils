@@ -202,8 +202,12 @@ foreach ($target in $targets) {
     }
 
     # A project that has a site takes its pages from the shared package, so only its own data travels
-    # with it.
+    # with it. The site sits next to the project folder, not inside it.
     $appSite = Join-Path $target.Path 'Site'
+    if (-not (Test-Path (Join-Path $appSite 'package.json'))) {
+        $appSite = Join-Path (Split-Path $target.Path -Parent) 'Site'
+    }
+
     $appSiteManifest = Join-Path $appSite 'package.json'
 
     if (Test-Path $appSiteManifest) {

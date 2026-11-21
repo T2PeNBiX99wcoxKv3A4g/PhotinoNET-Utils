@@ -1,6 +1,6 @@
 {
   "name": "@photino-net-utils/site",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "The landing page and documentation site shared by the desktop front-ends",
   "type": "module",
   "license": "MIT",
