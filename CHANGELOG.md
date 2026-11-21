@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.42.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.42.0..v0.42.1) - 2026-11-21
+
+### 🚜 Refactor
+
+- Apply formatting consistency across multiple files - ([511b391](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/511b391e6b5852491f772fc68fbe76db490eb011))
+- Apply formatting consistency across multiple files - ([09008af](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/09008af87445fb790f0af3557b2c6451ff18f1f1))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([865e952](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/865e95248b6d92e95d470871b8d13018c6c2f871))
+
+
 ## [0.42.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.41.0..v0.42.0) - 2026-11-21
 
 ### ⛰️  Features
