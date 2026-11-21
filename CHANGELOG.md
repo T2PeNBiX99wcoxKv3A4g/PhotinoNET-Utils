@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.44.2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.44.1..v0.44.2) - 2026-11-21
+
+### 🚜 Refactor
+
+- *(logging)* Send bridge warnings through the host log - ([0b706b9](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/0b706b96e02f8f44cb62e2823590c116d496ca3a))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([72e3a90](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/72e3a904ed4b032f310398c0f39231f390c5ffd0))
+
+
 ## [0.44.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.44.0..v0.44.1) - 2026-11-21
 
 ### 🐛 Bug Fixes
