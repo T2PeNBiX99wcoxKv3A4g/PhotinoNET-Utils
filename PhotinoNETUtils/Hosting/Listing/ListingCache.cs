@@ -9,9 +9,9 @@ namespace PhotinoNetUtils.Hosting.Listing;
 /// </summary>
 internal sealed class ListingCache(IListingSource source, int keep = 6)
 {
-    private readonly ConcurrentDictionary<string, Task<Entry>> _inflight = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Lock _gate = new();
     private readonly Dictionary<string, Entry> _entries = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Lock _gate = new();
+    private readonly ConcurrentDictionary<string, Task<Entry>> _inflight = new(StringComparer.OrdinalIgnoreCase);
     private readonly Queue<string> _order = new();
 
     public async Task<Page> ReadAsync(string path, string sort, bool descending, int from, int count,
@@ -37,7 +37,7 @@ internal sealed class ListingCache(IListingSource source, int keep = 6)
         finally
         {
             if (task.IsCompleted)
-                _inflight.TryRemove(new KeyValuePair<string, Task<Entry>>(path, task));
+                _inflight.TryRemove(new(path, task));
         }
     }
 

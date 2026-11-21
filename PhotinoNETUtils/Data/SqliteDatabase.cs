@@ -28,12 +28,10 @@ namespace PhotinoNetUtils.Data;
 [PublicAPI]
 public sealed class SqliteDatabase
 {
-    private readonly SqliteDatabaseOptions _options;
-
     public SqliteDatabase(string path, SqliteDatabaseOptions? options = null)
     {
         Path = System.IO.Path.GetFullPath(path);
-        _options = options ?? SqliteDatabaseOptions.Default;
+        Options = options ?? SqliteDatabaseOptions.Default;
     }
 
     /// <summary>The absolute path this instance names.</summary>
@@ -42,7 +40,7 @@ public sealed class SqliteDatabase
     /// <summary>Whether the database file exists right now.</summary>
     public bool Exists => File.Exists(Path);
 
-    public SqliteDatabaseOptions Options => _options;
+    public SqliteDatabaseOptions Options { get; }
 
     /// <summary>
     ///     Runs a read on its own connection. No write gate is taken, so readers never wait for one
@@ -133,7 +131,7 @@ public sealed class SqliteDatabase
             await ConfigureAsync(connection, write, cancellationToken).ConfigureAwait(false);
             return connection;
         }
-        catch (Exception exception) when (!write && _options.ReadOnlyFallback &&
+        catch (Exception exception) when (!write && Options.ReadOnlyFallback &&
                                           exception is not OperationCanceledException)
         {
             await connection.DisposeAsync().ConfigureAwait(false);
@@ -163,21 +161,21 @@ public sealed class SqliteDatabase
         {
             DataSource = Path,
             Mode = mode,
-            Pooling = _options.Pooling,
-            DefaultTimeout = _options.CommandTimeout
+            Pooling = Options.Pooling,
+            DefaultTimeout = Options.CommandTimeout
         }.ToString());
 
     private async Task ConfigureAsync(SqliteConnection connection, bool write, CancellationToken cancellationToken)
     {
-        var synchronous = _options.SynchronousOff ? "OFF" : "NORMAL";
-        var journal = _options.Wal ? "WAL" : "DELETE";
+        var synchronous = Options.SynchronousOff ? "OFF" : "NORMAL";
+        var journal = Options.Wal ? "WAL" : "DELETE";
 
         await using var command = connection.CreateCommand();
         command.CommandText = write
-            ? $"PRAGMA busy_timeout = {_options.BusyTimeout}; " +
+            ? $"PRAGMA busy_timeout = {Options.BusyTimeout}; " +
               $"PRAGMA synchronous = {synchronous}; " +
               $"PRAGMA journal_mode = {journal};"
-            : $"PRAGMA busy_timeout = {_options.BusyTimeout}; " +
+            : $"PRAGMA busy_timeout = {Options.BusyTimeout}; " +
               $"PRAGMA synchronous = {synchronous}; " +
               "PRAGMA query_only = ON;";
 
@@ -186,8 +184,7 @@ public sealed class SqliteDatabase
 
     private async Task<Result<T>> RetryAsync<T>(Func<Task<T>> action, CancellationToken cancellationToken)
     {
-        for (var attempt = 0; ; attempt++)
-        {
+        for (var attempt = 0;; attempt++)
             try
             {
                 return Result<T>.Success(await action().ConfigureAwait(false));
@@ -196,15 +193,14 @@ public sealed class SqliteDatabase
             {
                 throw;
             }
-            catch (SqliteException exception) when (IsBusy(exception) && attempt < _options.RetryCount)
+            catch (SqliteException exception) when (IsBusy(exception) && attempt < Options.RetryCount)
             {
-                await Task.Delay(_options.RetryDelay, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(Options.RetryDelay, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception)
             {
                 return Result<T>.Failure(exception);
             }
-        }
     }
 
     /// <summary>SQLITE_BUSY (5) and SQLITE_LOCKED (6), including their extended codes.</summary>

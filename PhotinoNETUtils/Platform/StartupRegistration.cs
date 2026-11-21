@@ -12,12 +12,12 @@ namespace PhotinoNetUtils.Platform;
 public sealed class StartupRegistration
 {
     private readonly string _appName;
+    private readonly string _arguments;
     private readonly Assembly _assembly;
     private readonly string _comment;
     private readonly string _entryName;
     private readonly string _fallbackIcon;
     private readonly string? _linuxWindowClass;
-    private readonly string _arguments;
 
     /// <param name="entryName">
     ///     The name the shortcut or desktop entry carries, when it should read differently from the

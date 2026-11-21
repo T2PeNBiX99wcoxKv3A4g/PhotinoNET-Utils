@@ -88,7 +88,8 @@ public static partial class GlobalHotkey
     {
         var keys = new List<int>();
 
-        foreach (var part in combination.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach (var part in combination.Split('+',
+                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             if (part.Length == 1 && char.IsLetterOrDigit(part[0]))
                 keys.Add(char.ToUpperInvariant(part[0]));
             else if (part.StartsWith('f') && int.TryParse(part[1..], out var function) && function is >= 1 and <= 24)
@@ -221,7 +222,8 @@ public static partial class GlobalHotkey
     {
         var names = new List<string>();
 
-        foreach (var part in combination.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach (var part in combination.Split('+',
+                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             if (LinuxKeyName(part) is not { } name)
                 return null;

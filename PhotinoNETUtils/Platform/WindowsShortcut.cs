@@ -23,13 +23,13 @@ namespace PhotinoNetUtils.Platform;
 [SupportedOSPlatform("windows")]
 public static class WindowsShortcut
 {
+    private const uint AppUserModelProperty = 5;
+
     /// <summary>
     ///     PKEY_AppUserModel_ID: the shell property Windows reads to attribute notifications and to
     ///     group taskbar buttons. A shortcut without it cannot show a toast.
     /// </summary>
     private static readonly Guid AppUserModelFormat = new("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3");
-
-    private const uint AppUserModelProperty = 5;
 
     /// <summary>Creates (or overwrites) a shortcut pointing at <paramref name="targetPath" />.</summary>
     public static void Create(string linkPath, string targetPath, string arguments, string workingDirectory,
@@ -77,9 +77,9 @@ public static class WindowsShortcut
 
         return new(
         [
-            new SerializedPropertyStorage(
+            new(
             [
-                new IntegerName(AppUserModelProperty, new TypedPropertyValue(PropertyType.VT_LPWSTR, value))
+                new IntegerName(AppUserModelProperty, new(PropertyType.VT_LPWSTR, value))
             ])
             {
                 FormatID = AppUserModelFormat

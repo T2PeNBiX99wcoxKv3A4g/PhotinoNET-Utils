@@ -104,7 +104,12 @@ public static class NotificationService
     ///     clicked; use the overload with <see cref="NotificationOptions" /> for the richer form.
     /// </summary>
     public static void Notify(string key, string title, string message, string? action = null) =>
-        Notify(key, title, message, action is null ? null : new NotificationOptions { Action = action });
+        Notify(key, title, message, action is null
+            ? null
+            : new NotificationOptions
+            {
+                Action = action
+            });
 
     /// <summary>Shows a notification with the optional image, attribution and button.</summary>
     public static void Notify(string key, string title, string message, NotificationOptions? options)

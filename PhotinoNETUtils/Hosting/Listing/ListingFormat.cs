@@ -46,14 +46,14 @@ public static class ListingFormat
     private const int HeaderSize = 32;
     private const ushort None = ushort.MaxValue;
 
-    /// <summary>The four bytes every block starts with; a reader can reject anything else at once.</summary>
-    private static ReadOnlySpan<byte> Magic => "PLST"u8;
-
     private const byte DirectoryFlag = 1;
     private const byte HiddenFlag = 2;
     private const byte SystemFlag = 4;
     private const byte EncryptedFlag = 8;
     private const byte LinkValidFlag = 16;
+
+    /// <summary>The four bytes every block starts with; a reader can reject anything else at once.</summary>
+    private static ReadOnlySpan<byte> Magic => "PLST"u8;
 
     public static byte[] Encode(IReadOnlyList<ListingEntry> entries, string basePath, bool absoluteNames = false)
     {

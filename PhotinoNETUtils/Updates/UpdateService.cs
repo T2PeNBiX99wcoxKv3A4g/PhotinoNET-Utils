@@ -413,7 +413,7 @@ public sealed class UpdateService : IDisposable
     /// </summary>
     private async Task<HttpResponseMessage> GetAssetAsync(string url, CancellationToken token)
     {
-        for (var attempt = 0; ; attempt++)
+        for (var attempt = 0;; attempt++)
         {
             var response = await _client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token);
             if (response.IsSuccessStatusCode)

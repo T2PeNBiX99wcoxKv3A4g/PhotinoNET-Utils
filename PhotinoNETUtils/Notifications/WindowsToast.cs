@@ -1,9 +1,9 @@
+using Serilog;
 #if WINDOWS_DESKTOP
 using Windows.ApplicationModel.Activation;
 using Windows.Data.Xml.Dom;
 using Windows.UI.Notifications;
 #endif
-using Serilog;
 
 namespace PhotinoNetUtils.Notifications;
 
@@ -21,6 +21,7 @@ internal static class WindowsToast
 {
     /// <summary>Windows raises the click later, so the notification has to stay alive until then.</summary>
     private static readonly List<object> Live = [];
+
     private static readonly Lock Gate = new();
 
     public static bool TryShow(string appId, string title, string message, NotificationOptions? options,

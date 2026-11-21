@@ -30,7 +30,7 @@ public static class ListingRoute
     public static void Map(WebApplication app, string token, IListingSource source,
         ListingRouteOptions? options = null)
     {
-        var cache = new ListingCache(source, CacheFolders);
+        var cache = new ListingCache(source);
         options ??= ListingRouteOptions.Default;
 
         var suffix = options.Route.Trim('/');
