@@ -17,6 +17,7 @@ namespace PhotinoNetUtils.Hosting;
 ///     app racing for 8000 — which is what <c>Photino.NET.Server</c> does, with a scan that can miss
 ///     an occupied port and then fail to bind.
 /// </summary>
+[PublicAPI]
 public sealed class StaticServer : IDisposable
 {
     private readonly WebApplication _application;
@@ -29,22 +30,18 @@ public sealed class StaticServer : IDisposable
     }
 
     /// <summary>The address Kestrel actually bound, e.g. <c>http://127.0.0.1:54321</c>.</summary>
-    [PublicAPI]
     public Uri Address { get; }
 
     /// <summary>The address without a trailing slash, ready for composing page URLs.</summary>
-    [PublicAPI]
     public string BaseUrl => Address.GetLeftPart(UriPartial.Authority);
 
     /// <summary>
     ///     This run's secret. Routes registered by <c>map</c> live under <c>/data/&lt;token&gt;/</c>, so
     ///     another process on the machine cannot reach them by guessing a path.
     /// </summary>
-    [PublicAPI]
     public string Token { get; }
 
     /// <summary>The prefix for everything an app registers through <c>map</c>.</summary>
-    [PublicAPI]
     public string DataUrl => $"{BaseUrl}/data/{Token}";
 
     public void Dispose() => _application.DisposeAsync().AsTask().GetAwaiter().GetResult();
