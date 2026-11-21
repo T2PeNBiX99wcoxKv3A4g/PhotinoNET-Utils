@@ -44,6 +44,22 @@ const url = await data.image("/image/42"); // for <img src={url}/>
 `readBlock` decodes `DataBlock`: text and number columns plus metadata. `decodeDataBlock` and
 `readDataBlock` are exported for callers that already have the `ArrayBuffer` or the base URL.
 
+## Logging
+
+`Log` sends lines to the host's Serilog pipeline. In a browser it writes to the console instead.
+
+```ts
+import {Log} from "@photino-net-utils/bridge";
+
+Log.info("folder opened", {path});
+Log.error("thumbnail failed", {path, error});
+
+const files = Log.child("file-list");
+files.warn("too many entries", {count});
+```
+
+The host writes one structured event with the level, message, source and optional JSON context.
+
 ## Markdown
 
 `Markdown` renders a GitHub release body, or any other Markdown, as HTML. The result is sanitized

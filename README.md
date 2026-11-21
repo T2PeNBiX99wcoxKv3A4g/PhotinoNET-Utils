@@ -635,6 +635,25 @@ const imageUrl = await data.image("/image/42");
 `decodeDataBlock` and `readDataBlock` are exported for callers that already own the `ArrayBuffer` or
 the base URL.
 
+### Front-end logs
+
+`Logging.Initialize` also listens for the page's `log.write` messages, so front-end output lands in
+the same Serilog file and console as the host:
+
+```ts
+import {Log} from "@photino-net-utils/bridge";
+
+Log.info("folder opened", {path});
+Log.error("thumbnail failed", {path, error});
+
+const files = Log.child("file-list");
+files.warn("too many entries", {count});
+```
+
+The message, source and optional JSON context are written as one structured event. A plain browser,
+where the bridge is unavailable, falls back to `console`. `FrontendLog.Attach()` is available when an
+app configures Serilog without calling `Logging.Initialize`.
+
 ### Source generators
 
 `PhotinoNETUtils.Generators.dll` adds three incremental generators:

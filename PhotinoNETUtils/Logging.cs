@@ -1,5 +1,6 @@
 using System.Text;
 using JetBrains.Annotations;
+using PhotinoNetUtils.Messaging;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -44,6 +45,9 @@ public static class Logging
                 outputTemplate:
                 "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
+
+        // The page's messages go through the same sinks as the host's own log lines.
+        FrontendLog.Attach();
 
         // The host, the toolkit and native libraries all print to the console. Mirroring that into the log
         // means the file can be sent on its own, with nothing to copy by hand.
