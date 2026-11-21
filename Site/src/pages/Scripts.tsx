@@ -148,7 +148,8 @@ export const ScriptsPage: React.FC = () => {
         <>
             <Header>
                 <Title>{copy.title}</Title>
-                <Subtitle>{fill(copy.subtitle, "{scheme}", <code>{scripts[0]?.source.split("://")[0] ?? ""}://</code>)}</Subtitle>
+                <Subtitle>{fill(copy.subtitle, "{scheme}",
+                    <code>{scripts[0]?.source.split("://")[0] ?? ""}://</code>)}</Subtitle>
             </Header>
 
             <Grid>

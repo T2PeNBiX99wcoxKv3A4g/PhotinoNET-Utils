@@ -46,9 +46,8 @@ export const GlobalStyle = createGlobalStyle<{ site: SiteConfig }>`
         margin: 0;
         min-height: 100vh;
         background-color: var(--bg-primary);
-        background-image:
-            radial-gradient(circle at 50% -10%, color-mix(in srgb, var(--accent-strong) 22%, transparent), transparent 60%),
-            radial-gradient(circle at 85% 15%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 55%);
+        background-image: radial-gradient(circle at 50% -10%, color-mix(in srgb, var(--accent-strong) 22%, transparent), transparent 60%),
+        radial-gradient(circle at 85% 15%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 55%);
         background-attachment: fixed;
         color: var(--text-primary);
         font-family: var(--font-sans), var(--font-cjk);

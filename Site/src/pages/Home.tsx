@@ -1,6 +1,19 @@
 import React from "react";
 import styled, {keyframes} from "styled-components";
-import {BookOpen, Download, FileCode2, FileText, Lock, ShieldAlert, ShieldCheck, UserCog, UserPlus, Users, Zap, type LucideIcon} from "lucide-react";
+import {
+    BookOpen,
+    Download,
+    FileCode2,
+    FileText,
+    Lock,
+    type LucideIcon,
+    ShieldAlert,
+    ShieldCheck,
+    UserCog,
+    UserPlus,
+    Users,
+    Zap
+} from "lucide-react";
 import {siGithub} from "simple-icons";
 import {useCopy, useSite} from "../context";
 import {docsHref, fill} from "../text";
@@ -496,7 +509,8 @@ export const HomePage: React.FC = () => {
                         <InstallText>
                             {site.webView2Url
                                 ? fill(home.installWindows, "{link}", (
-                                    <a href={site.webView2Url} rel="noreferrer" target="_blank">Microsoft Edge WebView2</a>
+                                    <a href={site.webView2Url} rel="noreferrer" target="_blank">Microsoft Edge
+                                        WebView2</a>
                                 ))
                                 : home.installWindows.replace("{link}", "Microsoft Edge WebView2")}
                         </InstallText>

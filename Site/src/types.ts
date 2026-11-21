@@ -73,7 +73,7 @@ export interface SiteConfig {
         main?: string;
         popup?: string;
         /** Further pictures, shown as a grid after the introduction. */
-        gallery?: {src: string; alt?: string}[];
+        gallery?: { src: string; alt?: string }[];
     };
     /** The install link of a script a project offers, shown beside Download. */
     scriptInstall?: string;

@@ -27,7 +27,7 @@
     </PropertyGroup>
 
     <ItemGroup Condition="$([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('win')) Or ('$(RuntimeIdentifier)' == '' And $([System.String]::Copy('$(NETCoreSdkPortableRuntimeIdentifier)').StartsWith('win')))">
-        <PackageDownload Include="Microsoft.Windows.SDK.NET.Ref" Version="[10.0.28000.87]" />
+        <PackageDownload Include="Microsoft.Windows.SDK.NET.Ref" Version="[10.0.28000.87]"/>
         <Reference Include="Microsoft.Windows.SDK.NET">
             <HintPath>$(NuGetPackageRoot)microsoft.windows.sdk.net.ref\10.0.28000.87\lib\net9.0\Microsoft.Windows.SDK.NET.dll</HintPath>
             <Private>false</Private>
@@ -58,14 +58,14 @@
 
     <ItemGroup>
         <PackageReference Include="JetBrains.Annotations" Version="2026.2.0"/>
-        <PackageReference Include="Microsoft.Data.Sqlite" Version="11.0.0" />
-        <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="11.0.0" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="11.0.0"/>
+        <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="11.0.0"/>
         <PackageReference Include="Photino.NET" Version="4.0.16"/>
         <PackageReference Include="securifybv.ShellLink" Version="0.1.0"/>
         <PackageReference Include="Serilog" Version="4.4.0"/>
         <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
-        <PackageReference Include="Tomlyn" Version="2.11.1" />
+        <PackageReference Include="Tomlyn" Version="2.11.1"/>
     </ItemGroup>
 
 </Project>

@@ -21,7 +21,8 @@ export interface I18nPayload {
  *
  * An app that has no generated file leaves it empty and every string is accepted.
  */
-export interface LocalizationKeys {}
+export interface LocalizationKeys {
+}
 
 /** Every key the app ships, or `string` until the generated file augments the interface. */
 export type LocalizationKey = keyof LocalizationKeys extends never ? string : keyof LocalizationKeys;

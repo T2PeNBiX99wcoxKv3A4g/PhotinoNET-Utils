@@ -60,7 +60,15 @@ export const SiteProvider: React.FC<{ options: SiteOptions; children: React.Reac
     const copy = options.copy[language] ?? options.copy[options.defaultLanguage];
 
     return (
-        <SiteContext.Provider value={{site: options.config, docs: options.docs, scripts: options.scripts ?? [], languages: options.languages, language, setLanguage, copy}}>
+        <SiteContext.Provider value={{
+            site: options.config,
+            docs: options.docs,
+            scripts: options.scripts ?? [],
+            languages: options.languages,
+            language,
+            setLanguage,
+            copy
+        }}>
             {children}
         </SiteContext.Provider>
     );
