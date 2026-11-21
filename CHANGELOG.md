@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.44.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.43.0..v0.44.0) - 2026-11-21
+
+### ⛰️  Features
+
+- *(logging)* Forward front-end log lines into Serilog - ([8eafc75](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/8eafc75f9942ae96e27bb6658a96e303c65767bc))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([5e88cd0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/5e88cd00cacbadd92edd49fcbf6408472fce7591))
+
+
 ## [0.43.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.42.1..v0.43.0) - 2026-11-21
 
 ### ⛰️  Features
