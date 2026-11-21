@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.43.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.42.1..v0.43.0) - 2026-11-21
+
+### ⛰️  Features
+
+- *(data)* Add binary table blocks, media responses and a shared client - ([eead8f0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/eead8f069429f832be0e71b16b4d9b738c4b280f))
+
+### ⚙️ Miscellaneous Tasks
+
+- Mark StaticServer as public API - ([56f67be](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/56f67be0f6a9cea229abb75382144e5df7c4dd33))
+- Mark StaticServer BaseUrl as public API - ([e735961](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/e735961569f04cc3a7a0020202d85780c0e11fc5))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([85288dd](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/85288ddb4e6e86e9dd16aed7c3528b6101dbeace))
+
+
 ## [0.42.1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.42.0..v0.42.1) - 2026-11-21
 
 ### 🚜 Refactor
