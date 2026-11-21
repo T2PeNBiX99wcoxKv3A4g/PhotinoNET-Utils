@@ -651,8 +651,9 @@ files.warn("too many entries", {count});
 ```
 
 The message, source and optional JSON context are written as one structured event. A plain browser,
-where the bridge is unavailable, falls back to `console`. `FrontendLog.Attach()` is available when an
-app configures Serilog without calling `Logging.Initialize`.
+where the bridge is unavailable, falls back to `console`. The bridge's own warnings (a malformed
+message, a throwing handler, a dropped message) use the same channel. `FrontendLog.Attach()` is
+available when an app configures Serilog without calling `Logging.Initialize`.
 
 ### Source generators
 

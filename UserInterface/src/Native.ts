@@ -1,3 +1,5 @@
+import {writeLog} from "./Log";
+
 export interface NativeMessage {
     id?: unknown;
     type?: string;
@@ -57,7 +59,7 @@ function handleIncoming(rawMessage: string): void {
     try {
         message = JSON.parse(rawMessage);
     } catch (error) {
-        console.warn("[Native] Received a non-JSON message:", rawMessage, error);
+        writeLog("warn", "Received a non-JSON message", {rawMessage, error}, "native");
         return;
     }
 
@@ -80,7 +82,7 @@ function handleIncoming(rawMessage: string): void {
         try {
             handler(message);
         } catch (error) {
-            console.error("[Native] Message handler threw:", error);
+            writeLog("error", "Message handler threw", {error}, "native");
         }
     });
 }
@@ -109,7 +111,7 @@ export const Native = {
     /** Fire-and-forget message to C#. */
     send(message: Record<string, unknown> & { type: string }): void {
         if (!hasBridge()) {
-            console.debug("[Native] Bridge unavailable, dropping message:", message);
+            writeLog("debug", "Bridge unavailable, dropping message", {type: message.type}, "native");
             return;
         }
 

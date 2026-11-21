@@ -58,7 +58,8 @@ const files = Log.child("file-list");
 files.warn("too many entries", {count});
 ```
 
-The host writes one structured event with the level, message, source and optional JSON context.
+The host writes one structured event with the level, message, source and optional JSON context. The
+bridge's own warnings use the same channel, so a malformed or unhandled message reaches the app log.
 
 ## Markdown
 
