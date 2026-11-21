@@ -1,6 +1,9 @@
 export {Native} from "./Native";
 export type {NativeMessage} from "./Native";
 
+export {DataClient, decodeDataBlock, fetchDataBytes, readDataBlock} from "./Data";
+export type {DataBlock, DataClientOptions} from "./Data";
+
 export {
     createTranslator,
     LocaleContext,

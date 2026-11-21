@@ -26,6 +26,24 @@ const off = Native.on((message) => {
 `Native.available` is false in a plain browser, so UI code can fall back to browser behaviour
 during `npm run dev` without the desktop host.
 
+## Binary data
+
+`DataClient` reads the host's binary data plane. The app names the bridge message that returns the
+local server's base URL; the client keeps it for the life of the page.
+
+```ts
+import {DataClient} from "@photino-net-utils/bridge";
+
+const data = new DataClient({baseMessage: "app.data"});
+
+const page = await data.readBlock("/files?from=0&count=200");
+const bytes = await data.bytes("/image/42");
+const url = await data.image("/image/42"); // for <img src={url}/>
+```
+
+`readBlock` decodes `DataBlock`: text and number columns plus metadata. `decodeDataBlock` and
+`readDataBlock` are exported for callers that already have the `ArrayBuffer` or the base URL.
+
 ## Markdown
 
 `Markdown` renders a GitHub release body, or any other Markdown, as HTML. The result is sanitized

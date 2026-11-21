@@ -49,6 +49,21 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+function Update-LockIntegrity([string]$LockPath, [string]$Package, [string]$Integrity) {
+    if (-not (Test-Path $LockPath)) { return }
+
+    $text = Get-Content $LockPath -Raw
+    $pattern = '("node_modules/' + [regex]::Escape($Package) + '"\s*:\s*\{[^{}]*?"integrity"\s*:\s*")[^"]+(")'
+    $updated = [regex]::Replace($text, $pattern, { param($match) $match.Groups[1].Value + $Integrity + $match.Groups[2].Value })
+
+    if ($updated -ne $text) { Set-Content -Path $LockPath -Value $updated -NoNewline }
+}
+
+function Tarball-Integrity([string]$Path) {
+    $hash = [Security.Cryptography.SHA512]::HashData([IO.File]::ReadAllBytes($Path))
+    return 'sha512-' + [Convert]::ToBase64String($hash)
+}
+
 $root = $PSScriptRoot
 $project = Join-Path $root 'PhotinoNETUtils\PhotinoNETUtils.csproj'
 $ui = Join-Path $root 'UserInterface'
@@ -143,6 +158,9 @@ if (-not $SkipNpm) {
 if (-not (Test-Path $tgz)) { throw "npm tarball not found: $tgz" }
 if (-not (Test-Path $siteTgz)) { throw "npm tarball not found: $siteTgz" }
 
+$tgzIntegrity = Tarball-Integrity $tgz
+$siteTgzIntegrity = Tarball-Integrity $siteTgz
+
 foreach ($target in $targets) {
     if (-not (Test-Path $target.Path)) {
         Write-Warning "Skipping $($target.Name): $($target.Path) does not exist"
@@ -190,13 +208,15 @@ foreach ($target in $targets) {
         & node $setDependency $appManifest $libDirectory $tgzName
         if ($LASTEXITCODE -ne 0) { throw "Could not update $appManifest" }
 
+        Update-LockIntegrity (Join-Path $appUi 'package-lock.json') '@photino-net-utils/bridge' $tgzIntegrity
+
         if (-not $SkipTargetInstall) {
             $installed = Join-Path $appUi 'node_modules\@photino-net-utils\bridge'
             if (Test-Path $installed) { Remove-Item -Recurse -Force $installed }
 
             Write-Host "Installing the shared bridge in $appUi..." -ForegroundColor Cyan
             Push-Location $appUi
-            try { npm install --no-audit --no-fund } finally { Pop-Location }
+            try { npm install --force --no-audit --no-fund } finally { Pop-Location }
             if ($LASTEXITCODE -ne 0) { throw "npm install failed in $appUi" }
         }
     }
@@ -214,13 +234,15 @@ foreach ($target in $targets) {
         & node $setDependency $appSiteManifest $libDirectory $siteTgzName '@photino-net-utils/site'
         if ($LASTEXITCODE -ne 0) { throw "Could not update $appSiteManifest" }
 
+        Update-LockIntegrity (Join-Path $appSite 'package-lock.json') '@photino-net-utils/site' $siteTgzIntegrity
+
         if (-not $SkipTargetInstall) {
             $installedSite = Join-Path $appSite 'node_modules\@photino-net-utils\site'
             if (Test-Path $installedSite) { Remove-Item -Recurse -Force $installedSite }
 
             Write-Host "Installing the shared site in $appSite..." -ForegroundColor Cyan
             Push-Location $appSite
-            try { npm install --no-audit --no-fund } finally { Pop-Location }
+            try { npm install --force --no-audit --no-fund } finally { Pop-Location }
             if ($LASTEXITCODE -ne 0) { throw "npm install failed in $appSite" }
         }
     }

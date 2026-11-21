@@ -11,6 +11,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `Hosting/StaticServer`    | Kestrel static file host on an OS-assigned port (`127.0.0.1:0`), serving `Resources/wwwroot` from embedded resources with disk overrides                                                                                                                                                                                                       |
 | `Hosting/WebViewCache`    | Drops the web view's data folder when a different build filled it, so an upgrade cannot keep serving the old interface from the cache                                                                                                                                                                                                          |
 | `Hosting/WebViewEvents`   | Queues events until the page reports `app.ready`, and answers the standard `window.*` commands from the bridge                                                                                                                                                                                                                                 |
+| `Hosting/DataBlock`       | Binary table blocks for list pages, paged by row count, plus `BinaryContent` for images and files with ETag, cache and range headers                                                                                                                                                                                                            |
 | `Interop`                 | `ITrayIcon` / `TrayIconFactory` with Win32 and libayatana-appindicator implementations, plus the Win32 P/Invoke set                                                                                                                                                                                                                            |
 | `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build), window chrome (drag, resize, maximize, frameless title bar on both platforms) and `SystemLauncher` for handing a URL or folder to the system |
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                                                                                                                                                            |
@@ -581,6 +582,58 @@ var portable = new SqliteDatabase(folderIndexPath, new SqliteDatabaseOptions
 
 That keeps the whole database in one file, rather than leaving recent writes in a `-wal` that a copy
 of the folder would miss.
+
+### Binary tables and media
+
+`DataBlock` is the table format for lists that are too large to justify one JSON object per row. It
+is a header, column names, rows and one UTF-8 pool; the page reads numbers in place and decodes only
+the strings it draws.
+
+```csharp
+using PhotinoNetUtils.Hosting;
+
+var block = new DataBlock(kind: 1)
+    .Text("name")
+    .Text("path")
+    .Number("size")
+    .Number("modified")
+    .Meta("total", "…");
+
+foreach (var file in files)
+    block.Row([file.Name, file.Path], file.Size, file.Modified);
+
+app.MapGet($"/data/{token}/files", () => DataBlockResults.Block(block, from, count));
+```
+
+`DataBlockResults.Block` sends the page and puts the whole list's row count in `X-Data-Total`.
+`BinaryContent.Bytes` and `BinaryContent.File` send images or other bytes with an ETag,
+`Cache-Control` and, for files, range requests:
+
+```csharp
+app.MapGet($"/data/{token}/image/{{id}}", (string id) =>
+{
+    var file = Resolve(id);
+    return BinaryContent.File(file, "image/png",
+        lastModified: File.GetLastWriteTimeUtc(file),
+        maxAge: TimeSpan.FromMinutes(10));
+});
+```
+
+The shared front-end package mirrors this. A `DataClient` asks the app once for its data base URL,
+then reads blocks or raw bytes:
+
+```ts
+import {DataClient} from "@photino-net-utils/bridge";
+
+const data = new DataClient({baseMessage: "app.data"});
+
+const page = await data.readBlock("/files?from=0&count=200");
+const png = await data.bytes("/image/42");
+const imageUrl = await data.image("/image/42");
+```
+
+`decodeDataBlock` and `readDataBlock` are exported for callers that already own the `ArrayBuffer` or
+the base URL.
 
 ### Source generators
 
