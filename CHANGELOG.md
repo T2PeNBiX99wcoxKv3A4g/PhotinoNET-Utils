@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.41.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.40.0..v0.41.0) - 2026-11-21
+
+### ⛰️  Features
+
+- *(site)* Start in the browser's language when none was picked - ([0b85ee1](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/0b85ee12e78d41959c6045935d0465e0f2e0cfc8))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([4b4b691](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/4b4b6917d55bac6796459d528bf271bf15351ac2))
+
+
 ## [0.40.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.39.1..v0.40.0) - 2026-11-20
 
 ### ⛰️  Features
