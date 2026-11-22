@@ -41,8 +41,10 @@ const bytes = await data.bytes("/image/42");
 const url = await data.image("/image/42"); // for <img src={url}/>
 ```
 
-`readBlock` decodes `DataBlock`: text and number columns plus metadata. `decodeDataBlock` and
-`readDataBlock` are exported for callers that already have the `ArrayBuffer` or the base URL.
+`readBlock` decodes `DataBlock`: text and number columns plus metadata. Large blocks are decoded
+asynchronously in chunks, so the frame is not held while thousands of rows are built.
+`decodeDataBlock` and `readDataBlock` are exported for callers that already have the `ArrayBuffer`
+or the base URL.
 
 ## Logging
 

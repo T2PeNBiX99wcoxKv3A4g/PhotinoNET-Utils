@@ -91,7 +91,7 @@ export class DataClient {
         const response = await fetch(this.join(base, path), this.request(init));
         if (!response.ok) throw new Error(`The data request failed (${response.status}).`);
 
-        const block = decodeDataBlock(await response.arrayBuffer());
+        const block = await decodeDataBlockAsync(await response.arrayBuffer());
         const total = Number(response.headers.get("x-data-total") ?? "");
 
         if (Number.isFinite(total) && total >= block.count) block.total = total;
@@ -141,6 +141,50 @@ export class DataClient {
 
 /** Reads the block itself, for a caller that already has the bytes. */
 export function decodeDataBlock(buffer: ArrayBuffer): DataBlock {
+    const header = readHeader(buffer);
+    const rows = new Array<Record<string, string | number>>(header.count);
+
+    for (const [index, values] of dataRows(header))
+        rows[index] = values;
+
+    return finishBlock(header, rows);
+}
+
+/**
+ * The asynchronous form yields to the event loop while decoding a large block, so a recycle bin or
+ * a batch result does not hold the frame while thousands of rows are built.
+ */
+export async function decodeDataBlockAsync(buffer: ArrayBuffer): Promise<DataBlock> {
+    const header = readHeader(buffer);
+    const rows = new Array<Record<string, string | number>>(header.count);
+    let sinceYield = 0;
+
+    for (const [index, values] of dataRows(header)) {
+        rows[index] = values;
+
+        if (header.count < 2048 || ++sinceYield < 2048)
+            continue;
+
+        sinceYield = 0;
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    }
+
+    return finishBlock(header, rows);
+}
+
+interface DataHeader {
+    view: DataView;
+    kind: number;
+    count: number;
+    textColumns: number;
+    numberColumns: number;
+    names: string[];
+    meta: Record<string, string>;
+    pool: Uint8Array;
+    at: number;
+}
+
+function readHeader(buffer: ArrayBuffer): DataHeader {
     const view = new DataView(buffer);
 
     if (buffer.byteLength < DataHeaderSize || view.getUint32(0, true) !== DataMagic)
@@ -175,13 +219,27 @@ export function decodeDataBlock(buffer: ArrayBuffer): DataBlock {
         meta[key] = read();
     }
 
-    const pool = new Uint8Array(buffer, buffer.byteLength - poolBytes, poolBytes);
+    return {
+        view,
+        kind,
+        count,
+        textColumns,
+        numberColumns,
+        names,
+        meta,
+        pool: new Uint8Array(buffer, buffer.byteLength - poolBytes, poolBytes),
+        at,
+    };
+}
+
+function* dataRows(header: DataHeader): Generator<[number, Record<string, string | number>]> {
+    const {view, names, textColumns, numberColumns, pool} = header;
+    let at = header.at;
+
     const string = (offset: number, length: number) =>
         Utf8.decode(pool.subarray(offset, offset + length));
 
-    const rows = new Array<Record<string, string | number>>(count);
-
-    for (let row = 0; row < count; row++) {
+    for (let row = 0; row < header.count; row++) {
         const values: Record<string, string | number> = {};
 
         for (let column = 0; column < textColumns; column++) {
@@ -194,19 +252,21 @@ export function decodeDataBlock(buffer: ArrayBuffer): DataBlock {
             at += 8;
         }
 
-        rows[row] = values;
+        yield [row, values];
     }
+}
 
+function finishBlock(header: DataHeader, rows: Record<string, string | number>[]): DataBlock {
     return {
-        kind,
-        meta,
+        kind: header.kind,
+        meta: header.meta,
         columns: {
-            text: names.slice(0, textColumns),
-            number: names.slice(textColumns),
+            text: header.names.slice(0, header.textColumns),
+            number: header.names.slice(header.textColumns),
         },
         rows,
-        count,
-        total: count,
+        count: header.count,
+        total: header.count,
     };
 }
 
@@ -219,7 +279,7 @@ export async function readDataBlock(base: string, path: string, init?: RequestIn
 
     if (!response.ok) throw new Error(`The data request failed (${response.status}).`);
 
-    const block = decodeDataBlock(await response.arrayBuffer());
+    const block = await decodeDataBlockAsync(await response.arrayBuffer());
     const total = Number(response.headers.get("x-data-total") ?? "");
 
     if (Number.isFinite(total) && total >= block.count) block.total = total;

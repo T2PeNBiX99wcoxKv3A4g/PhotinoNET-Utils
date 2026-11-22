@@ -633,7 +633,8 @@ const imageUrl = await data.image("/image/42");
 ```
 
 `decodeDataBlock` and `readDataBlock` are exported for callers that already own the `ArrayBuffer` or
-the base URL.
+the base URL. `DataClient` uses `decodeDataBlockAsync`, which yields to the event loop while decoding
+a large block, so a long recycle bin or batch result does not hold the frame.
 
 ### Front-end logs
 

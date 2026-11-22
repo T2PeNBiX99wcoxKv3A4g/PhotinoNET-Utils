@@ -4,7 +4,7 @@ export type {NativeMessage} from "./Native";
 export {Log} from "./Log";
 export type {LogContext, Logger, LogLevel} from "./Log";
 
-export {DataClient, decodeDataBlock, fetchDataBytes, readDataBlock} from "./Data";
+export {DataClient, decodeDataBlock, decodeDataBlockAsync, fetchDataBytes, readDataBlock} from "./Data";
 export type {DataBlock, DataClientOptions} from "./Data";
 
 export {
