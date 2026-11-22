@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.44.3](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.44.2..v0.44.3) - 2026-11-22
+
+### ⚡ Performance
+
+- *(data)* Decode large blocks without holding the frame - ([b6db4e5](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/b6db4e512990788e8c3c48777ed8b72030c0c184))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([270d9d5](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/270d9d53f223424c5b59b7021258f0a5a29c8ec1))
+
+
 ## [0.44.2](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.44.1..v0.44.2) - 2026-11-21
 
 ### 🚜 Refactor

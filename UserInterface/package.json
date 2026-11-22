@@ -1,6 +1,6 @@
 {
   "name": "@photino-net-utils/bridge",
-  "version": "0.44.2",
+  "version": "0.44.3",
   "description": "Photino.NET window.external bridge shared by the desktop front-ends",
   "license": "MIT",
   "type": "module",
