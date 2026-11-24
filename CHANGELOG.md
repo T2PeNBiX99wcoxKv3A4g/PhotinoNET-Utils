@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.45.0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.44.3..v0.45.0) - 2026-11-24
+
+### ⛰️  Features
+
+- *(settings)* Answer settings.reset and settings.defaults from the base - ([2f4a253](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/2f4a2536457ff639cd324036f04d2d587d20f73a))
+
+### 🐛 Bug Fixes
+
+- *(data)* Refuse a text cell a block row cannot hold - ([49e49e0](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/49e49e091f7abde0f5e65d21b4ded5affe32e20e))
+
+### 📚 Documentation
+
+- *(localization)* List the keys the library looks up itself - ([b485894](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/b48589455861e6882e55418296900568fe93670e))
+- *(settings)* Document reset and defaults beside the shared base - ([32479af](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/32479af0119a59648206a083979e408017f9c162))
+
+### Action
+
+- Update version and update `CHANGELOG.md` - ([82b1d51](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/commit/82b1d517b2507221774b322438f7aff7389c6f7e))
+
+
 ## [0.44.3](https://github.com/T2PeNBiX99wcoxKv3A4g/PhotinoNET-Utils/compare/v0.44.2..v0.44.3) - 2026-11-22
 
 ### ⚡ Performance
