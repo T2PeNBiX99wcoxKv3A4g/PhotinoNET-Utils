@@ -7,8 +7,10 @@ using Serilog;
 namespace PhotinoNetUtils.Services;
 
 /// <summary>
-///     Owns one settings model and answers the standard <c>settings.get</c> / <c>settings.save</c>
-///     messages, so an app only supplies the payload, its validation and its side effects.
+///     Owns one settings model and answers the standard <c>settings.get</c>, <c>settings.save</c>,
+///     <c>settings.reset</c> and <c>settings.defaults</c> messages, so an app only supplies the
+///     payload, its validation and its side effects. Because the defaults live in the model and the
+///     store owns them, the interface never needs its own copy of those values.
 /// </summary>
 /// <remarks>
 ///     <typeparamref name="TSelf" /> is the concrete service, which lets the base expose
@@ -91,7 +93,7 @@ public abstract class SettingsServiceBase<TSelf, T, TPayload> : IDisposable
         {
             OnSaved(normalized);
             Changed?.Invoke(normalized);
-            _notify("settings.changed", Payload());
+            _notify("settings.changed", Payload(Current));
         }
 
         return saved;
@@ -104,8 +106,18 @@ public abstract class SettingsServiceBase<TSelf, T, TPayload> : IDisposable
     /// </summary>
     protected virtual T Merge(T settings) => settings;
 
-    /// <summary>The payload the interface reads and receives after a save.</summary>
-    protected abstract TPayload Payload();
+    /// <summary>The payload the interface reads, built for one settings value.</summary>
+    /// <remarks>
+    ///     It takes the value rather than reading <see cref="Current" /> so the same code can describe
+    ///     the defaults (<c>settings.defaults</c>) without swapping the live settings out.
+    /// </remarks>
+    protected abstract TPayload Payload(T settings);
+
+    /// <summary>
+    ///     The values a fresh install starts from. Override when they depend on the machine, such as
+    ///     the list of browsers that are installed right now.
+    /// </summary>
+    protected virtual T CreateDefaults() => _store.CreateDefaults();
 
     /// <summary>Applies defaults and ranges; runs on load and before a save.</summary>
     protected virtual T Normalize(T settings) => settings;
@@ -130,10 +142,23 @@ public abstract class SettingsServiceBase<TSelf, T, TPayload> : IDisposable
 
     private Task<NativeResponse?> HandleMessageAsync(NativeContext context) => context.Request.Type switch
     {
-        "settings.get" => Task.FromResult<NativeResponse?>(context.Reply("settings.get.result", Payload())),
+        "settings.get" => Task.FromResult<NativeResponse?>(context.Reply("settings.get.result", Payload(Current))),
         "settings.save" => SaveMessageAsync(context),
+        "settings.reset" => ResetMessageAsync(context),
+        "settings.defaults" => Task.FromResult<NativeResponse?>(context.Reply("settings.defaults.result", Defaults())),
         _ => HandleExtraAsync(context)
     };
+
+    /// <summary>The defaults in the shape the interface reads, normalized the way a real load is.</summary>
+    private TPayload Defaults() => Payload(NormalizeAll(CreateDefaults()));
+
+    /// <summary>Puts every setting back to the values a fresh install starts from.</summary>
+    private async Task<NativeResponse?> ResetMessageAsync(NativeContext context)
+    {
+        await SaveAsync(CreateDefaults());
+
+        return context.Reply("settings.reset.result", Payload(Current));
+    }
 
     private async Task<NativeResponse?> SaveMessageAsync(NativeContext context)
     {
@@ -145,6 +170,6 @@ public abstract class SettingsServiceBase<TSelf, T, TPayload> : IDisposable
             return context.Fail("settings.save.result", error);
 
         await SaveAsync(settings);
-        return context.Reply("settings.save.result", Payload());
+        return context.Reply("settings.save.result", Payload(Current));
     }
 }

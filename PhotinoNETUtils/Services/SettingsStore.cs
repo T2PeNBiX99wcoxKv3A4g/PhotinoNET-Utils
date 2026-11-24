@@ -23,6 +23,13 @@ public interface ISettingsStore<T> where T : class
 
     /// <summary>Writes the settings atomically; returns false when the write failed.</summary>
     Task<bool> SaveAsync(T settings, CancellationToken token = default);
+
+    /// <summary>
+    ///     A fresh copy of the values a missing file starts from. The copy matters: normalization
+    ///     writes into whatever it is given, so handing out the store's own instance would let a
+    ///     reset rewrite the defaults themselves.
+    /// </summary>
+    T CreateDefaults();
 }
 
 /// <summary>
@@ -107,6 +114,16 @@ public abstract class SettingsStore<T> : ISettingsStore<T> where T : class
 
         attempt.OnFailure(ex => Log.Warning(ex, "Failed to write {File}", FilePath));
         return attempt.IsSuccess;
+    }
+
+    public T CreateDefaults()
+    {
+        // Writing the defaults through the store's own format is the only copy that works for any
+        // model: it needs no clone support, and it is what a first run would have read back.
+        var copy = Try.Run(() => Deserialize(Serialize(_defaults)));
+
+        return copy.OnFailure(ex => Log.Warning(ex, "Could not copy the defaults of {File}", FilePath)).GetOrNull() ??
+               _defaults;
     }
 
     private T Complete(Result<string> text)

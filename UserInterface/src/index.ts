@@ -21,6 +21,9 @@ export type {I18nPayload, LocalizationKey, LocalizationKeys, Translate} from "./
 export {ResizeHandles, useWindowControls, useWindowCorners, useWindowDrag} from "./Window";
 export type {WindowControls} from "./Window";
 
+export {loadSettingDefaults, loadSettings, resetSettings, saveSettings} from "./Settings";
+export type {SettingsReply} from "./Settings";
+
 export {resolveTheme, systemPrefersDark, useTheme} from "./Theme";
 export type {ResolvedTheme, ThemeMode} from "./Theme";
 
