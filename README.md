@@ -871,12 +871,15 @@ read what it was given, so the app has to declare them in its default locale. No
 you — `PNU2101` only sees the app's own `Localization.Get` calls — and a missing one reaches the user
 as the key itself.
 
+Every lookup is case-insensitive, so the library's spelling does not have to match the file's. The
+generator only accepts lower-case keys (`[a-z0-9_.]`), which is why the table shows that form.
+
 | key | used by | when |
 | --- | --- | --- |
-| `error.invalidSettings` | `SettingsServiceBase` | a `settings.save` payload could not be read as the settings model |
-| `error.updateCheckFailed` | `UpdateService` | `update.check` could not read the release information |
+| `error.invalidsettings` | `SettingsServiceBase` | a `settings.save` payload could not be read as the settings model |
+| `error.updatecheckfailed` | `UpdateService` | `update.check` could not read the release information |
 | `error.unsupported` | `NativeBridge` | a message that expected a reply had no handler |
-| `error.invalidJson` | `NativeBridge` | a bridge message was not valid JSON; sent as the error of a reply with no id |
+| `error.invalidjson` | `NativeBridge` | a bridge message was not valid JSON; sent as the error of a reply with no id |
 
 The first two are looked up with `Localization.Get` before the reply leaves, so their text is already
 in the user's language. The two bridge ones are sent as the key itself, so the interface shows
@@ -884,10 +887,10 @@ in the user's language. The two bridge ones are sent as the key itself, so the i
 
 ```jsonc
 // Resources/i18n/en.jsonc - one line per key, in every locale the app ships
-"error.invalidSettings": "The settings could not be read - open the settings again.",
-"error.updateCheckFailed": "Could not check for updates.",
+"error.invalidsettings": "The settings could not be read - open the settings again.",
+"error.updatecheckfailed": "Could not check for updates.",
 "error.unsupported": "This action is not supported by the running version.",
-"error.invalidJson": "The app sent a message the host could not read."
+"error.invalidjson": "The app sent a message the host could not read."
 ```
 
 ### Front-end bridge
