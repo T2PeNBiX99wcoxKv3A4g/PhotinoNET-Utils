@@ -16,7 +16,7 @@ plain class library (`net11.0`) plus a small npm package for the front-end bridg
 | `Platform`                | Linux GTK helpers (hide/show/transparency/clipboard/log routing), Linux diagnostics, Windows shortcuts (`.lnk` creation, plus keeping Photino's Start Menu entry in step with the running build), window chrome (drag, resize, maximize, frameless title bar on both platforms) and `SystemLauncher` for handing a URL or folder to the system |
 | `Services/SingleInstance` | Lock-file single-instance guard plus named-pipe argument forwarding                                                                                                                                                                                                                                                                            |
 | `Data/SqliteDatabase`     | SQLite access with readers that never wait, one writer per database file, busy retry for another process and no separate lock file                                                                                                                                                                                                             |
-| `Services/SettingsStore`  | `ISettingsStore<T>`, JSON/TOML stores and `SettingsServiceBase<TSelf,TPayload>`: attribute comments, defaults, atomic writes and a one-time legacy move                                                                                                                                                                                        |
+| `Services/SettingsStore`  | `ISettingsStore<T>`, JSON/TOML stores and `SettingsServiceBase<TSelf,T,TPayload>`: attribute comments, defaults, atomic writes, `settings.get` / `save` / `reset` / `defaults` and a one-time legacy move                                                                                                                                      |
 | `Settings` / `Messaging`  | `[SettingsModel]` / `[Setting]` metadata and the `[NativeMessage]` dispatcher generator                                                                                                                                                                                                                                                        |
 | `CodeGen`                 | Small CLI that turns a `[SettingsModel]` file into a TypeScript interface and JSON schema                                                                                                                                                                                                                                                      |
 | `Services/StartupService` | Answers `app.startup` / `app.setStartup` and keeps the platform autostart entry in step                                                                                                                                                                                                                                                        |
@@ -512,7 +512,9 @@ await SettingsService.Instance.LoadAsync();
 `Payload` takes the settings value rather than reading `Current`, so the same code describes
 `settings.defaults` without swapping the live settings out. `CreateDefaults` copies the store's
 defaults; `settings.reset` saves that copy through the normal save path, so `Changed` and
-`settings.changed` fire exactly as they do for a save.
+`settings.changed` fire exactly as they do for a save. A save whose payload cannot be read as the
+model fails with `error.invalidSettings`, which the app declares in its locale files (see
+[Localization](#localization)).
 
 `Instance` is created on first use, like `Singleton<T>`. The constructor has to be public for the
 `new()` constraint, so the base also rejects a second instance: `new SettingsService()` throws and
@@ -863,6 +865,30 @@ locale, so the missing text falls back to English, and a key no locale defines i
 `PNU2104` warns when one locale lacks a key another declares, and the loader logs one warning per
 locale that falls back (plus one per key that no locale defines), so a half-translated language is
 visible without opening the UI.
+
+Some keys are the library's rather than the app's: a standard message uses one of these when it cannot
+read what it was given, so the app has to declare them in its default locale. Nothing checks them for
+you — `PNU2101` only sees the app's own `Localization.Get` calls — and a missing one reaches the user
+as the key itself.
+
+| key | used by | when |
+| --- | --- | --- |
+| `error.invalidSettings` | `SettingsServiceBase` | a `settings.save` payload could not be read as the settings model |
+| `error.updateCheckFailed` | `UpdateService` | `update.check` could not read the release information |
+| `error.unsupported` | `NativeBridge` | a message that expected a reply had no handler |
+| `error.invalidJson` | `NativeBridge` | a bridge message was not valid JSON; sent as the error of a reply with no id |
+
+The first two are looked up with `Localization.Get` before the reply leaves, so their text is already
+in the user's language. The two bridge ones are sent as the key itself, so the interface shows
+`error.unsupported` unless it translates the error text it received.
+
+```jsonc
+// Resources/i18n/en.jsonc - one line per key, in every locale the app ships
+"error.invalidSettings": "The settings could not be read - open the settings again.",
+"error.updateCheckFailed": "Could not check for updates.",
+"error.unsupported": "This action is not supported by the running version.",
+"error.invalidJson": "The app sent a message the host could not read."
+```
 
 ### Front-end bridge
 
