@@ -46,6 +46,28 @@ asynchronously in chunks, so the frame is not held while thousands of rows are b
 `decodeDataBlock` and `readDataBlock` are exported for callers that already have the `ArrayBuffer`
 or the base URL.
 
+## Settings
+
+The four standard settings messages, so an app does not repeat the same `Native.request` calls:
+
+```ts
+import {
+    loadSettings,
+    loadSettingsDefaults,
+    resetSettings,
+    saveSettings,
+} from "@photino-net-utils/bridge";
+
+const current = await loadSettings<SettingsView>();
+const stored = await saveSettings<SettingsView>(changes);
+const restored = await resetSettings<SettingsView>();
+const defaults = await loadSettingsDefaults<AppSettings>(); // asked once and remembered
+```
+
+The host fills in the defaults and the ranges, so the interface keeps no copy of either: a section's
+reset merges only the keys it owns from `loadSettingsDefaults`. Every call rejects when the page runs
+without the host (`npm run dev` in a plain browser), so a development build keeps its own placeholder.
+
 ## Logging
 
 `Log` sends lines to the host's Serilog pipeline. In a browser it writes to the console instead.

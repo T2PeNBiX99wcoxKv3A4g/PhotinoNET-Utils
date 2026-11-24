@@ -1,8 +1,8 @@
 import {Native} from "./Native";
 
 /**
- * What every settings message answers with: the settings as the host keeps them, and the file they
- * live in. An app that adds anything of its own (bounds, capabilities) passes its own reply type.
+ * The usual reply shape of a settings message: the settings as the host keeps them, and the file
+ * they live in. An app that adds anything of its own (bounds, capabilities) passes its own type.
  */
 export interface SettingsReply<TSettings = unknown> {
     settings: TSettings;
@@ -11,7 +11,8 @@ export interface SettingsReply<TSettings = unknown> {
 
 /**
  * Loads the settings. The host has already applied the model's defaults and ranges, so the interface
- * has nothing to fill in or clamp by itself.
+ * has nothing to fill in or clamp by itself. Without the host, such as `npm run dev` in a plain
+ * browser, the request rejects, so a development build keeps its own placeholder.
  */
 export async function loadSettings<TReply = SettingsReply>(): Promise<TReply> {
     return await Native.request<TReply>("settings.get");
@@ -33,7 +34,7 @@ let defaults: Promise<unknown> | null = null;
  * The values a fresh install starts from, asked for once and remembered. A section's reset only has
  * to merge the keys it owns, so the interface needs no copy of any default at all.
  */
-export function loadSettingDefaults<T = unknown>(): Promise<T> {
+export function loadSettingsDefaults<T = unknown>(): Promise<T> {
     // A failed request must not be remembered, or every later caller inherits the same rejection.
     defaults ??= Native.request<T>("settings.defaults").catch((error: unknown) => {
         defaults = null;

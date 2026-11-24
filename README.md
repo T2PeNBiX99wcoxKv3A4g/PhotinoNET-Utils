@@ -489,9 +489,9 @@ await store.SaveAsync(settings);
 `[Setting("text")]` is shorthand for `[Setting(Comment = "text")]`. The generator and the TypeScript
 CLI both accept either spelling, and neither cares how the attribute is laid out.
 
-`SettingsServiceBase<TSelf, T, TPayload>` answers `settings.get` / `settings.save`, raises `Changed`
-and owns the process-wide `Instance`; the app only supplies the payload, its validation and its side
-effects:
+`SettingsServiceBase<TSelf, T, TPayload>` answers `settings.get`, `settings.save`, `settings.reset`
+and `settings.defaults`, raises `Changed` and owns the process-wide `Instance`; the app only supplies
+the payload, its defaults, its validation and its side effects:
 
 ```csharp
 internal sealed class SettingsService
@@ -499,7 +499,8 @@ internal sealed class SettingsService
 {
     public SettingsService() : base(store) { }
 
-    protected override SettingsPayload Payload() => ...;
+    protected override SettingsPayload Payload(MySettings settings) => ...;
+    protected override MySettings CreateDefaults() => ...; // only when they depend on the machine
     protected override MySettings Normalize(MySettings settings) => settings with { ... };
     protected override string? Validate(MySettings settings) => ...;
     protected override void OnSaved(MySettings settings) { ... }
@@ -507,6 +508,11 @@ internal sealed class SettingsService
 
 await SettingsService.Instance.LoadAsync();
 ```
+
+`Payload` takes the settings value rather than reading `Current`, so the same code describes
+`settings.defaults` without swapping the live settings out. `CreateDefaults` copies the store's
+defaults; `settings.reset` saves that copy through the normal save path, so `Changed` and
+`settings.changed` fire exactly as they do for a save.
 
 `Instance` is created on first use, like `Singleton<T>`. The constructor has to be public for the
 `new()` constraint, so the base also rejects a second instance: `new SettingsService()` throws and
