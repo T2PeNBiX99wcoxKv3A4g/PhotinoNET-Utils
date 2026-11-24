@@ -106,6 +106,13 @@ public sealed class DataBlock(ushort kind)
             for (var column = 0; column < _textNames.Count; column++)
             {
                 var bytes = Encoding.UTF8.GetBytes(row[column]);
+
+                // The cell length is a u16, so a longer value would be written truncated and the
+                // reader would cut the string at a length the pool never had.
+                if (bytes.Length > ushort.MaxValue)
+                    throw new InvalidOperationException(
+                        $"The {_textNames[column]} cell is longer than the 64 KiB a block row holds.");
+
                 offsets[index][column] = pool.Count;
                 lengths[index][column] = bytes.Length;
                 pool.AddRange(bytes);
